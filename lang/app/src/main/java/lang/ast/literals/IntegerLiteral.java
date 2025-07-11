@@ -1,5 +1,6 @@
 package lang.ast.literals;
 
+import lang.ast.visitor.AstVisitor;
 import lang.ast.base.Expression;
 import lang.token.Token;
 
@@ -22,4 +23,10 @@ public class IntegerLiteral extends Expression {
     public String toString() {
         return String.valueOf(value);
     }
+
+    @Override
+    public <T> T accept(AstVisitor<T> visitor) {
+        return visitor.visitIntegerLiteral(this);
+    }
+
 }

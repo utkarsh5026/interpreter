@@ -1,6 +1,7 @@
 package lang.ast.base;
 
 import lang.token.TokenPosition;
+import lang.ast.visitor.AstVisitor;
 
 /**
  * 🌳 Node - The Building Block of Code Trees 🌳
@@ -62,4 +63,11 @@ public interface Node {
      * @return Position information (line and column numbers) 📍
      */
     TokenPosition position();
+
+    /**
+     * Accept method for the Visitor pattern.
+     * This allows us to perform operations on AST nodes without
+     * modifying the node classes themselves.
+     */
+    <T> T accept(AstVisitor<T> visitor);
 }

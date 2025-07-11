@@ -3,6 +3,7 @@ package lang.ast.statements;
 import lang.ast.base.Statement;
 import lang.ast.base.Expression;
 import lang.token.Token;
+import lang.ast.visitor.AstVisitor;
 
 /**
  * Represents a for statement: for (init; condition; update) { body }
@@ -45,6 +46,11 @@ public class ForStatement extends Statement {
                 condition.toString(),
                 increment.toString(),
                 body.toString());
+    }
+
+    @Override
+    public <T> T accept(AstVisitor<T> visitor) {
+        return visitor.visitForStatement(this);
     }
 
 }

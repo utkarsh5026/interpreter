@@ -2,6 +2,7 @@ package lang.ast.statements;
 
 import lang.ast.base.Statement;
 import lang.token.Token;
+import lang.ast.visitor.AstVisitor;
 
 public class BreakStatement extends Statement {
 
@@ -14,4 +15,8 @@ public class BreakStatement extends Statement {
         return "break;";
     }
 
+    @Override
+    public <T> T accept(AstVisitor<T> visitor) {
+        return visitor.visitBreakStatement(this);
+    }
 }

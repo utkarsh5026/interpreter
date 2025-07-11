@@ -4,6 +4,7 @@ import lang.ast.base.Statement;
 import lang.ast.base.Expression;
 import lang.ast.base.Identifier;
 import lang.token.Token;
+import lang.ast.visitor.AstVisitor;
 
 /**
  * Represents a const statement: const x = 5;
@@ -31,5 +32,10 @@ public class ConstStatement extends Statement {
         return String.format("const %s = %s;",
                 name.toString(),
                 value.toString());
+    }
+
+    @Override
+    public <T> T accept(AstVisitor<T> visitor) {
+        return visitor.visitConstStatement(this);
     }
 }

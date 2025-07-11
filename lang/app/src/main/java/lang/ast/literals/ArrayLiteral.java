@@ -1,5 +1,6 @@
 package lang.ast.literals;
 
+import lang.ast.visitor.AstVisitor;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -30,5 +31,10 @@ public class ArrayLiteral extends Expression {
                 .collect(Collectors.joining(", "));
 
         return String.format("[%s]", elementsStr);
+    }
+
+    @Override
+    public <T> T accept(AstVisitor<T> visitor) {
+        return visitor.visitArrayLiteral(this);
     }
 }

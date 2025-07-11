@@ -2,6 +2,7 @@ package lang.ast.literals;
 
 import lang.ast.base.Expression;
 import lang.token.Token;
+import lang.ast.visitor.AstVisitor;
 
 /**
  * Represents an f-string literal: f"Hello {name}!"
@@ -22,6 +23,11 @@ public class FStringLiteral extends Expression {
     @Override
     public String toString() {
         return tokenLiteral();
+    }
+
+    @Override
+    public <T> T accept(AstVisitor<T> visitor) {
+        return visitor.visitFStringLiteral(this);
     }
 
 }

@@ -4,6 +4,7 @@ import lang.ast.base.Statement;
 import lang.ast.base.Expression;
 import lang.ast.base.Identifier;
 import lang.token.Token;
+import lang.ast.visitor.AstVisitor;
 
 /**
  * Represents a let statement: let x = 5;
@@ -34,4 +35,8 @@ public class LetStatement extends Statement {
                 value.toString());
     }
 
+    @Override
+    public <T> T accept(AstVisitor<T> visitor) {
+        return visitor.visitLetStatement(this);
+    }
 }

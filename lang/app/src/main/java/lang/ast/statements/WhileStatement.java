@@ -3,6 +3,7 @@ package lang.ast.statements;
 import lang.ast.base.Statement;
 import lang.ast.base.Expression;
 import lang.token.Token;
+import lang.ast.visitor.AstVisitor;
 
 public class WhileStatement extends Statement {
     private final Expression condition;
@@ -33,5 +34,10 @@ public class WhileStatement extends Statement {
 
         sb.append("\n}");
         return sb.toString();
+    }
+
+    @Override
+    public <T> T accept(AstVisitor<T> visitor) {
+        return visitor.visitWhileStatement(this);
     }
 }

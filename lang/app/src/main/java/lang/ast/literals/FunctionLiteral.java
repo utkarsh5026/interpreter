@@ -10,6 +10,7 @@ import lang.ast.base.Statement;
 import lang.ast.base.Identifier;
 import lang.ast.statements.BlockStatement;
 import lang.token.Token;
+import lang.ast.visitor.AstVisitor;
 
 /**
  * Represents a function literal: fn(param1, param2) { body }
@@ -48,4 +49,10 @@ public class FunctionLiteral extends Expression {
 
         return String.format("%s { \n%s\n}", getFunctionSignature(), statements);
     }
+
+    @Override
+    public <T> T accept(AstVisitor<T> visitor) {
+        return visitor.visitFunctionLiteral(this);
+    }
+
 }

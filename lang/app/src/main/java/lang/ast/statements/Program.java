@@ -3,6 +3,7 @@ package lang.ast.statements;
 import lang.ast.base.Node;
 import lang.ast.base.Statement;
 import lang.token.TokenPosition;
+import lang.ast.visitor.AstVisitor;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -170,5 +171,10 @@ public class Program implements Node {
             return statements.get(0).position();
         }
         return new TokenPosition(1, 1);
+    }
+
+    @Override
+    public <T> T accept(AstVisitor<T> visitor) {
+        return visitor.visitProgram(this);
     }
 }

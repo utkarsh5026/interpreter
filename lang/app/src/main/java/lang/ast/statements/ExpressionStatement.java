@@ -3,6 +3,7 @@ package lang.ast.statements;
 import lang.ast.base.Statement;
 import lang.ast.base.Expression;
 import lang.token.Token;
+import lang.ast.visitor.AstVisitor;
 
 /**
  * Represents an expression statement: 5 + 3;
@@ -23,6 +24,11 @@ public class ExpressionStatement extends Statement {
     @Override
     public String toString() {
         return expression.toString();
+    }
+
+    @Override
+    public <T> T accept(AstVisitor<T> visitor) {
+        return visitor.visitExpressionStatement(this);
     }
 
 }

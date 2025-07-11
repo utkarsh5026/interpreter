@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import lang.ast.base.Expression;
 import lang.token.Token;
+import lang.ast.visitor.AstVisitor;
 
 /**
  * Represents a hash literal: {"key": "value", "num": 42}
@@ -33,6 +34,11 @@ public class HashLiteral extends Expression {
                 .collect(Collectors.joining(", "));
 
         return String.format("{%s}", pairsStr);
+    }
+
+    @Override
+    public <T> T accept(AstVisitor<T> visitor) {
+        return visitor.visitHashLiteral(this);
     }
 
 }

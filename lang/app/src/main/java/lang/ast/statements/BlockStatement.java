@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import lang.ast.base.Statement;
+import lang.ast.visitor.AstVisitor;
 import lang.token.Token;
 
 public class BlockStatement extends Statement {
@@ -25,5 +26,10 @@ public class BlockStatement extends Statement {
         return statements.stream()
                 .map(Statement::toString)
                 .collect(Collectors.joining(""));
+    }
+
+    @Override
+    public <T> T accept(AstVisitor<T> visitor) {
+        return visitor.visitBlockStatement(this);
     }
 }

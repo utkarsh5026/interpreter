@@ -18,28 +18,6 @@ import lang.token.TokenType;
  * - 📊 Operator precedence rules (math order of operations)
  * - 🔄 Loop depth tracking (for break/continue validation)
  * 
- * Like a skilled conductor orchestrating a symphony:
- * - Keeps track of where we are in the music (tokens) 🎼
- * - Notes any mistakes (errors) 📝
- * - Knows the rules of harmony (precedence) 🎵
- * - Manages nested sections (loops) 🔄
- * 
- * Example usage:
- * ```
- * ParsingContext context = new ParsingContext(lexer);
- * 
- * // Parse tokens
- * if (context.getTokens().isCurrentToken(TokenType.WHILE)) {
- * context.enterLoop(); // Track that we're in a loop
- * parseWhileStatement();
- * context.exitLoop();
- * }
- * 
- * // Check for problems
- * if (context.getErrors().hasErrors()) {
- * context.getErrors().printErrors();
- * }
- * ```
  */
 public class ParsingContext {
     private final TokenStream tokens; // 🌊 Token navigation manager
@@ -51,7 +29,6 @@ public class ParsingContext {
      * 🏗️ Creates a new parsing context from a lexer
      * 
      * Sets up the complete parsing environment with all necessary components.
-     * Like setting up a fully equipped workshop before starting a project! 🛠️🏭
      * 
      * @param lexer The lexer that will provide tokens for parsing 🔍
      */
@@ -65,8 +42,6 @@ public class ParsingContext {
      * 🌊 Gets the token stream manager
      * 
      * Returns the TokenStream that handles token navigation and consumption.
-     * Like getting access to the conveyor belt that feeds tokens to the parser!
-     * 🏭➡️
      * 
      * Use this to:
      * - Check current and upcoming tokens 👀
@@ -83,12 +58,6 @@ public class ParsingContext {
      * 🚨 Gets the error reporter
      * 
      * Returns the ErrorReporter that collects all parsing problems.
-     * Like getting access to the complaint department! 📋🚨
-     * 
-     * Use this to:
-     * - Check if any errors occurred ❓
-     * - Get detailed error information 📋
-     * - Print error reports 🖨️
      * 
      * @return The ErrorReporter for error management 🚨
      */

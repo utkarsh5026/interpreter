@@ -43,7 +43,7 @@ public class PrecedenceTable {
      * Each precedence level has a numeric value and can be compared to others.
      * This makes it easy to determine which operators should be evaluated first!
      */
-    enum Precedence {
+    public static enum Precedence {
         LOWEST(1), // 🔽 Default/unknown operators
         LOGICAL_OR(2), // 🔗 || - Logical OR
         LOGICAL_AND(3), // 🔗 && - Logical AND

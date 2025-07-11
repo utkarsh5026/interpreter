@@ -1,5 +1,8 @@
 package lang.lexer;
 
+import java.util.Set;
+import java.util.Stack;
+
 import lang.token.Token;
 import lang.token.TokenPosition;
 import lang.token.TokenType;
@@ -15,10 +18,11 @@ import lang.token.Keywords;
  */
 public final class Lexer {
 
+    private Stack<LineColumn> positionHistory;
     private final String input;
-    private int position = 0;
-    private int readPosition = 0;
-    private char currentChar = ' ';
+    private int currentPosition;
+    private int nextPosition;
+    private char currentCharacter = ' ';
     private LineColumn lineColumn;
 
     private static final char EOF = '\0';
@@ -29,49 +33,7 @@ public final class Lexer {
      * Keeps track of where we are in the text file (line and column numbers).
      * Like GPS coordinates for your code! 🗺️
      */
-    private class LineColumn {
-        private int line;
-        private int column;
-
-        /**
-         * 🏗️ Creates a new position tracker
-         * 
-         * @param line   The line number (starts at 1) 📏
-         * @param column The column number (starts at 0) ➡️
-         */
-        public LineColumn(int line, int column) {
-            this.line = line;
-            this.column = column;
-        }
-
-        /**
-         * 📏 Gets the current line number
-         * 
-         * @return The line number we're currently reading 🔢
-         */
-        public int getLine() {
-            return this.line;
-        }
-
-        /**
-         * ➡️ Gets the current column number
-         * 
-         * @return The column position in the current line 🔢
-         */
-        public int getColumn() {
-            return this.column;
-        }
-
-        /**
-         * 🎯 Updates our position in the text
-         * 
-         * @param line   New line number 📏
-         * @param column New column number ➡️
-         */
-        public void set(int line, int column) {
-            this.line = line;
-            this.column = column;
-        }
+    private static record LineColumn(int line, int column) {
     }
 
     /**
@@ -85,7 +47,8 @@ public final class Lexer {
     public Lexer(String input) {
         this.input = input;
         this.lineColumn = new LineColumn(1, 0);
-        this.readCurrChar();
+        this.positionHistory = new Stack<>();
+        this.advanceToNextCharacter();
     }
 
     /**
@@ -94,7 +57,7 @@ public final class Lexer {
      * @return The current character under our "reading cursor" 🔤
      */
     public char getCurrentChar() {
-        return this.currentChar;
+        return this.currentCharacter;
     }
 
     /**
@@ -104,11 +67,12 @@ public final class Lexer {
      * Useful when you want to scan the same text again.
      */
     public void reset() {
-        this.position = 0;
-        this.readPosition = 0;
-        this.currentChar = ' ';
+        this.currentPosition = 0;
+        this.nextPosition = 0;
+        this.currentCharacter = EOF;
         this.lineColumn = new LineColumn(1, 0);
-        this.readCurrChar();
+        this.advanceToNextCharacter();
+        this.positionHistory.clear();
     }
 
     /**
@@ -120,129 +84,131 @@ public final class Lexer {
      * @return A Token object containing the type and value of what was found 🎫
      */
     public Token nextToken() {
+        System.out.println("currentCharacter: " + this.currentCharacter);
+
         Token token;
         this.skipWhitespace();
         this.skipComments();
 
-        switch (this.currentChar) {
+        switch (this.currentCharacter) {
             case '=':
-                token = this.handleDoubleLiteral(TokenType.EQ, TokenType.ASSIGN);
+                token = parseTwoCharacterOperator(TokenType.EQ, TokenType.ASSIGN);
                 break;
 
             case '!':
-                token = this.handleDoubleLiteral(TokenType.NOT_EQ, TokenType.BANG);
+                token = this.parseTwoCharacterOperator(TokenType.NOT_EQ, TokenType.BANG);
                 break;
 
             case ';':
-                token = this.createToken(TokenType.SEMICOLON, this.currentChar);
+                token = this.createToken(TokenType.SEMICOLON, this.currentCharacter);
                 break;
 
             case '(':
-                token = this.createToken(TokenType.LPAREN, this.currentChar);
+                token = this.createToken(TokenType.LPAREN, this.currentCharacter);
                 break;
 
             case ')':
-                token = this.createToken(TokenType.RPAREN, this.currentChar);
+                token = this.createToken(TokenType.RPAREN, this.currentCharacter);
                 break;
 
             case ',':
-                token = this.createToken(TokenType.COMMA, this.currentChar);
+                token = this.createToken(TokenType.COMMA, this.currentCharacter);
                 break;
 
             case '+':
-                token = this.handleDoubleLiteral(TokenType.PLUS_ASSIGN, TokenType.PLUS);
+                token = this.parseTwoCharacterOperator(TokenType.PLUS_ASSIGN, TokenType.PLUS);
                 break;
 
             case '-':
-                token = this.handleDoubleLiteral(
+                token = this.parseTwoCharacterOperator(
                         TokenType.MINUS_ASSIGN,
                         TokenType.MINUS);
                 break;
 
             case '*':
-                token = this.handleDoubleLiteral(
+                token = this.parseTwoCharacterOperator(
                         TokenType.ASTERISK_ASSIGN,
                         TokenType.ASTERISK);
                 break;
 
             case '%':
-                token = this.createToken(TokenType.MODULUS, this.currentChar);
+                token = this.createToken(TokenType.MODULUS, this.currentCharacter);
                 break;
 
             case '&':
-                token = this.handleDoubleLiteral(
+                token = this.parseTwoCharacterOperator(
                         TokenType.AND,
                         TokenType.BITWISE_AND,
                         '&');
                 break;
 
             case '|':
-                token = this.handleDoubleLiteral(
+                token = this.parseTwoCharacterOperator(
                         TokenType.OR,
                         TokenType.BITWISE_OR,
                         '|');
                 break;
 
             case '^':
-                token = this.createToken(TokenType.BITWISE_XOR, this.currentChar);
+                token = this.createToken(TokenType.BITWISE_XOR, this.currentCharacter);
                 break;
 
             case '~':
-                token = this.createToken(TokenType.BITWISE_NOT, this.currentChar);
+                token = this.createToken(TokenType.BITWISE_NOT, this.currentCharacter);
                 break;
 
             case '/':
-                if (this.peekChar() == '/') {
+                if (this.peekNextCharacter() == '/') {
                     this.skipSingleLineComment();
                     return this.nextToken();
-                } else if (this.peekChar() == '*') {
+                } else if (this.peekNextCharacter() == '*') {
                     this.skipMultiLineComment();
                     return this.nextToken();
                 }
 
-                token = this.handleDoubleLiteral(
+                token = this.parseTwoCharacterOperator(
                         TokenType.SLASH_ASSIGN,
                         TokenType.SLASH);
                 break;
 
             case '<':
-                token = this.handleDoubleLiteral(
+                token = this.parseTwoCharacterOperator(
                         TokenType.LESS_THAN_OR_EQUAL,
                         TokenType.LESS_THAN);
                 break;
 
             case '>':
-                token = this.handleDoubleLiteral(
+                token = this.parseTwoCharacterOperator(
                         TokenType.GREATER_THAN_OR_EQUAL,
                         TokenType.GREATER_THAN);
                 break;
 
             case '{':
-                token = this.createToken(TokenType.LBRACE, this.currentChar);
+                token = this.createToken(TokenType.LBRACE, this.currentCharacter);
                 break;
 
             case '}':
-                token = this.createToken(TokenType.RBRACE, this.currentChar);
+                token = this.createToken(TokenType.RBRACE, this.currentCharacter);
                 break;
 
             case '[':
-                token = this.createToken(TokenType.LBRACKET, this.currentChar);
+                token = this.createToken(TokenType.LBRACKET, this.currentCharacter);
                 break;
 
             case ']':
-                token = this.createToken(TokenType.RBRACKET, this.currentChar);
+                token = this.createToken(TokenType.RBRACKET, this.currentCharacter);
                 break;
 
             case ':':
-                token = this.createToken(TokenType.COLON, this.currentChar);
+                token = this.createToken(TokenType.COLON, this.currentCharacter);
                 break;
 
             case '.':
-                token = this.createToken(TokenType.DOT, this.currentChar);
+                token = this.createToken(TokenType.DOT, currentCharacter);
                 break;
 
             case '"':
-                token = this.createToken(TokenType.STRING, this.readString());
+                token = this.createToken(TokenType.STRING, readString());
                 break;
 
             case EOF:
@@ -250,11 +216,11 @@ public final class Lexer {
                 break;
 
             default:
-                token = this.handleIdentifier();
+                token = this.parseIdentifierOrNumber();
                 break;
         }
 
-        this.readCurrChar();
+        advanceToNextCharacter();
         return token;
     }
 
@@ -290,8 +256,8 @@ public final class Lexer {
      * 
      * @return True if we're past the end, false if there's more to read ✅❌
      */
-    private boolean isOut() {
-        return this.position >= this.input.length();
+    private boolean isAtEnd() {
+        return this.nextPosition >= this.input.length();
     }
 
     /**
@@ -300,17 +266,22 @@ public final class Lexer {
      * Updates position counters and line/column tracking.
      * Like moving your finger to the next character! 👆📖
      */
-    private void advance() {
-        this.position = this.readPosition;
-        this.readPosition++;
+    private void advancePosition() {
+        this.currentPosition = this.nextPosition;
+        this.nextPosition++;
 
-        int line = this.lineColumn.getLine();
-        int column = this.lineColumn.getColumn();
+        int line = this.lineColumn.line();
+        int column = this.lineColumn.column();
 
-        if (this.currentChar == '\n')
-            this.lineColumn.set(line + 1, 0);
+        this.positionHistory.push(new LineColumn(line, column));
+
+        if (this.currentPosition >= this.input.length())
+            return;
+
+        if (this.currentCharacter == '\n')
+            this.lineColumn = new LineColumn(line + 1, 0);
         else
-            this.lineColumn.set(line, column + 1);
+            this.lineColumn = new LineColumn(line, column + 1);
     }
 
     /**
@@ -319,9 +290,9 @@ public final class Lexer {
      * Gets the next character from the input and advances our position.
      * Like reading the next letter in a book! 🔤➡️
      */
-    private void readCurrChar() {
-        this.currentChar = this.isOut() ? '\0' : this.input.charAt(this.position);
-        this.advance();
+    private void advanceToNextCharacter() {
+        this.currentCharacter = this.isAtEnd() ? EOF : this.input.charAt(this.nextPosition);
+        this.advancePosition();
     }
 
     /**
@@ -335,8 +306,8 @@ public final class Lexer {
      * @return A complete Token object with position info 🎫
      */
     private Token createToken(TokenType type, String literal) {
-        int line = this.lineColumn.getLine();
-        int column = this.lineColumn.getColumn();
+        int line = this.lineColumn.line();
+        int column = this.lineColumn.column();
 
         return new Token(type, literal, new TokenPosition(line, column));
     }
@@ -363,8 +334,8 @@ public final class Lexer {
      * 
      * @return The next character, or null character if at end 🔤
      */
-    private char peekChar() {
-        return this.isOut() ? '\0' : this.input.charAt(this.readPosition);
+    private char peekNextCharacter() {
+        return this.isAtEnd() ? '\0' : this.input.charAt(this.nextPosition);
     }
 
     /**
@@ -380,21 +351,21 @@ public final class Lexer {
         StringBuilder sb = new StringBuilder();
 
         while (true) {
-            this.readCurrChar();
+            this.advanceToNextCharacter();
 
-            if (this.currentChar == '\0')
+            if (this.currentCharacter == '\0')
                 throw new RuntimeException("Unterminated string");
 
-            if (this.currentChar == '"')
+            if (this.currentCharacter == '"')
                 break;
 
-            if (this.currentChar == '\\') {
-                this.readCurrChar();
+            if (this.currentCharacter == '\\') {
+                this.advanceToNextCharacter();
                 sb.append(this.handleEscapeSequence());
                 continue;
             }
 
-            sb.append(this.currentChar);
+            sb.append(this.currentCharacter);
         }
 
         return sb.toString();
@@ -409,7 +380,7 @@ public final class Lexer {
      * @return The actual character represented by the escape sequence 🔤
      */
     private String handleEscapeSequence() {
-        switch (this.currentChar) {
+        switch (this.currentCharacter) {
             case 'n':
                 return "\n";
             case 't':
@@ -425,7 +396,7 @@ public final class Lexer {
             case '"':
                 return "\"";
             default:
-                return String.valueOf(this.currentChar);
+                return String.valueOf(this.currentCharacter);
         }
     }
 
@@ -436,12 +407,9 @@ public final class Lexer {
      * that don't matter for code meaning. Like ignoring blank spaces! 🦘⚪
      */
     private void skipWhitespace() {
-        while (this.currentChar == ' ' ||
-                this.currentChar == '\t' ||
-                this.currentChar == '\n' ||
-                this.currentChar == '\r' ||
-                this.currentChar == '\f') {
-            this.readCurrChar();
+        Set<Character> whitespaceCharacters = Set.of(' ', '\t', '\n', '\r', '\f');
+        while (whitespaceCharacters.contains(this.currentCharacter)) {
+            this.advanceToNextCharacter();
         }
     }
 
@@ -456,13 +424,15 @@ public final class Lexer {
      * @param peekChar          The character to look for next 👀
      * @return The appropriate token 🎫
      */
-    private Token handleDoubleLiteral(TokenType tokenTypeIfDouble, TokenType defaultTokenType, char peekChar) {
-        if (this.peekChar() == peekChar) {
-            this.readCurrChar();
-            return this.createToken(tokenTypeIfDouble, peekChar);
+    private Token parseTwoCharacterOperator(TokenType tokenTypeIfDouble, TokenType defaultTokenType, char peekChar) {
+
+        char currChar = this.currentCharacter;
+        if (this.peekNextCharacter() == peekChar) {
+            this.advanceToNextCharacter();
+            return this.createToken(tokenTypeIfDouble, String.format("%c%c", currChar, peekChar));
         }
 
-        return this.createToken(defaultTokenType, this.currentChar);
+        return this.createToken(defaultTokenType, this.currentCharacter);
     }
 
     /**
@@ -475,17 +445,17 @@ public final class Lexer {
      * @param defaultTokenType  Token type for basic operator 🎫
      * @return The appropriate token 🎫
      */
-    private Token handleDoubleLiteral(TokenType tokenTypeIfDouble, TokenType defaultTokenType) {
-        return this.handleDoubleLiteral(tokenTypeIfDouble, defaultTokenType, '=');
+    private Token parseTwoCharacterOperator(TokenType tokenTypeIfDouble, TokenType defaultTokenType) {
+        return this.parseTwoCharacterOperator(tokenTypeIfDouble, defaultTokenType, '=');
     }
 
     private void skipComments() {
         while (true) {
             this.skipWhitespace();
 
-            if (this.currentChar == '/' && this.peekChar() == '/') {
+            if (this.currentCharacter == '/' && this.peekNextCharacter() == '/') {
                 this.skipSingleLineComment();
-            } else if (this.currentChar == '/' && this.peekChar() == '*') {
+            } else if (this.currentCharacter == '/' && this.peekNextCharacter() == '*') {
                 this.skipMultiLineComment();
             } else {
                 break;
@@ -500,28 +470,28 @@ public final class Lexer {
      * Like skipping a side note in a book! 📝➡️🗑️
      */
     private void skipSingleLineComment() {
-        while (!this.isOut() && this.currentChar != '\n' && this.currentChar != EOF) {
-            this.readCurrChar();
+        while (!this.isAtEnd() && this.currentCharacter != '\n' && this.currentCharacter != EOF) {
+            this.advanceToNextCharacter();
         }
     }
 
     private void skipMultiLineComment() {
-        this.readCurrChar(); // skip the '/'
-        this.readCurrChar(); // skip the '*'
+        this.advanceToNextCharacter(); // skip the '/'
+        this.advanceToNextCharacter(); // skip the '*'
 
         int depth = 1;
 
-        while (depth > 0 && this.currentChar != EOF) {
-            if (this.currentChar == '/' && this.peekChar() == '*') {
+        while (depth > 0 && this.currentCharacter != EOF) {
+            if (this.currentCharacter == '/' && this.peekNextCharacter() == '*') {
                 depth++;
-                this.readCurrChar();
-                this.readCurrChar();
-            } else if (this.currentChar == '*' && this.peekChar() == '/') {
+                this.advanceToNextCharacter();
+                this.advanceToNextCharacter();
+            } else if (this.currentCharacter == '*' && this.peekNextCharacter() == '/') {
                 depth--;
-                this.readCurrChar();
-                this.readCurrChar();
+                this.advanceToNextCharacter();
+                this.advanceToNextCharacter();
             } else {
-                this.readCurrChar();
+                this.advanceToNextCharacter();
             }
         }
 
@@ -536,14 +506,14 @@ public final class Lexer {
      * @return The complete identifier string 📝
      */
     private String readIdentifier() {
-        int position = this.position;
+        int position = this.currentPosition;
 
-        while (Lexer.isLetter(this.currentChar) || Lexer.isDigit(this.currentChar)) {
-            this.readCurrChar();
+        while (Lexer.isLetter(this.currentCharacter) || Lexer.isDigit(this.currentCharacter)) {
+            this.advanceToNextCharacter();
         }
 
-        String identifier = this.input.substring(position, this.position);
-        this.moveBack(1); // move back to the last character
+        String identifier = this.input.substring(position, this.currentPosition);
+        this.backtrack(1);
         return identifier;
     }
 
@@ -555,10 +525,15 @@ public final class Lexer {
      * 
      * @param steps Number of positions to move backward 🔢
      */
-    private void moveBack(int steps) {
-        this.position -= steps;
-        this.readPosition -= steps;
-        this.currentChar = this.input.charAt(this.position);
+    private void backtrack(int steps) {
+        this.currentPosition -= steps;
+        this.nextPosition -= steps;
+        this.currentCharacter = this.input.charAt(this.currentPosition);
+
+        for (int i = 0; i < steps; i++) {
+            LineColumn position = this.positionHistory.pop();
+            this.lineColumn = position;
+        }
     }
 
     /**
@@ -570,14 +545,14 @@ public final class Lexer {
      * @return The complete number as a string 📝🔢
      */
     private String readNumber() {
-        int position = this.position;
+        int startPosition = this.currentPosition;
 
-        while (Lexer.isDigit(this.currentChar)) {
-            this.readCurrChar();
+        while (Lexer.isDigit(this.currentCharacter)) {
+            this.advanceToNextCharacter();
         }
 
-        String number = this.input.substring(position, this.position);
-        this.moveBack(1); // move back to the last character
+        String number = this.input.substring(startPosition, this.currentPosition);
+        this.backtrack(1);
         return number;
     }
 
@@ -589,16 +564,22 @@ public final class Lexer {
      * 
      * @return A token representing what was identified 🎫
      */
-    private Token handleIdentifier() {
-        if (Lexer.isLetter(this.currentChar)) {
+    private Token parseIdentifierOrNumber() {
+        if (Lexer.isLetter(this.currentCharacter)) {
             String identifier = this.readIdentifier();
             TokenType type = Keywords.lookupIdentifier(identifier);
             return this.createToken(type, identifier);
-        } else if (Lexer.isDigit(this.currentChar)) {
+        } else if (Lexer.isDigit(this.currentCharacter)) {
             String number = this.readNumber();
             return this.createToken(TokenType.INT, number);
         }
 
-        return this.createToken(TokenType.ILLEGAL, this.currentChar);
+        return this.createToken(TokenType.ILLEGAL, this.currentCharacter);
+    }
+}
+
+class EOFException extends RuntimeException {
+    public EOFException() {
+        super("EOF");
     }
 }

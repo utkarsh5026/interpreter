@@ -20,7 +20,11 @@ public record Token(TokenType type, String literal, TokenPosition position) {
 
     @Override
     public String toString() {
-        return String.format("Token{type=%s, literal='%s', position=%s}",
-                type, literal, position);
+        return String.format("""
+                Token {
+                    type: %s,
+                    literal: '%s',
+                    position: %s
+                }""", type, literal, position);
     }
 }

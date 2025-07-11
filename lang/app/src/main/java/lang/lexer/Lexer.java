@@ -131,6 +131,12 @@ public final class Lexer {
                         TokenType.ASTERISK);
                 break;
 
+            case '/':
+                token = this.parseTwoCharacterOperator(
+                        TokenType.SLASH_ASSIGN,
+                        TokenType.SLASH);
+                break;
+
             case '%':
                 token = this.createToken(TokenType.MODULUS, this.currentCharacter);
                 break;
@@ -155,20 +161,6 @@ public final class Lexer {
 
             case '~':
                 token = this.createToken(TokenType.BITWISE_NOT, this.currentCharacter);
-                break;
-
-            case '/':
-                if (this.peekNextCharacter() == '/') {
-                    this.skipSingleLineComment();
-                    return this.nextToken();
-                } else if (this.peekNextCharacter() == '*') {
-                    this.skipMultiLineComment();
-                    return this.nextToken();
-                }
-
-                token = this.parseTwoCharacterOperator(
-                        TokenType.SLASH_ASSIGN,
-                        TokenType.SLASH);
                 break;
 
             case '<':
@@ -278,7 +270,7 @@ public final class Lexer {
         if (this.currentPosition >= this.input.length())
             return;
 
-        if (this.currentCharacter == '\n')
+        if (this.currentCharacter == '\n' || (this.currentCharacter == '\r' && peekNextCharacter() != '\n'))
             this.lineColumn = new LineColumn(line + 1, 0);
         else
             this.lineColumn = new LineColumn(line, column + 1);
@@ -470,7 +462,7 @@ public final class Lexer {
      * Like skipping a side note in a book! 📝➡️🗑️
      */
     private void skipSingleLineComment() {
-        while (!this.isAtEnd() && this.currentCharacter != '\n' && this.currentCharacter != EOF) {
+        while (this.currentCharacter != '\n' && this.currentCharacter != EOF) {
             this.advanceToNextCharacter();
         }
     }

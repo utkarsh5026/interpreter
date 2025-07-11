@@ -1,6 +1,7 @@
 package lang.ast.base;
 
 import lang.token.Token;
+import lang.ast.visitor.AstVisitor;
 
 /**
  * Represents an identifier in the AST.
@@ -21,6 +22,11 @@ public class Identifier extends Expression {
     @Override
     public String toString() {
         return value;
+    }
+
+    @Override
+    public <T> T accept(AstVisitor<T> visitor) {
+        return visitor.visitIdentifier(this);
     }
 
 }

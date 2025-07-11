@@ -9,10 +9,18 @@ import lang.parser.core.PrecedenceTable;
 import lang.token.Token;
 import lang.token.TokenType;
 
+import lang.parser.core.StatementParse;
+
 /**
  * Parses expression statements: 5 + 3; or functionCall();
  */
 public class ExpressionStatementParser implements StatementParser<ExpressionStatement> {
+
+    private final StatementParse statementParser;
+
+    public ExpressionStatementParser(StatementParse statementParser) {
+        this.statementParser = statementParser;
+    }
 
     @Override
     public boolean canParse(ParsingContext context) {
@@ -26,7 +34,7 @@ public class ExpressionStatementParser implements StatementParser<ExpressionStat
         TokenStream tokens = context.getTokens();
         Token token = tokens.getCurrentToken();
 
-        ExpressionParser expressionParser = new ExpressionParser();
+        ExpressionParser expressionParser = new ExpressionParser(statementParser);
         Expression expression = expressionParser.parseExpression(context,
                 PrecedenceTable.Precedence.LOWEST);
 

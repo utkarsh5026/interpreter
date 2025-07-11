@@ -63,7 +63,7 @@ public class TokenStream {
      * @return A default EOF token at position (0, 0) 🎫
      */
     private Token createEofToken() {
-        return new Token(TokenType.EOF, "", new TokenPosition(0, 0));
+        return new Token(TokenType.EOF, "", new TokenPosition(1, 0));
     }
 
     /**

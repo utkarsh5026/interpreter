@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import lang.ast.base.Expression;
 import lang.token.Token;
+import lang.ast.visitor.AstVisitor;
 
 public class CallExpression extends Expression {
 
@@ -34,6 +35,11 @@ public class CallExpression extends Expression {
                 .collect(Collectors.joining(", "));
 
         return String.format("%s (%s)", function.toString(), args);
+    }
+
+    @Override
+    public <T> T accept(AstVisitor<T> visitor) {
+        return visitor.visitCallExpression(this);
     }
 
 }

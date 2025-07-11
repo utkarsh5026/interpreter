@@ -35,7 +35,7 @@ public class WhileStatementParser implements StatementParser<WhileStatement> {
         tokens.consume(TokenType.LPAREN);
 
         // Parse condition
-        ExpressionParser expressionParser = new ExpressionParser();
+        ExpressionParser expressionParser = new ExpressionParser(statementParser);
         Expression condition = expressionParser.parseExpression(context,
                 PrecedenceTable.Precedence.LOWEST);
 

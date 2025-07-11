@@ -31,9 +31,9 @@ public class StatementParserRegistry implements StatementParse {
      */
     private void registerDefaultParsers() {
         // Core statements
-        parsers.add(new LetStatementParser());
-        parsers.add(new ConstStatementParser());
-        parsers.add(new ReturnStatementParser());
+        parsers.add(new LetStatementParser(this));
+        parsers.add(new ConstStatementParser(this));
+        parsers.add(new ReturnStatementParser(this));
 
         // Control flow
         parsers.add(new WhileStatementParser(this));
@@ -43,7 +43,7 @@ public class StatementParserRegistry implements StatementParse {
 
         // Block statements
         parsers.add(new BlockStatementParser(this));
-        parsers.add(new ExpressionStatementParser());
+        parsers.add(new ExpressionStatementParser(this));
     }
 
     /**

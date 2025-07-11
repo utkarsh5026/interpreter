@@ -2,6 +2,7 @@ package lang.ast.expressions;
 
 import lang.ast.base.Expression;
 import lang.token.Token;
+import lang.ast.visitor.AstVisitor;
 
 /**
  * Represents an index expression: array[index], hash["key"]
@@ -29,6 +30,11 @@ public class IndexExpression extends Expression {
         return String.format("(%s[%s])",
                 left.toString(),
                 index.toString());
+    }
+
+    @Override
+    public <T> T accept(AstVisitor<T> visitor) {
+        return visitor.visitIndexExpression(this);
     }
 
 }

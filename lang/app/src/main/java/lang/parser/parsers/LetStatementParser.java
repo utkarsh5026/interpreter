@@ -10,7 +10,15 @@ import lang.parser.core.PrecedenceTable;
 import lang.token.Token;
 import lang.token.TokenType;
 
+import lang.parser.core.StatementParse;
+
 public class LetStatementParser implements StatementParser<LetStatement> {
+
+    private final StatementParse statementParser;
+
+    public LetStatementParser(StatementParse statementParser) {
+        this.statementParser = statementParser;
+    }
 
     @Override
     public boolean canParse(ParsingContext context) {
@@ -27,7 +35,7 @@ public class LetStatementParser implements StatementParser<LetStatement> {
 
         tokens.consume(TokenType.ASSIGN);
 
-        ExpressionParser expressionParser = new ExpressionParser();
+        ExpressionParser expressionParser = new ExpressionParser(statementParser);
         Expression value = expressionParser.parseExpression(context, PrecedenceTable.Precedence.LOWEST);
 
         if (value == null) {

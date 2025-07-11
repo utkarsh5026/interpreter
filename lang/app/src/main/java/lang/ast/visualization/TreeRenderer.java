@@ -12,20 +12,18 @@ public class TreeRenderer {
     // Tree drawing characters
     private static final class TreeChars {
         final String vertical;
-        final String horizontal;
         final String branch;
         final String lastBranch;
 
-        TreeChars(String vertical, String horizontal, String branch, String lastBranch) {
+        TreeChars(String vertical, String branch, String lastBranch) {
             this.vertical = vertical;
-            this.horizontal = horizontal;
             this.branch = branch;
             this.lastBranch = lastBranch;
         }
 
-        static final TreeChars UNICODE = new TreeChars("│   ", "─", "├── ", "└── ");
-        static final TreeChars ASCII = new TreeChars("|   ", "-", "+-- ", "+-- ");
-        static final TreeChars SIMPLE = new TreeChars("    ", " ", "  ", "  ");
+        static final TreeChars UNICODE = new TreeChars("│   ", "├── ", "└── ");
+        static final TreeChars ASCII = new TreeChars("|   ", "+-- ", "+-- ");
+        static final TreeChars SIMPLE = new TreeChars("    ", "  ", "  ");
     }
 
     public TreeRenderer(VisualizationConfig config) {

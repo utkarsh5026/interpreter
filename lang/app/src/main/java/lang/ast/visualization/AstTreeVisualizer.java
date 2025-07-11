@@ -35,8 +35,6 @@ public class AstTreeVisualizer extends BaseAstVisitor<TreeNode> {
         MARKDOWN // Markdown formatting
     }
 
-    private final VisualizationConfig config;
-    private final NodeFormatter formatter;
     private final TreeRenderer renderer;
 
     public AstTreeVisualizer() {
@@ -44,8 +42,6 @@ public class AstTreeVisualizer extends BaseAstVisitor<TreeNode> {
     }
 
     public AstTreeVisualizer(VisualizationConfig config) {
-        this.config = config;
-        this.formatter = new NodeFormatter(config);
         this.renderer = new TreeRenderer(config);
     }
 

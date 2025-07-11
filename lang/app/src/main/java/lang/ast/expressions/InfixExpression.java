@@ -2,6 +2,7 @@ package lang.ast.expressions;
 
 import lang.ast.base.Expression;
 import lang.token.Token;
+import lang.ast.visitor.AstVisitor;
 
 public class InfixExpression extends Expression {
     private final Expression left;
@@ -34,4 +35,10 @@ public class InfixExpression extends Expression {
                 operator,
                 right.toString());
     }
+
+    @Override
+    public <T> T accept(AstVisitor<T> visitor) {
+        return visitor.visitInfixExpression(this);
+    }
+
 }

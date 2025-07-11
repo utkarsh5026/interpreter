@@ -144,7 +144,7 @@ public class LanguageParser {
      * Parses a single expression (useful for REPL or testing).
      */
     public Expression parseExpression() {
-        ExpressionParser expressionParser = new ExpressionParser();
+        ExpressionParser expressionParser = new ExpressionParser(this.statementRegistry);
         return expressionParser.parseExpression(context,
                 PrecedenceTable.Precedence.LOWEST);
     }

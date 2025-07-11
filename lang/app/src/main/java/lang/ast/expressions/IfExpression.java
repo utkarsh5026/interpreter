@@ -7,6 +7,7 @@ import java.util.List;
 import lang.ast.base.Expression;
 import lang.ast.statements.BlockStatement;
 import lang.token.Token;
+import lang.ast.visitor.AstVisitor;
 
 public class IfExpression extends Expression {
     private final List<Expression> conditions;
@@ -55,6 +56,11 @@ public class IfExpression extends Expression {
         }
 
         return sb.toString();
+    }
+
+    @Override
+    public <T> T accept(AstVisitor<T> visitor) {
+        return visitor.visitIfExpression(this);
     }
 
 }

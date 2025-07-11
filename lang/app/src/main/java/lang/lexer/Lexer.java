@@ -291,7 +291,7 @@ public final class Lexer {
      * @return True if we're past the end, false if there's more to read ✅❌
      */
     private boolean isOut() {
-        return this.position > this.input.length();
+        return this.position >= this.input.length();
     }
 
     /**

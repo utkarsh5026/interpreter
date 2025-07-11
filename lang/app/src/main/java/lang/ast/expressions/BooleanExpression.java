@@ -2,6 +2,7 @@ package lang.ast.expressions;
 
 import lang.ast.base.Expression;
 import lang.token.Token;
+import lang.ast.visitor.AstVisitor;
 
 /**
  * Represents a boolean expression: true, false
@@ -22,4 +23,10 @@ public class BooleanExpression extends Expression {
     public String toString() {
         return String.valueOf(value);
     }
+
+    @Override
+    public <T> T accept(AstVisitor<T> visitor) {
+        return visitor.visitBooleanExpression(this);
+    }
+
 }

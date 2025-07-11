@@ -2,6 +2,7 @@ package lang.ast.expressions;
 
 import lang.ast.base.Expression;
 import lang.token.Token;
+import lang.ast.visitor.AstVisitor;
 
 /**
  * Represents a prefix expression: !x, -x
@@ -28,4 +29,10 @@ public class PrefixExpression extends Expression {
     public String toString() {
         return String.format("(%s%s)", operator, right.toString());
     }
+
+    @Override
+    public <T> T accept(AstVisitor<T> visitor) {
+        return visitor.visitPrefixExpression(this);
+    }
+
 }

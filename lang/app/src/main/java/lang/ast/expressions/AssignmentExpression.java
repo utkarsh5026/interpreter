@@ -3,6 +3,7 @@ package lang.ast.expressions;
 import lang.ast.base.Expression;
 import lang.ast.base.Identifier;
 import lang.token.Token;
+import lang.ast.visitor.AstVisitor;
 
 /**
  * Represents an assignment expression: x = value
@@ -30,6 +31,11 @@ public class AssignmentExpression extends Expression {
         return String.format("%s = %s",
                 name.toString(),
                 value.toString());
+    }
+
+    @Override
+    public <T> T accept(AstVisitor<T> visitor) {
+        return visitor.visitAssignmentExpression(this);
     }
 
 }

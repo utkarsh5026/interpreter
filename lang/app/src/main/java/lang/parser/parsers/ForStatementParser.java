@@ -45,7 +45,7 @@ public class ForStatementParser implements StatementParser<ForStatement> {
             return null;
         }
 
-        ExpressionParser expressionParser = new ExpressionParser();
+        ExpressionParser expressionParser = new ExpressionParser(statementParser);
         Expression condition = expressionParser.parseExpression(context,
                 PrecedenceTable.Precedence.LOWEST);
 

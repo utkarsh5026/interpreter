@@ -111,4 +111,12 @@ public class AstCaster {
         }
         return (HashLiteral) node;
     }
+
+    public static BooleanExpression asBooleanExpression(Node node) {
+        if (!AstValidator.isBooleanExpression(node)) {
+            throw new IllegalArgumentException("Node is not a BooleanExpression");
+        }
+        return (BooleanExpression) node;
+    }
+
 }

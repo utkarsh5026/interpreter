@@ -9,8 +9,10 @@ import lang.token.Token;
 import lang.token.TokenPosition;
 import lang.token.TokenType;
 import lang.token.Keywords;
+
 import lang.lexer.debug.DebugEvent;
 import lang.lexer.debug.LexerDebugger;
+import lang.lexer.debug.DebugConfig;
 
 /**
  * 🔍 Lexer - The Text Scanner 🔍
@@ -621,6 +623,14 @@ public final class Lexer {
         reset();
         endSession();
         return tokens;
+    }
+
+    public final static Lexer createLexerWithDebugger(String input) {
+        DebugConfig debugConfig = DebugConfig.builder()
+                .liveTokenOutput(true)
+                .sourceContext(true)
+                .useColors(true);
+        return new Lexer(input, new LexerDebugger(debugConfig));
     }
 
 }

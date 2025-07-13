@@ -48,6 +48,14 @@ public final class ObjectValidator {
         return obj instanceof ContinueObject;
     }
 
+    public static boolean isFunction(BaseObject obj) {
+        return obj instanceof FunctionObject;
+    }
+
+    public static boolean isBuiltin(BaseObject obj) {
+        return obj instanceof BuiltinObject;
+    }
+
     /**
      * Safe casting methods that return Optional or null.
      * These provide type-safe access to specific object types.

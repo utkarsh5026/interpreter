@@ -9,6 +9,8 @@ import lang.token.Token;
 import lang.token.TokenPosition;
 import lang.token.TokenType;
 import lang.token.Keywords;
+import lang.lexer.debug.DebugEvent;
+import lang.lexer.debug.LexerDebugger;
 
 /**
  * 🔍 Lexer - The Text Scanner 🔍
@@ -29,6 +31,8 @@ public final class Lexer {
 
     private static final char EOF = '\0';
 
+    private final LexerDebugger debugger;
+
     /**
      * 📍 LineColumn - Position Tracker 📍
      * 
@@ -38,19 +42,31 @@ public final class Lexer {
     private static record LineColumn(int line, int column) {
     }
 
-    /**
-     * 🚀 Creates a new Lexer to scan the given text
-     * 
-     * Sets up the lexer with source code and prepares to start reading.
-     * Like opening a book and pointing to the first character! 📚👆
-     * 
-     * @param input The source code text to analyze 📝
-     */
     public Lexer(String input) {
+        this(input, null);
+    }
+
+    /**
+     * 🚀 Creates a new Lexer with optional debug support
+     * 
+     * @param input    The source code to tokenize
+     * @param debugger Optional debugger (null to disable debugging)
+     */
+    public Lexer(String input, LexerDebugger debugger) {
         this.input = input;
+        this.debugger = debugger;
         this.lineColumn = new LineColumn(1, 0);
         this.positionHistory = new Stack<>();
+
+        if (isDebugging()) {
+            this.debugger.onSessionStart(input);
+        }
+
         this.advanceToNextCharacter();
+    }
+
+    private boolean isDebugging() {
+        return this.debugger != null;
     }
 
     /**
@@ -65,8 +81,6 @@ public final class Lexer {
     /**
      * 🔄 Resets the lexer to start reading from the beginning
      * 
-     * Like rewinding a tape player back to the start! ⏪
-     * Useful when you want to scan the same text again.
      */
     public void reset() {
         this.currentPosition = 0;
@@ -75,6 +89,12 @@ public final class Lexer {
         this.lineColumn = new LineColumn(1, 0);
         this.advanceToNextCharacter();
         this.positionHistory.clear();
+
+        if (isDebugging()) {
+            this.debugger.onSessionReset();
+        }
+
+        this.advanceToNextCharacter();
     }
 
     /**
@@ -86,6 +106,10 @@ public final class Lexer {
      * @return A Token object containing the type and value of what was found 🎫
      */
     public Token nextToken() {
+
+        int preTokenPosition = this.currentPosition;
+        char triggerChar = this.currentCharacter;
+
         Token token;
         this.skipWhitespace();
         this.skipComments();
@@ -212,8 +236,28 @@ public final class Lexer {
                 break;
         }
 
+        if (isDebugging()) {
+            DebugEvent event = new DebugEvent(
+                    token,
+                    preTokenPosition,
+                    triggerChar,
+                    currentPosition,
+                    System.nanoTime());
+            this.debugger.onTokenCreated(event);
+        }
+
         advanceToNextCharacter();
         return token;
+    }
+
+    /**
+     * 🏁 Ends the tokenization session
+     * Call this when finished tokenizing to get debug summaries
+     */
+    public void endSession() {
+        if (isDebugging()) {
+            this.debugger.onSessionEnd();
+        }
     }
 
     /**
@@ -574,7 +618,8 @@ public final class Lexer {
         while (!this.isAtEnd()) {
             tokens.add(this.nextToken());
         }
-        this.reset();
+        reset();
+        endSession();
         return tokens;
     }
 

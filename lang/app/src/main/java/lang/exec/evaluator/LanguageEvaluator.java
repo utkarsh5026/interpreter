@@ -18,9 +18,11 @@ import lang.exec.objects.*;
 public class LanguageEvaluator implements EvaluationContext {
 
     private final Map<Class<? extends Node>, NodeEvaluator<? extends Node>> evaluators;
+    private final LoopContext loopContext;
 
     public LanguageEvaluator() {
         this.evaluators = new HashMap<>();
+        this.loopContext = new LoopContext();
 
         registerStatementEvaluators();
         registerExpressionEvaluators();
@@ -32,6 +34,8 @@ public class LanguageEvaluator implements EvaluationContext {
         registerEvaluator(ConstStatement.class, new ConstStatementEvaluator());
         registerEvaluator(ReturnStatement.class, new ReturnStatementEvaluator());
         registerEvaluator(BlockStatement.class, new BlockStatementEvaluator());
+        registerEvaluator(WhileStatement.class, new WhileStatementEvaluator(loopContext));
+        registerEvaluator(ForStatement.class, new ForStatementEvaluator(loopContext));
     }
 
     private void registerExpressionEvaluators() {

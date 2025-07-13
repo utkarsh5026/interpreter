@@ -7,14 +7,21 @@ import lang.exec.objects.BuiltinObject;
 
 public class BuiltinRegistry {
 
-    private final Map<String, BuiltinObject> builtins = new HashMap<>();
+    private static final Map<String, BuiltinObject> builtins = new HashMap<>();
 
-    public Map<String, BuiltinObject> getBuiltins() {
+    public static Map<String, BuiltinObject> getBuiltins() {
         return builtins;
     }
 
-    public void addBuiltin(String name, BuiltinObject builtin) {
+    public static void addBuiltin(String name, BuiltinObject builtin) {
         builtins.put(name, builtin);
     }
 
+    public static boolean isBuiltin(String name) {
+        return builtins.containsKey(name);
+    }
+
+    public static BuiltinObject getBuiltin(String name) {
+        return builtins.get(name);
+    }
 }

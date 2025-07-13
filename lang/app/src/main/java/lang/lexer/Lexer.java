@@ -84,8 +84,6 @@ public final class Lexer {
      * @return A Token object containing the type and value of what was found 🎫
      */
     public Token nextToken() {
-        System.out.println("currentCharacter: " + this.currentCharacter);
-
         Token token;
         this.skipWhitespace();
         this.skipComments();

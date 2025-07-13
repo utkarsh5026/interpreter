@@ -50,7 +50,7 @@ public class ParsingContext {
      * 
      * @return The TokenStream for token navigation 🌊
      */
-    public TokenStream getTokens() {
+    public TokenStream getTokenStream() {
         return tokens;
     }
 

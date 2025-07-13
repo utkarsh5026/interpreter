@@ -77,7 +77,7 @@ public class ForStatementParser implements StatementParser<ForStatement> {
      */
     @Override
     public boolean canParse(ParsingContext context) {
-        return context.getTokens().isCurrentToken(TokenType.FOR);
+        return context.getTokenStream().isCurrentToken(TokenType.FOR);
     }
 
     /**
@@ -114,7 +114,7 @@ public class ForStatementParser implements StatementParser<ForStatement> {
      */
     @Override
     public ForStatement parse(ParsingContext context) {
-        TokenStream tokens = context.getTokens();
+        TokenStream tokens = context.getTokenStream();
         Token forToken = tokens.getCurrentToken(); // 🎫 Save the 'for' token
 
         // 📝 Expect opening parenthesis

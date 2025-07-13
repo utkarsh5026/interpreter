@@ -12,19 +12,19 @@ public class BreakStatementParser implements StatementParser<BreakStatement> {
 
     @Override
     public boolean canParse(ParsingContext context) {
-        return context.getTokens().isCurrentToken(TokenType.BREAK);
+        return context.getTokenStream().isCurrentToken(TokenType.BREAK);
     }
 
     @Override
     public BreakStatement parse(ParsingContext context) {
         if (!context.isInLoop()) {
             context.addError("Break statement must be inside a loop",
-                    context.getTokens().getCurrentToken());
+                    context.getTokenStream().getCurrentToken());
             return null;
         }
 
-        Token breakToken = context.getTokens().getCurrentToken();
-        context.getTokens().consume(TokenType.SEMICOLON);
+        Token breakToken = context.getTokenStream().getCurrentToken();
+        context.getTokenStream().consume(TokenType.SEMICOLON);
 
         return new BreakStatement(breakToken);
     }

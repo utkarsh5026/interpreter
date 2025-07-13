@@ -31,7 +31,7 @@ public class ExpressionStatementParser implements StatementParser<ExpressionStat
 
     @Override
     public ExpressionStatement parse(ParsingContext context) {
-        TokenStream tokens = context.getTokens();
+        TokenStream tokens = context.getTokenStream();
         Token token = tokens.getCurrentToken();
 
         ExpressionParser expressionParser = new ExpressionParser(statementParser);

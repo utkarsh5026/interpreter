@@ -24,12 +24,12 @@ public class BlockStatementParser implements StatementParser<BlockStatement> {
 
     @Override
     public boolean canParse(ParsingContext context) {
-        return context.getTokens().isCurrentToken(TokenType.LBRACE);
+        return context.getTokenStream().isCurrentToken(TokenType.LBRACE);
     }
 
     @Override
     public BlockStatement parse(ParsingContext context) {
-        TokenStream tokens = context.getTokens();
+        TokenStream tokens = context.getTokenStream();
 
         Token braceToken = tokens.getCurrentToken();
         tokens.advance(); // consume '{'

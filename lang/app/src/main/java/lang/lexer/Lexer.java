@@ -1,5 +1,7 @@
 package lang.lexer;
 
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.Stack;
 
@@ -566,6 +568,16 @@ public final class Lexer {
 
         return this.createToken(TokenType.ILLEGAL, this.currentCharacter);
     }
+
+    public List<Token> getTokenStream() {
+        List<Token> tokens = new ArrayList<>();
+        while (!this.isAtEnd()) {
+            tokens.add(this.nextToken());
+        }
+        this.reset();
+        return tokens;
+    }
+
 }
 
 class EOFException extends RuntimeException {

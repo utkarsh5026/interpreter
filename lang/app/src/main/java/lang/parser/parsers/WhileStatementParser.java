@@ -65,7 +65,7 @@ public class WhileStatementParser implements StatementParser<WhileStatement> {
      */
     @Override
     public boolean canParse(ParsingContext context) {
-        return context.getTokens().isCurrentToken(TokenType.WHILE);
+        return context.getTokenStream().isCurrentToken(TokenType.WHILE);
     }
 
     /**
@@ -96,7 +96,7 @@ public class WhileStatementParser implements StatementParser<WhileStatement> {
      */
     @Override
     public WhileStatement parse(ParsingContext context) {
-        TokenStream tokens = context.getTokens();
+        TokenStream tokens = context.getTokenStream();
         Token whileToken = tokens.getCurrentToken(); // 🎫 Save the 'while' token
 
         // 📝 Expect opening parenthesis

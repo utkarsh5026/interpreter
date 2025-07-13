@@ -42,7 +42,7 @@ public class LanguageParser {
     public Program parseProgram() {
         List<Statement> statements = new ArrayList<>();
 
-        while (!context.getTokens().isAtEnd()) {
+        while (!context.getTokenStream().isAtEnd()) {
             try {
                 Statement statement = parseStatement();
                 if (statement != null)
@@ -54,7 +54,7 @@ public class LanguageParser {
             }
 
             // Advance to next statement
-            context.getTokens().advance();
+            context.getTokenStream().advance();
         }
 
         return new Program(statements);
@@ -71,7 +71,7 @@ public class LanguageParser {
      * Error recovery: skip tokens until we find a safe point to resume parsing.
      */
     private void synchronize() {
-        TokenStream tokens = context.getTokens();
+        TokenStream tokens = context.getTokenStream();
         tokens.advance();
 
         while (!tokens.isAtEnd()) {

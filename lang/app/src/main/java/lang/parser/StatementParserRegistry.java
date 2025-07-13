@@ -64,8 +64,8 @@ public class StatementParserRegistry implements StatementParse {
 
         if (parser == null) {
             context.addError("No parser found for token: " +
-                    context.getTokens().getCurrentToken().type(),
-                    context.getTokens().getCurrentToken());
+                    context.getTokenStream().getCurrentToken().type(),
+                    context.getTokenStream().getCurrentToken());
             return null;
         }
 

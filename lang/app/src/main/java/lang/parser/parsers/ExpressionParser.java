@@ -60,9 +60,8 @@ public class ExpressionParser {
      * @return The parsed expression or null if parsing failed
      */
     public Expression parseExpression(ParsingContext context, PrecedenceTable.Precedence precedence) {
-        TokenStream tokens = context.getTokens();
+        TokenStream tokens = context.getTokenStream();
 
-        // Get prefix parser for current token
         PrefixParser prefixParser = prefixParsers.get(tokens.getCurrentToken().type());
 
         if (prefixParser == null) {
@@ -72,7 +71,6 @@ public class ExpressionParser {
             return null;
         }
 
-        // Parse the left side of the expression
         Expression leftExpression = prefixParser.parse(context);
         if (leftExpression == null) {
             return null;
@@ -161,12 +159,12 @@ public class ExpressionParser {
     // Prefix Parser Implementations
 
     private Expression parseIdentifier(ParsingContext context) {
-        Token token = context.getTokens().getCurrentToken();
+        Token token = context.getTokenStream().getCurrentToken();
         return new Identifier(token, token.literal());
     }
 
     private Expression parseIntegerLiteral(ParsingContext context) {
-        Token token = context.getTokens().getCurrentToken();
+        Token token = context.getTokenStream().getCurrentToken();
 
         try {
             int value = Integer.parseInt(token.literal());
@@ -178,18 +176,18 @@ public class ExpressionParser {
     }
 
     private Expression parseStringLiteral(ParsingContext context) {
-        Token token = context.getTokens().getCurrentToken();
+        Token token = context.getTokenStream().getCurrentToken();
         return new StringLiteral(token, token.literal());
     }
 
     private Expression parseBoolean(ParsingContext context) {
-        Token token = context.getTokens().getCurrentToken();
+        Token token = context.getTokenStream().getCurrentToken();
         boolean value = token.type() == TokenType.TRUE;
         return new BooleanExpression(token, value);
     }
 
     private Expression parsePrefixExpression(ParsingContext context) {
-        TokenStream tokens = context.getTokens();
+        TokenStream tokens = context.getTokenStream();
         Token token = tokens.getCurrentToken();
         String operator = token.literal();
 
@@ -204,7 +202,7 @@ public class ExpressionParser {
     }
 
     private Expression parseGroupedExpression(ParsingContext context) {
-        TokenStream tokens = context.getTokens();
+        TokenStream tokens = context.getTokenStream();
 
         tokens.advance(); // consume '('
 
@@ -222,13 +220,13 @@ public class ExpressionParser {
     }
 
     private Expression parseArrayLiteral(ParsingContext context) {
-        Token token = context.getTokens().getCurrentToken();
+        Token token = context.getTokenStream().getCurrentToken();
         List<Expression> elements = parseExpressionList(context, TokenType.RBRACKET);
         return new ArrayLiteral(token, elements);
     }
 
     private Expression parseHashLiteral(ParsingContext context) {
-        TokenStream tokens = context.getTokens();
+        TokenStream tokens = context.getTokenStream();
         Token token = tokens.getCurrentToken();
         Map<String, Expression> pairs = new LinkedHashMap<>();
 
@@ -279,7 +277,7 @@ public class ExpressionParser {
     }
 
     private Expression parseFunctionLiteral(ParsingContext context) {
-        TokenStream tokens = context.getTokens();
+        TokenStream tokens = context.getTokenStream();
         Token token = tokens.getCurrentToken();
 
         if (!tokens.expect(TokenType.LPAREN)) {
@@ -308,7 +306,7 @@ public class ExpressionParser {
     }
 
     private Expression parseIfExpression(ParsingContext context) {
-        TokenStream tokens = context.getTokens();
+        TokenStream tokens = context.getTokenStream();
         Token token = tokens.getCurrentToken();
 
         List<Expression> conditions = new ArrayList<>();
@@ -394,7 +392,7 @@ public class ExpressionParser {
     // Infix Parser Implementations
 
     private Expression parseInfixExpression(ParsingContext context, Expression left) {
-        TokenStream tokens = context.getTokens();
+        TokenStream tokens = context.getTokenStream();
         Token token = tokens.getCurrentToken();
         String operator = token.literal();
 
@@ -412,12 +410,12 @@ public class ExpressionParser {
 
     private Expression parseAssignmentExpression(ParsingContext context, Expression left) {
         if (!(left instanceof Identifier)) {
-            context.addError("Invalid assignment target", context.getTokens().getCurrentToken());
+            context.addError("Invalid assignment target", context.getTokenStream().getCurrentToken());
             return null;
         }
 
-        Token token = context.getTokens().getCurrentToken();
-        context.getTokens().advance();
+        Token token = context.getTokenStream().getCurrentToken();
+        context.getTokenStream().advance();
 
         Expression value = parseExpression(context, PrecedenceTable.Precedence.LOWEST);
         if (value == null) {
@@ -428,13 +426,13 @@ public class ExpressionParser {
     }
 
     private Expression parseCallExpression(ParsingContext context, Expression function) {
-        Token token = context.getTokens().getCurrentToken();
+        Token token = context.getTokenStream().getCurrentToken();
         List<Expression> arguments = parseExpressionList(context, TokenType.RPAREN);
         return new CallExpression(token, function, arguments);
     }
 
     private Expression parseIndexExpression(ParsingContext context, Expression left) {
-        TokenStream tokens = context.getTokens();
+        TokenStream tokens = context.getTokenStream();
         Token token = tokens.getCurrentToken();
 
         tokens.advance();
@@ -455,7 +453,7 @@ public class ExpressionParser {
     // Helper Methods
 
     private List<Expression> parseExpressionList(ParsingContext context, TokenType endToken) {
-        TokenStream tokens = context.getTokens();
+        TokenStream tokens = context.getTokenStream();
         List<Expression> expressions = new ArrayList<>();
 
         if (tokens.isPeekToken(endToken)) {
@@ -488,7 +486,7 @@ public class ExpressionParser {
     }
 
     private List<Identifier> parseFunctionParameters(ParsingContext context) {
-        TokenStream tokens = context.getTokens();
+        TokenStream tokens = context.getTokenStream();
         List<Identifier> identifiers = new ArrayList<>();
 
         if (tokens.isPeekToken(TokenType.RPAREN)) {

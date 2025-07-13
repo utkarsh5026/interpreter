@@ -68,7 +68,7 @@ public class ConstStatementParser implements StatementParser<ConstStatement> {
      */
     @Override
     public boolean canParse(ParsingContext context) {
-        return context.getTokens().isCurrentToken(TokenType.CONST);
+        return context.getTokenStream().isCurrentToken(TokenType.CONST);
     }
 
     /**
@@ -104,7 +104,7 @@ public class ConstStatementParser implements StatementParser<ConstStatement> {
      */
     @Override
     public ConstStatement parse(ParsingContext context) {
-        TokenStream tokens = context.getTokens();
+        TokenStream tokens = context.getTokenStream();
         Token constToken = tokens.getCurrentToken(); // 🎫 Save the 'const' token
 
         // 🔍 Double-check that we have the right token (safety measure)

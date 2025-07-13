@@ -21,12 +21,12 @@ public class ReturnStatementParser implements StatementParser<ReturnStatement> {
 
     @Override
     public boolean canParse(ParsingContext context) {
-        return context.getTokens().isCurrentToken(TokenType.RETURN);
+        return context.getTokenStream().isCurrentToken(TokenType.RETURN);
     }
 
     @Override
     public ReturnStatement parse(ParsingContext context) {
-        TokenStream tokens = context.getTokens();
+        TokenStream tokens = context.getTokenStream();
         Token returnToken = tokens.getCurrentToken();
 
         if (!canParse(context)) {

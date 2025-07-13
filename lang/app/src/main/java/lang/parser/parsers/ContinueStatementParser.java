@@ -12,19 +12,19 @@ public class ContinueStatementParser implements StatementParser<ContinueStatemen
 
     @Override
     public boolean canParse(ParsingContext context) {
-        return context.getTokens().isCurrentToken(TokenType.CONTINUE);
+        return context.getTokenStream().isCurrentToken(TokenType.CONTINUE);
     }
 
     @Override
     public ContinueStatement parse(ParsingContext context) {
         if (!context.isInLoop()) {
             context.addError("Continue statement must be inside a loop",
-                    context.getTokens().getCurrentToken());
+                    context.getTokenStream().getCurrentToken());
             return null;
         }
 
-        Token continueToken = context.getTokens().getCurrentToken();
-        context.getTokens().consume(TokenType.SEMICOLON);
+        Token continueToken = context.getTokenStream().getCurrentToken();
+        context.getTokenStream().consume(TokenType.SEMICOLON);
 
         return new ContinueStatement(continueToken);
     }

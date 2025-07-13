@@ -36,6 +36,18 @@ public final class ObjectValidator {
         return obj instanceof ReturnObject;
     }
 
+    public static boolean isBreak(BaseObject obj) {
+        return obj instanceof BreakObject;
+    }
+
+    public static boolean isBreakOrContinue(BaseObject obj) {
+        return isBreak(obj) || isContinue(obj);
+    }
+
+    public static boolean isContinue(BaseObject obj) {
+        return obj instanceof ContinueObject;
+    }
+
     /**
      * Safe casting methods that return Optional or null.
      * These provide type-safe access to specific object types.

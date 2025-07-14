@@ -1,11 +1,12 @@
 package lang.parser;
 
-import java.util.*;
-import lang.parser.core.ParsingContext;
-import lang.parser.core.TokenStream;
-import lang.parser.core.PrecedenceTable;
-import lang.parser.parsers.StatementParser;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Optional;
 
+import lang.parser.core.*;
+import lang.parser.precedence.Precedence;
+import lang.token.Token;
 import lang.lexer.Lexer;
 import lang.ast.statements.Program;
 
@@ -13,8 +14,6 @@ import lang.parser.parsers.ExpressionParser;
 import lang.ast.base.Statement;
 import lang.ast.base.Expression;
 import lang.token.TokenType;
-import lang.parser.core.ParseError;
-import lang.parser.core.ParserException;
 
 /**
  * Main Parser class that coordinates the entire parsing process.
@@ -45,16 +44,16 @@ public class LanguageParser {
         while (!context.getTokenStream().isAtEnd()) {
             try {
                 Statement statement = parseStatement();
-                if (statement != null)
+                if (statement != null) {
                     statements.add(statement);
-
+                }
             } catch (ParserException e) {
-                context.addError(e.getMessage(), e.getToken());
+                Optional<Token> token = e.getToken();
+                if (token.isPresent()) {
+                    context.addError(e.getMessage(), token.get());
+                }
                 synchronize();
             }
-
-            // Advance to next statement
-            context.getTokenStream().advance();
         }
 
         return new Program(statements);
@@ -71,6 +70,7 @@ public class LanguageParser {
      * Error recovery: skip tokens until we find a safe point to resume parsing.
      */
     private void synchronize() {
+        System.out.println("Synchronizing...");
         TokenStream tokens = context.getTokenStream();
         tokens.advance();
 
@@ -129,14 +129,14 @@ public class LanguageParser {
     /**
      * Adds a custom statement parser.
      */
-    public void addStatementParser(StatementParser<? extends Statement> parser) {
+    public void addStatementParser(TypedStatementParser<? extends Statement> parser) {
         statementRegistry.addParser(parser);
     }
 
     /**
      * Removes a statement parser.
      */
-    public void removeStatementParser(Class<? extends StatementParser<? extends Statement>> parserType) {
+    public void removeStatementParser(Class<? extends TypedStatementParser<? extends Statement>> parserType) {
         statementRegistry.removeParser(parserType);
     }
 
@@ -146,7 +146,7 @@ public class LanguageParser {
     public Expression parseExpression() {
         ExpressionParser expressionParser = new ExpressionParser(this.statementRegistry);
         return expressionParser.parseExpression(context,
-                PrecedenceTable.Precedence.LOWEST);
+                Precedence.LOWEST);
     }
 
     /**

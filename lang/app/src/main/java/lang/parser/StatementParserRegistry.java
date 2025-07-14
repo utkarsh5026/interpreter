@@ -5,8 +5,8 @@ import java.util.*;
 import lang.parser.parsers.*;
 
 import lang.parser.core.ParsingContext;
-import lang.parser.core.ParserException;
 import lang.parser.core.StatementParse;
+import lang.parser.core.TypedStatementParser;
 
 import lang.ast.base.Statement;
 
@@ -19,7 +19,7 @@ import lang.ast.base.Statement;
  * for each statement type.
  */
 public class StatementParserRegistry implements StatementParse {
-    private final List<StatementParser<? extends Statement>> parsers = new ArrayList<>();
+    private final List<TypedStatementParser<? extends Statement>> parsers = new ArrayList<>();
 
     public StatementParserRegistry() {
         registerDefaultParsers();
@@ -49,7 +49,7 @@ public class StatementParserRegistry implements StatementParse {
     /**
      * Finds the appropriate parser for the current token.
      */
-    public StatementParser<? extends Statement> findParser(ParsingContext context) {
+    public TypedStatementParser<? extends Statement> findParser(ParsingContext context) {
         return parsers.stream()
                 .filter(parser -> parser.canParse(context))
                 .findFirst()
@@ -60,7 +60,7 @@ public class StatementParserRegistry implements StatementParse {
      * Parses a statement using the appropriate parser.
      */
     public Statement parseStatement(ParsingContext context) {
-        StatementParser<? extends Statement> parser = findParser(context);
+        TypedStatementParser<? extends Statement> parser = findParser(context);
 
         if (parser == null) {
             context.addError("No parser found for token: " +
@@ -69,18 +69,13 @@ public class StatementParserRegistry implements StatementParse {
             return null;
         }
 
-        try {
-            return parser.parse(context);
-        } catch (ParserException e) {
-            context.addError(e.getMessage(), e.getToken());
-            return null;
-        }
+        return parser.parse(context);
     }
 
     /**
      * Adds a custom statement parser.
      */
-    public void addParser(StatementParser<? extends Statement> parser) {
+    public void addParser(TypedStatementParser<? extends Statement> parser) {
         // Insert before expression statement parser (which should be last)
         int insertIndex = Math.max(0, parsers.size() - 1);
         parsers.add(insertIndex, parser);
@@ -89,7 +84,7 @@ public class StatementParserRegistry implements StatementParse {
     /**
      * Removes a statement parser by type.
      */
-    public void removeParser(Class<? extends StatementParser<? extends Statement>> parserType) {
+    public void removeParser(Class<? extends TypedStatementParser<? extends Statement>> parserType) {
         parsers.removeIf(parser -> parser.getClass().equals(parserType));
     }
 }

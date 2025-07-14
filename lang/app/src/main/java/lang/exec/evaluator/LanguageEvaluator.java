@@ -48,6 +48,7 @@ public class LanguageEvaluator implements EvaluationContext {
         registerEvaluator(InfixExpression.class, new InfixExpressionEvaluator());
         registerEvaluator(Identifier.class, new IndentifierEvaluator());
         registerEvaluator(AssignmentExpression.class, new AssignmentExpressionEvaluator());
+        registerEvaluator(IndexExpression.class, new IndexExpressionEvaluator());
     }
 
     private void registerLiteralEvaluators() {

@@ -3,10 +3,7 @@ package lang.parser.parsers;
 import lang.ast.statements.BlockStatement;
 import lang.ast.base.Statement;
 
-import lang.parser.core.ParsingContext;
-import lang.parser.core.TokenStream;
-import lang.parser.core.StatementParse;
-
+import lang.parser.core.*;
 import lang.token.TokenType;
 import lang.token.Token;
 import java.util.*;
@@ -14,7 +11,7 @@ import java.util.*;
 /**
  * Parses block statements: { stmt1; stmt2; }
  */
-public class BlockStatementParser implements StatementParser<BlockStatement> {
+public class BlockStatementParser implements TypedStatementParser<BlockStatement> {
 
     private final StatementParse statementParser;
 
@@ -28,31 +25,19 @@ public class BlockStatementParser implements StatementParser<BlockStatement> {
     }
 
     @Override
-    public BlockStatement parse(ParsingContext context) {
-        TokenStream tokens = context.getTokenStream();
-
-        Token braceToken = tokens.getCurrentToken();
-        tokens.advance(); // consume '{'
+    public BlockStatement parse(ParsingContext context) throws ParserException {
+        TokenStream tokenStream = context.getTokenStream();
+        Token lbraceToken = context.consume(TokenType.LBRACE);
 
         List<Statement> statements = new ArrayList<>();
 
-        while (!tokens.isCurrentToken(TokenType.RBRACE) && !tokens.isAtEnd()) {
+        while (!tokenStream.isCurrentToken(TokenType.RBRACE) && !tokenStream.isAtEnd()) {
             Statement stmt = statementParser.parseStatement(context);
             if (stmt != null) {
                 statements.add(stmt);
             }
-
-            // Advance to next statement
-            tokens.advance();
         }
-
-        // Consume '}'
-        if (tokens.isCurrentToken(TokenType.RBRACE)) {
-            tokens.advance();
-        } else {
-            context.addError("Expected '}' to close block", tokens.getCurrentToken());
-        }
-
-        return new BlockStatement(braceToken, statements);
+        context.consume(TokenType.RBRACE);
+        return new BlockStatement(lbraceToken, statements);
     }
 }

@@ -1,6 +1,7 @@
 package lang.exec.evaluator.expressions;
 
 import java.util.List;
+import java.util.Optional;
 import lang.ast.base.Expression;
 import lang.ast.statements.BlockStatement;
 
@@ -20,7 +21,7 @@ public class IfExpressionEvaluator implements NodeEvaluator<IfExpression> {
     public BaseObject evaluate(IfExpression node, Environment env, EvaluationContext context) {
         List<Expression> conditions = node.getConditions();
         List<BlockStatement> consequences = node.getConsequences();
-        BlockStatement alternative = node.getAlternative();
+        Optional<BlockStatement> alternative = node.getAlternative();
 
         for (int i = 0; i < conditions.size(); i++) {
             BaseObject condition = context.evaluate(conditions.get(i), env);
@@ -34,8 +35,8 @@ public class IfExpressionEvaluator implements NodeEvaluator<IfExpression> {
             }
         }
 
-        if (alternative != null) {
-            return context.evaluate(alternative, env);
+        if (alternative.isPresent()) {
+            return context.evaluate(alternative.get(), env);
         }
 
         return NullObject.INSTANCE;

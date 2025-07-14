@@ -276,8 +276,8 @@ public class AstTreeVisualizer extends BaseAstVisitor<TreeNode> {
         }
 
         // Add else branch if present
-        if (ifExpression.getAlternative() != null) {
-            TreeNode elseNode = ifExpression.getAlternative().accept(this);
+        if (ifExpression.getAlternative().isPresent()) {
+            TreeNode elseNode = ifExpression.getAlternative().get().accept(this);
             elseNode.setLabel("else");
             node.addChild(elseNode);
         }

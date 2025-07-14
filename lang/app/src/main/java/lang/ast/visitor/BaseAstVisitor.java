@@ -134,4 +134,9 @@ public abstract class BaseAstVisitor<T> implements AstVisitor<T> {
     public T visitFStringLiteral(FStringLiteral fStringLiteral) {
         return defaultResult();
     }
+
+    @Override
+    public T visitNullExpression(NullExpression nullExpression) {
+        return defaultResult();
+    }
 }

@@ -69,4 +69,6 @@ public interface AstVisitor<T> {
     T visitFunctionLiteral(FunctionLiteral functionLiteral);
 
     T visitFStringLiteral(FStringLiteral fStringLiteral);
+
+    T visitNullExpression(NullExpression nullExpression);
 }

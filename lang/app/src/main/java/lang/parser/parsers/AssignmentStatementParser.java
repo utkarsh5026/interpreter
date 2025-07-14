@@ -5,6 +5,10 @@ import lang.ast.base.Identifier;
 import lang.ast.base.Statement;
 
 import lang.parser.core.*;
+import lang.parser.error.ParserException;
+import lang.parser.interfaces.TypedStatementParser;
+import lang.parser.interfaces.ExpressionParser;
+import lang.parser.precedence.Precedence;
 
 import lang.token.Token;
 import lang.token.TokenType;
@@ -25,14 +29,14 @@ public class AssignmentStatementParser<T extends Statement> implements TypedStat
         T create(Token token, Identifier name, Expression value);
     }
 
-    private final StatementParse statementParser;
+    private final ExpressionParser expressionParser;
     private final TokenType expectedTokenType;
     private final StatementFactory<T> statementFactory;
 
-    public AssignmentStatementParser(StatementParse statementParser,
+    public AssignmentStatementParser(ExpressionParser expressionParser,
             TokenType expectedTokenType,
             StatementFactory<T> statementFactory) {
-        this.statementParser = statementParser;
+        this.expressionParser = expressionParser;
         this.expectedTokenType = expectedTokenType;
         this.statementFactory = statementFactory;
     }
@@ -55,20 +59,14 @@ public class AssignmentStatementParser<T extends Statement> implements TypedStat
      */
     @Override
     public T parse(ParsingContext context) throws ParserException {
-        Token keywordToken = context.consume(expectedTokenType);
-        Token nameToken = context.consume(TokenType.IDENTIFIER);
+        Token keywordToken = context.consumeCurrentToken(expectedTokenType);
+        Token nameToken = context.consumeCurrentToken(TokenType.IDENTIFIER);
         Identifier name = new Identifier(nameToken, nameToken.literal());
 
-        context.consume(TokenType.ASSIGN);
+        context.consumeCurrentToken(TokenType.ASSIGN);
 
-        ExpressionParser expressionParser = new ExpressionParser(statementParser);
-        Expression value = expressionParser.parseExpression(context, PrecedenceTable.Precedence.LOWEST);
-
-        if (value == null) {
-            throw new ParserException("Expected expression after '='");
-        }
-
-        context.consume(TokenType.SEMICOLON);
+        Expression value = expressionParser.parseExpression(context, Precedence.LOWEST);
+        context.consumeCurrentToken(TokenType.SEMICOLON);
         return statementFactory.create(keywordToken, name, value);
     }
 }

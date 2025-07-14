@@ -55,6 +55,7 @@ public class LanguageEvaluator implements EvaluationContext {
         registerEvaluator(ArrayLiteral.class, new ArrayLiteralEvaluator());
         registerEvaluator(HashLiteral.class, new HashLiteralEvaluator());
         registerEvaluator(FunctionLiteral.class, new FunctionLiteralEvaluator());
+        registerEvaluator(NullExpression.class, new NullLiteralEvaluator());
     }
 
     /**

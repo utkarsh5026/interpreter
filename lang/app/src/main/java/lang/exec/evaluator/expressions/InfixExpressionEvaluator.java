@@ -40,7 +40,7 @@ public class InfixExpressionEvaluator implements NodeEvaluator<InfixExpression> 
 
     private BaseObject evalStringInfixExpression(String operator, BaseObject left, BaseObject right) {
         if (!ObjectValidator.isString(left) || !ObjectValidator.isString(right)) {
-            return new ErrorObject("type mismatch: STRING " + operator + " " + left.type() + " " + right.type());
+            return createTypeMismatchError(operator, left, right);
         }
 
         String leftString = ObjectValidator.asString(left).getValue();
@@ -69,13 +69,13 @@ public class InfixExpressionEvaluator implements NodeEvaluator<InfixExpression> 
                 return new BooleanObject(leftString.compareTo(rightString) >= 0);
 
             default:
-                return new ErrorObject("unknown operator: " + operator + " " + left.type() + " " + right.type());
+                return createInvalidOperatorError(operator, left, right);
         }
     }
 
     private BaseObject evalIntegerInfixExpression(String operator, BaseObject left, BaseObject right) {
         if (!ObjectValidator.isInteger(left) || !ObjectValidator.isInteger(right)) {
-            return new ErrorObject("type mismatch: INTEGER " + operator + " " + left.type() + " " + right.type());
+            return createTypeMismatchError(operator, left, right);
         }
 
         long leftInteger = ObjectValidator.asInteger(left).getValue();
@@ -119,13 +119,13 @@ public class InfixExpressionEvaluator implements NodeEvaluator<InfixExpression> 
                 return new BooleanObject(leftInteger >= rightInteger);
 
             default:
-                return new ErrorObject("unknown operator: " + operator + " " + left.type() + " " + right.type());
+                return createInvalidOperatorError(operator, left, right);
         }
     }
 
     private BaseObject evalBooleanInfixExpression(String operator, BaseObject left, BaseObject right) {
         if (!ObjectValidator.isBoolean(left) || !ObjectValidator.isBoolean(right)) {
-            return new ErrorObject("type mismatch: BOOLEAN " + operator + " " + left.type() + " " + right.type());
+            return createTypeMismatchError(operator, left, right);
         }
 
         boolean leftBoolean = ObjectValidator.asBoolean(left).getValue();
@@ -145,7 +145,7 @@ public class InfixExpressionEvaluator implements NodeEvaluator<InfixExpression> 
                 return new BooleanObject(leftBoolean || rightBoolean);
 
             default:
-                return new ErrorObject("unknown operator: " + operator + " " + left.type() + " " + right.type());
+                return createInvalidOperatorError(operator, left, right);
         }
     }
 
@@ -159,8 +159,16 @@ public class InfixExpressionEvaluator implements NodeEvaluator<InfixExpression> 
         if (ObjectValidator.isBoolean(left) && ObjectValidator.isBoolean(right))
             return evalBooleanInfixExpression(operator, left, right);
 
+        return createInvalidOperatorError(operator, left, right);
+    }
+
+    private ErrorObject createInvalidOperatorError(String operator, BaseObject left, BaseObject right) {
         return new ErrorObject("Invalid operator '" + operator + "' for types " + left.type() + " and " + right.type()
                 + ". This operation is not supported.");
     }
 
+    private ErrorObject createTypeMismatchError(String operator, BaseObject left, BaseObject right) {
+        return new ErrorObject("Type mismatch: " + left.type() + " " + operator + " " + right.type()
+                + ". This operation is not supported.");
+    }
 }

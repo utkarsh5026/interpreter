@@ -84,10 +84,13 @@ public class LanguageEvaluator implements EvaluationContext {
     public List<BaseObject> evaluateExpressions(List<? extends Node> expressions, Environment env) {
         List<BaseObject> results = new ArrayList<>();
 
-        expressions.stream()
-                .map(expr -> evaluate(expr, env))
-                .takeWhile(result -> !ObjectValidator.isError(result))
-                .forEach(results::add);
+        for (Node expr : expressions) {
+            BaseObject result = evaluate(expr, env);
+            if (ObjectValidator.isError(result)) {
+                return Arrays.asList(result);
+            }
+            results.add(result);
+        }
 
         return results;
     }

@@ -1,4 +1,4 @@
-package lang.parser.core;
+package lang.parser.error;
 
 import java.util.ArrayList;
 import java.util.Collections;

@@ -1,4 +1,4 @@
-package lang.parser.core;
+package lang.parser.error;
 
 import lang.token.Token;
 import lang.token.TokenPosition;

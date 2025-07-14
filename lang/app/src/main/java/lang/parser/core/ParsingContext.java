@@ -38,7 +38,7 @@ public class ParsingContext {
      */
     public ParsingContext(Lexer lexer) {
         this.tokens = new TokenStream(lexer);
-        this.errors = new ErrorReporter();
+        this.errors = new ErrorReporter(lexer.getInputLines());
         this.precedenceTable = new PrecedenceTable();
     }
 

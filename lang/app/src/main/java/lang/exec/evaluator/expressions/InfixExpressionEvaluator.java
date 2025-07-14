@@ -159,7 +159,8 @@ public class InfixExpressionEvaluator implements NodeEvaluator<InfixExpression> 
         if (ObjectValidator.isBoolean(left) && ObjectValidator.isBoolean(right))
             return evalBooleanInfixExpression(operator, left, right);
 
-        return new ErrorObject("unknown operator: " + operator + " " + left.type() + " " + right.type());
+        return new ErrorObject("Invalid operator '" + operator + "' for types " + left.type() + " and " + right.type()
+                + ". This operation is not supported.");
     }
 
 }

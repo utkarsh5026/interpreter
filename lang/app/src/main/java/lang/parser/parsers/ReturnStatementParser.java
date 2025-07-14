@@ -2,8 +2,8 @@ package lang.parser.parsers;
 
 import lang.ast.statements.ReturnStatement;
 import lang.parser.core.ParsingContext;
-import lang.parser.core.TokenStream;
 import lang.ast.base.Expression;
+import lang.ast.expressions.NullExpression;
 import lang.parser.core.PrecedenceTable;
 
 import lang.token.Token;
@@ -28,6 +28,11 @@ public class ReturnStatementParser implements StatementParser<ReturnStatement> {
     public ReturnStatement parse(ParsingContext context) {
         Token returnToken = context.consume(TokenType.RETURN);
 
+        if (context.getTokenStream().isCurrentToken(TokenType.SEMICOLON)) {
+            context.consume(TokenType.SEMICOLON);
+            return new ReturnStatement(returnToken, new NullExpression(returnToken));
+        }
+
         ExpressionParser expressionParser = new ExpressionParser(statementParser);
         Expression returnValue = expressionParser.parseExpression(context,
                 PrecedenceTable.Precedence.LOWEST);
@@ -38,7 +43,6 @@ public class ReturnStatementParser implements StatementParser<ReturnStatement> {
         }
 
         context.consume(TokenType.SEMICOLON);
-
         return new ReturnStatement(returnToken, returnValue);
     }
 }

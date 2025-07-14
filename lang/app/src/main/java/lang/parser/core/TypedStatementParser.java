@@ -1,13 +1,12 @@
-package lang.parser.parsers;
+package lang.parser.core;
 
 import lang.ast.base.Statement;
-import lang.parser.core.ParsingContext;
 
 /**
  * Parser interface for statement parsing.
  * Each statement type has its own parser implementation.
  */
-public interface StatementParser<T extends Statement> {
+public interface TypedStatementParser<T extends Statement> {
     /**
      * Checks if this parser can handle the current token.
      */
@@ -16,5 +15,5 @@ public interface StatementParser<T extends Statement> {
     /**
      * Parses the statement from the current position.
      */
-    T parse(ParsingContext context);
+    T parse(ParsingContext context) throws ParserException;
 }

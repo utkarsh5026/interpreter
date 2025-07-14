@@ -60,7 +60,6 @@ public class AssignmentStatementParser<T extends Statement> implements Statement
         Identifier name = new Identifier(nameToken, nameToken.literal());
 
         context.consume(TokenType.ASSIGN);
-        System.out.println("Current token: " + context.getTokenStream().getCurrentToken());
 
         ExpressionParser expressionParser = new ExpressionParser(statementParser);
         Expression value = expressionParser.parseExpression(context, PrecedenceTable.Precedence.LOWEST);
@@ -69,13 +68,6 @@ public class AssignmentStatementParser<T extends Statement> implements Statement
             context.addError("Expected expression after '='", context.getTokenStream().getCurrentToken().copy());
             return null;
         }
-
-        System.out.println("Current token: " + context.getTokenStream().getCurrentToken());
-        // if (!context.getTokenStream().expect(TokenType.SEMICOLON)) {
-        // context.addError("Expected ';' after expression",
-        // context.getTokenStream().getCurrentToken().copy());
-        // return null;
-        // }
 
         context.consume(TokenType.SEMICOLON);
         return statementFactory.create(keywordToken, name, value);

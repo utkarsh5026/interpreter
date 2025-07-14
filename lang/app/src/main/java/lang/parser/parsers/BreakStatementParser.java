@@ -1,11 +1,10 @@
 package lang.parser.parsers;
 
 import lang.ast.statements.BreakStatement;
-import lang.parser.core.ParsingContext;
-import lang.parser.core.ParserException;
-import lang.parser.core.TypedStatementParser;
-import lang.token.TokenType;
-import lang.token.Token;
+import lang.parser.core.*;
+import lang.parser.error.ParserException;
+import lang.parser.interfaces.TypedStatementParser;
+import lang.token.*;
 
 /**
  * Parses break statements: break;
@@ -24,8 +23,8 @@ public class BreakStatementParser implements TypedStatementParser<BreakStatement
                     context.getTokenStream().getCurrentToken());
         }
 
-        Token breakToken = context.consume(TokenType.BREAK);
-        context.consume(TokenType.SEMICOLON);
+        Token breakToken = context.consumeCurrentToken(TokenType.BREAK);
+        context.consumeCurrentToken(TokenType.SEMICOLON);
         return new BreakStatement(breakToken);
     }
 }

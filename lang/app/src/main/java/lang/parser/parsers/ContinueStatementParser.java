@@ -1,9 +1,9 @@
 package lang.parser.parsers;
 
 import lang.ast.statements.ContinueStatement;
-import lang.parser.core.ParsingContext;
-import lang.parser.core.ParserException;
-import lang.parser.core.TypedStatementParser;
+import lang.parser.core.*;
+import lang.parser.error.ParserException;
+import lang.parser.interfaces.TypedStatementParser;
 import lang.token.*;
 
 /**
@@ -23,8 +23,8 @@ public class ContinueStatementParser implements TypedStatementParser<ContinueSta
                     context.getTokenStream().getCurrentToken());
         }
 
-        Token continueToken = context.consume(TokenType.CONTINUE);
-        context.consume(TokenType.SEMICOLON);
+        Token continueToken = context.consumeCurrentToken(TokenType.CONTINUE);
+        context.consumeCurrentToken(TokenType.SEMICOLON);
 
         return new ContinueStatement(continueToken);
     }

@@ -116,7 +116,7 @@ public class ParsingContext {
         errors.addTokenError(expected, actual);
     }
 
-    public Token consume(TokenType type) {
+    public Token consumeCurrentToken(TokenType type) {
         return tokens.consume(type);
     }
 }

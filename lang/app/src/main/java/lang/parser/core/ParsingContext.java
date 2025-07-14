@@ -5,6 +5,8 @@ import lang.token.Token;
 import lang.token.TokenType;
 import lang.parser.error.ErrorReporter;
 import lang.parser.precedence.PrecedenceTable;
+import lang.parser.error.ParserException;
+import java.util.Optional;
 
 /**
  * 🎯 ParsingContext - The Parser's Control Center 🎯
@@ -116,7 +118,22 @@ public class ParsingContext {
         errors.addTokenError(expected, actual);
     }
 
-    public Token consumeCurrentToken(TokenType type) {
-        return tokens.consume(type);
+    public Token consumeCurrentToken(TokenType type, String messageOnError) throws ParserException {
+        Token token = tokens.getCurrentToken();
+        try {
+            return tokens.consume(type);
+        } catch (ParserException e) {
+            String error = e.getMessage();
+            Optional<Token> errorToken = e.getToken();
+
+            if (errorToken.isPresent()) {
+                throw new ParserException(String.format("%s: %s", messageOnError, error), errorToken.get());
+            }
+            throw new ParserException(String.format("%s: %s", messageOnError, error), token);
+        }
+    }
+
+    public Token consumeCurrentToken(TokenType type) throws ParserException {
+        return consumeCurrentToken(type, "");
     }
 }

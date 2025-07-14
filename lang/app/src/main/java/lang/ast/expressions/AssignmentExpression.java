@@ -2,6 +2,7 @@ package lang.ast.expressions;
 
 import lang.ast.base.Expression;
 import lang.ast.base.Identifier;
+import lang.ast.utils.AstCaster;
 import lang.token.Token;
 import lang.ast.visitor.AstVisitor;
 
@@ -9,17 +10,17 @@ import lang.ast.visitor.AstVisitor;
  * Represents an assignment expression: x = value
  */
 public class AssignmentExpression extends Expression {
-    private final Identifier name;
+    private final Expression target;
     private final Expression value;
 
-    public AssignmentExpression(Token token, Identifier name, Expression value) {
+    public AssignmentExpression(Token token, Expression target, Expression value) {
         super(token);
-        this.name = name;
+        this.target = target;
         this.value = value;
     }
 
     public Identifier getName() {
-        return name;
+        return AstCaster.asIdentifier(target);
     }
 
     public Expression getValue() {
@@ -29,7 +30,7 @@ public class AssignmentExpression extends Expression {
     @Override
     public String toString() {
         return String.format("%s = %s",
-                name.toString(),
+                target.toString(),
                 value.toString());
     }
 

@@ -118,7 +118,7 @@ public class TokenStream {
      * 
      */
     public Token consume(TokenType expectedType) throws ParserException {
-        System.out.println("Consuming: " + expectedType + "| Current: " + currentToken.type());
+
         if (!isCurrentToken(expectedType)) {
             System.out.println("Throwing ParserException");
             throw new ParserException(String.format(

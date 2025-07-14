@@ -50,13 +50,16 @@ public class ExpressionParserRegistry {
         registerPrefixParser(new PrefixOperatorParser(expressionParser));
         registerPrefixParser(new FunctionalLiteralParser(statementParser));
         registerPrefixParser(new HashLiteralParser(expressionParser));
+        registerPrefixParser(new GroupedExpressionParser(expressionParser));
+        registerPrefixParser(new ArrayLiteralParser(expressionParser));
     }
 
     private void registerInfixParsers() {
         registerInfixParser(new ArithmeticOperatorParser(expressionParser));
         registerInfixParser(new ComparisonOperatorParser(expressionParser));
         registerInfixParser(new LogicalOperatorParser(expressionParser));
-
+        registerInfixParser(new AssignmentExpressionParser(expressionParser));
+        registerInfixParser(new CallExpressionParser(expressionParser));
     }
 
     public void registerInfixParser(InfixExpressionParser parser) {

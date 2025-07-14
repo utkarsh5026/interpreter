@@ -3,6 +3,7 @@ package lang.parser.expressions;
 import lang.token.TokenType;
 import java.util.Optional;
 import lang.ast.base.Expression;
+import java.util.Set;
 
 import lang.parser.interfaces.InfixExpressionParser;
 import lang.parser.interfaces.PrefixExpressionParser;
@@ -50,7 +51,8 @@ public class LanguageExpressionParser implements ExpressionParser {
                 + " " + tokens.isCurrentToken(TokenType.SEMICOLON) + " " + tokens.isCurrentToken(TokenType.COMMA)
                 + " " + tokens.isCurrentToken(TokenType.RPAREN));
 
-        if (tokens.isCurrentToken(TokenType.SEMICOLON) || tokens.isCurrentToken(TokenType.COMMA)) {
+        Set<TokenType> stopTokens = Set.of(TokenType.SEMICOLON, TokenType.COMMA, TokenType.COLON);
+        if (stopTokens.contains(tokens.getCurrentToken().type())) {
             return false;
         }
 

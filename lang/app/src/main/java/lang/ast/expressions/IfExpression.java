@@ -3,6 +3,7 @@ package lang.ast.expressions;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import lang.ast.base.Expression;
 import lang.ast.statements.BlockStatement;
@@ -12,10 +13,10 @@ import lang.ast.visitor.AstVisitor;
 public class IfExpression extends Expression {
     private final List<Expression> conditions;
     private final List<BlockStatement> consequences;
-    private final BlockStatement alternative;
+    private final Optional<BlockStatement> alternative;
 
     public IfExpression(Token token, List<Expression> conditions,
-            List<BlockStatement> consequences, BlockStatement alternative) {
+            List<BlockStatement> consequences, Optional<BlockStatement> alternative) {
         super(token);
         this.conditions = new ArrayList<>(conditions);
         this.consequences = new ArrayList<>(consequences);
@@ -30,7 +31,7 @@ public class IfExpression extends Expression {
         return Collections.unmodifiableList(consequences);
     }
 
-    public BlockStatement getAlternative() {
+    public Optional<BlockStatement> getAlternative() {
         return alternative;
     }
 

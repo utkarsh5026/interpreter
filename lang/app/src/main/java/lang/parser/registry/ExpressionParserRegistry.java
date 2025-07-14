@@ -52,6 +52,7 @@ public class ExpressionParserRegistry {
         registerPrefixParser(new HashLiteralParser(expressionParser));
         registerPrefixParser(new GroupedExpressionParser(expressionParser));
         registerPrefixParser(new ArrayLiteralParser(expressionParser));
+        registerPrefixParser(new IfExpressionParser(expressionParser, statementParser));
     }
 
     private void registerInfixParsers() {

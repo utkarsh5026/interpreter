@@ -4,11 +4,11 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import lang.parser.interfaces.PrefixExpressionParser;
+import lang.parser.parsers.expressions.infix.*;
+import lang.parser.parsers.expressions.prefix.*;
 import lang.parser.interfaces.InfixExpressionParser;
 import lang.parser.interfaces.ExpressionParser;
 import lang.token.TokenType;
-import lang.parser.expressions.prefix.*;
-import lang.parser.expressions.infix.*;
 import lang.parser.core.StatementParse;
 
 public class ExpressionParserRegistry {

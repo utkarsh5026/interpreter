@@ -2,14 +2,12 @@ package lang.parser.registry;
 
 import java.util.*;
 
-import lang.parser.parsers.*;
-
 import lang.parser.core.ParsingContext;
 import lang.parser.core.StatementParse;
 import lang.parser.interfaces.TypedStatementParser;
+import lang.parser.parsers.expressions.LanguageExpressionParser;
+import lang.parser.parsers.statements.*;
 import lang.ast.base.Statement;
-
-import lang.parser.expressions.LanguageExpressionParser;
 
 /**
  * StatementParserRegistry manages all statement parsers and coordinates

@@ -76,10 +76,15 @@ public class ExpressionParser {
             return null;
         }
 
+        System.out.println("Left expression: " + leftExpression);
+        System.out.println("current token: " + tokens.getCurrentToken());
+
         // Continue parsing while we have higher precedence operators
         while (!tokens.isPeekToken(TokenType.SEMICOLON) &&
                 precedence.getLevel() < context.getPrecedenceTable()
                         .getPrecedence(tokens.getPeekToken().type()).getLevel()) {
+
+            System.out.println("Infix parser: " + tokens.getPeekToken());
 
             InfixParser infixParser = infixParsers.get(tokens.getPeekToken().type());
 

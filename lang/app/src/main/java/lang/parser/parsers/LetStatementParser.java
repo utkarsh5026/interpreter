@@ -1,10 +1,10 @@
 package lang.parser.parsers;
 
 import lang.ast.statements.LetStatement;
-import lang.parser.core.ParsingContext;
-import lang.parser.core.StatementParse;
-import lang.parser.core.TypedStatementParser;
-import lang.token.TokenType;
+import lang.parser.core.*;
+import lang.parser.interfaces.TypedStatementParser;
+import lang.token.*;
+import lang.parser.interfaces.ExpressionParser;
 
 /**
  * 📝 LetStatementParser - Specialized for let statements 📝
@@ -13,9 +13,9 @@ public class LetStatementParser implements TypedStatementParser<LetStatement> {
 
     private final AssignmentStatementParser<LetStatement> delegate;
 
-    public LetStatementParser(StatementParse statementParser) {
-        this.delegate = new AssignmentStatementParser<>(
-                statementParser,
+    public LetStatementParser(ExpressionParser expressionParser) {
+        this.delegate = new AssignmentStatementParser<LetStatement>(
+                expressionParser,
                 TokenType.LET,
                 LetStatement::new);
     }

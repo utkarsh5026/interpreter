@@ -38,12 +38,17 @@ public class AssignmentExpressionParser implements InfixExpressionParser {
 
     @Override
     public Expression parseInfix(ParsingContext context, Expression left) {
+        System.out.println("Parsing assignment expression");
         if (!AstValidator.isIdentifier(left)) {
             throw new ParserException("Invalid assignment target - must be an identifier");
         }
 
-        Token assignToken = context.consumeCurrentToken(TokenType.ASSIGN);
+        Token assignToken = context.consumeCurrentToken(TokenType.ASSIGN, "Expected '=' after identifier");
         Expression value = expressionParser.parseExpression(context, Precedence.LOWEST);
+
+        if (context.getTokenStream().isCurrentToken(TokenType.SEMICOLON)) {
+            context.consumeCurrentToken(TokenType.SEMICOLON);
+        }
 
         return new AssignmentExpression(assignToken, AstCaster.asIdentifier(left), value);
     }

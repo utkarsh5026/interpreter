@@ -1,10 +1,10 @@
 package lang.parser.parsers;
 
 import lang.ast.statements.ConstStatement;
-import lang.parser.core.ParsingContext;
-import lang.parser.core.StatementParse;
-import lang.parser.core.TypedStatementParser;
-import lang.token.TokenType;
+import lang.parser.core.*;
+import lang.parser.interfaces.TypedStatementParser;
+import lang.token.*;
+import lang.parser.interfaces.ExpressionParser;
 
 /**
  * 🔒 ConstStatementParser - Specialized for const statements 🔒
@@ -13,9 +13,9 @@ public class ConstStatementParser implements TypedStatementParser<ConstStatement
 
     private final AssignmentStatementParser<ConstStatement> delegate;
 
-    public ConstStatementParser(StatementParse statementParser) {
-        this.delegate = new AssignmentStatementParser<>(
-                statementParser,
+    public ConstStatementParser(ExpressionParser expressionParser) {
+        this.delegate = new AssignmentStatementParser<ConstStatement>(
+                expressionParser,
                 TokenType.CONST,
                 ConstStatement::new);
     }

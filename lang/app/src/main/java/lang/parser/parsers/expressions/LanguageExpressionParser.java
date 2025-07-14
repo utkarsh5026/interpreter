@@ -46,11 +46,6 @@ public class LanguageExpressionParser implements ExpressionParser {
 
     private boolean shouldContinueParsing(ParsingContext context, Precedence minPrecedence) {
         TokenStream tokens = context.getTokenStream();
-
-        System.out.println("Should continue parsing: " + tokens.getPeekToken() + " " + tokens.getCurrentToken()
-                + " " + tokens.isCurrentToken(TokenType.SEMICOLON) + " " + tokens.isCurrentToken(TokenType.COMMA)
-                + " " + tokens.isCurrentToken(TokenType.RPAREN));
-
         Set<TokenType> stopTokens = Set.of(TokenType.SEMICOLON, TokenType.COMMA, TokenType.COLON);
         if (stopTokens.contains(tokens.getCurrentToken().type())) {
             return false;
@@ -68,6 +63,7 @@ public class LanguageExpressionParser implements ExpressionParser {
     }
 
     private Expression parseInfix(ParsingContext context, Expression left) {
+
         TokenStream tokens = context.getTokenStream();
         Token currentToken = tokens.getCurrentToken();
 
@@ -75,9 +71,11 @@ public class LanguageExpressionParser implements ExpressionParser {
 
         Optional<InfixExpressionParser> parser = registry.getInfixParser(currentToken.type());
         if (parser.isEmpty()) {
-            return left;
+            throw new ParserException("No infix parser found for token type: " + currentToken.type(),
+                    currentToken);
         }
 
+        System.out.println("Parser: " + parser.get().getClass().getName());
         return parser.get().parseInfix(context, left);
     }
 
@@ -91,6 +89,8 @@ public class LanguageExpressionParser implements ExpressionParser {
             throw new ParserException("No prefix parser found for token type: " + currentTokenType,
                     tokens.getCurrentToken());
         }
+
+        System.out.println("Parser: " + parser.get().getClass().getName());
 
         return parser.get().parsePrefix(context);
     }

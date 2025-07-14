@@ -76,6 +76,7 @@ public class StatementParserRegistry implements StatementParse {
                     context.getTokenStream().getCurrentToken());
             return null;
         }
+        System.out.println("\nParser: " + parser.getClass().getName());
 
         return parser.parse(context);
     }

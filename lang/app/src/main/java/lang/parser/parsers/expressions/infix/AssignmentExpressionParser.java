@@ -38,9 +38,11 @@ public class AssignmentExpressionParser implements InfixExpressionParser {
 
     @Override
     public Expression parseInfix(ParsingContext context, Expression left) {
-        System.out.println("Parsing assignment expression");
-        if (!AstValidator.isIdentifier(left)) {
-            throw new ParserException("Invalid assignment target - must be an identifier");
+        System.out.println("Parsing assignment expression: " + context.getTokenStream().getCurrentToken());
+
+        if (!AstValidator.isIdentifier(left) && !AstValidator.isIndexExpression(left)) {
+            throw new ParserException("Invalid assignment target - must be an identifier or index expression",
+                    context.getTokenStream().getCurrentToken());
         }
 
         Token assignToken = context.consumeCurrentToken(TokenType.ASSIGN, "Expected '=' after identifier");
@@ -50,7 +52,7 @@ public class AssignmentExpressionParser implements InfixExpressionParser {
             context.consumeCurrentToken(TokenType.SEMICOLON);
         }
 
-        return new AssignmentExpression(assignToken, AstCaster.asIdentifier(left), value);
+        return new AssignmentExpression(assignToken, left, value);
     }
 
     @Override

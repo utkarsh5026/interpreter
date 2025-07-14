@@ -1,6 +1,5 @@
 package lang.lexer;
 
-import lang.lexer.Lexer;
 import lang.token.Token;
 import lang.token.TokenType;
 import org.junit.jupiter.api.BeforeEach;

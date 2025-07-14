@@ -1,4 +1,4 @@
-package lang;
+package lang.lexer;
 
 import lang.lexer.Lexer;
 import lang.token.Token;

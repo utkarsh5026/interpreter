@@ -61,6 +61,7 @@ public class ExpressionParserRegistry {
         registerInfixParser(new LogicalOperatorParser(expressionParser));
         registerInfixParser(new AssignmentExpressionParser(expressionParser));
         registerInfixParser(new CallExpressionParser(expressionParser));
+        registerInfixParser(new IndexExpressionParser(expressionParser));
     }
 
     public void registerInfixParser(InfixExpressionParser parser) {

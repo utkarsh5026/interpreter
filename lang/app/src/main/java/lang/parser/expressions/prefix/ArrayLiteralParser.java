@@ -2,17 +2,15 @@ package lang.parser.expressions.prefix;
 
 import java.util.Set;
 import java.util.List;
-import java.util.ArrayList;
 
 import lang.parser.interfaces.PrefixExpressionParser;
-import lang.parser.precedence.Precedence;
 import lang.parser.interfaces.ExpressionParser;
-import lang.parser.core.ParsingContext;
-import lang.parser.core.TokenStream;
+
 import lang.ast.base.Expression;
 import lang.ast.literals.ArrayLiteral;
 import lang.token.*;
-import lang.parser.error.ParserException;
+import lang.parser.core.ListParsingUtils;
+import lang.parser.core.ParsingContext;
 
 /**
  * 📋 ArrayLiteralParser - Array Construction Specialist 📋
@@ -47,24 +45,13 @@ public class ArrayLiteralParser implements PrefixExpressionParser {
     @Override
     public Expression parsePrefix(ParsingContext context) {
         Token leftBracketToken = context.consumeCurrentToken(TokenType.LBRACKET);
-        List<Expression> elements = new ArrayList<>();
-        TokenStream tokenStream = context.getTokenStream();
-
-        while (tokenStream.isCurrentToken(TokenType.RBRACKET)) {
-            Expression expr = expressionParser.parseExpression(context, Precedence.LOWEST);
-            elements.add(expr);
-
-            if (!tokenStream.isPeekToken(TokenType.RBRACKET)
-                    && !tokenStream.isPeekToken(TokenType.COMMA)) {
-                throw new ParserException("Expected ',' or ']'");
-            }
-
-            if (tokenStream.isCurrentToken(TokenType.COMMA)) {
-                context.consumeCurrentToken(TokenType.COMMA);
-            }
-        }
-
+        List<Expression> elements = ListParsingUtils.parseExpressionList(
+                context,
+                expressionParser,
+                TokenType.RBRACKET,
+                "array element");
         context.consumeCurrentToken(TokenType.RBRACKET);
+
         return new ArrayLiteral(leftBracketToken, elements);
     }
 

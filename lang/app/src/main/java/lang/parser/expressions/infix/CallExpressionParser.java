@@ -4,13 +4,12 @@ import lang.parser.interfaces.InfixExpressionParser;
 import lang.parser.core.ParsingContext;
 import lang.parser.interfaces.ExpressionParser;
 import lang.ast.expressions.CallExpression;
-import lang.parser.precedence.Precedence;
 
 import lang.ast.base.Expression;
 import lang.token.*;
 import java.util.Set;
 import java.util.List;
-import java.util.ArrayList;
+import lang.parser.core.ListParsingUtils;
 
 /**
  * 📞 CallExpressionParser - Function Call Specialist 📞
@@ -43,39 +42,15 @@ public class CallExpressionParser implements InfixExpressionParser {
 
     @Override
     public Expression parseInfix(ParsingContext context, Expression left) {
-        Token token = context.consumeCurrentToken(TokenType.LPAREN);
-        List<Expression> arguments = parseExpressionList(context, TokenType.RPAREN);
+        Token token = context.consumeCurrentToken(TokenType.LPAREN, "Expected '(' after function name");
+        List<Expression> arguments = ListParsingUtils.parseExpressionList(
+                context,
+                expressionParser,
+                TokenType.RPAREN,
+                "function argument");
+        context.consumeCurrentToken(TokenType.RPAREN, "Expected ')' after function arguments");
 
         return new CallExpression(token, left, arguments);
-    }
-
-    /**
-     * 📋 Parses a comma-separated list of expressions
-     * 
-     * This is a common pattern used for function arguments, array elements, etc.
-     * Handles the case of empty lists gracefully.
-     */
-    private List<Expression> parseExpressionList(ParsingContext context, TokenType endToken) {
-        List<Expression> expressions = new ArrayList<>();
-
-        if (context.getTokenStream().isCurrentToken(endToken)) {
-            context.consumeCurrentToken(endToken);
-            return expressions;
-        }
-
-        Expression expression = expressionParser.parseExpression(context, Precedence.LOWEST);
-        expressions.add(expression);
-
-        while (context.getTokenStream().isPeekToken(TokenType.COMMA)) {
-            context.getTokenStream().advance();
-            context.consumeCurrentToken(TokenType.COMMA);
-
-            expression = expressionParser.parseExpression(context, Precedence.LOWEST);
-            expressions.add(expression);
-        }
-
-        context.consumeCurrentToken(endToken);
-        return expressions;
     }
 
     @Override

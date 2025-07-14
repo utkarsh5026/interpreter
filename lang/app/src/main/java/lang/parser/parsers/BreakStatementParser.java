@@ -2,13 +2,15 @@ package lang.parser.parsers;
 
 import lang.ast.statements.BreakStatement;
 import lang.parser.core.ParsingContext;
+import lang.parser.core.ParserException;
+import lang.parser.core.TypedStatementParser;
 import lang.token.TokenType;
 import lang.token.Token;
 
 /**
  * Parses break statements: break;
  */
-public class BreakStatementParser implements StatementParser<BreakStatement> {
+public class BreakStatementParser implements TypedStatementParser<BreakStatement> {
 
     @Override
     public boolean canParse(ParsingContext context) {
@@ -16,16 +18,14 @@ public class BreakStatementParser implements StatementParser<BreakStatement> {
     }
 
     @Override
-    public BreakStatement parse(ParsingContext context) {
+    public BreakStatement parse(ParsingContext context) throws ParserException {
         if (!context.isInLoop()) {
-            context.addError("Break statement must be inside a loop",
+            throw new ParserException("Break statement must be inside a loop",
                     context.getTokenStream().getCurrentToken());
-            return null;
         }
 
-        Token breakToken = context.getTokenStream().getCurrentToken();
-        context.getTokenStream().consume(TokenType.SEMICOLON);
-
+        Token breakToken = context.consume(TokenType.BREAK);
+        context.consume(TokenType.SEMICOLON);
         return new BreakStatement(breakToken);
     }
 }

@@ -23,7 +23,7 @@ public class IdentifierExpressionParser implements PrefixExpressionParser {
 
     @Override
     public Expression parsePrefix(ParsingContext context) {
-        Token identifierToken = context.consumeCurrentToken(TokenType.IDENTIFIER);
+        Token identifierToken = context.consumeCurrentToken(TokenType.IDENTIFIER, "Expected identifier");
         return new Identifier(identifierToken, identifierToken.literal());
     }
 

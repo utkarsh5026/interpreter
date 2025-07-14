@@ -4,15 +4,17 @@ import lang.ast.statements.ReturnStatement;
 import lang.ast.base.Expression;
 import lang.ast.expressions.NullExpression;
 import lang.parser.core.*;
-
+import lang.parser.interfaces.TypedStatementParser;
+import lang.parser.precedence.Precedence;
+import lang.parser.interfaces.ExpressionParser;
 import lang.token.*;
 
 public class ReturnStatementParser implements TypedStatementParser<ReturnStatement> {
 
-    private final StatementParse statementParser;
+    private final ExpressionParser expressionParser;
 
-    public ReturnStatementParser(StatementParse statementParser) {
-        this.statementParser = statementParser;
+    public ReturnStatementParser(ExpressionParser expressionParser) {
+        this.expressionParser = expressionParser;
     }
 
     @Override
@@ -22,23 +24,22 @@ public class ReturnStatementParser implements TypedStatementParser<ReturnStateme
 
     @Override
     public ReturnStatement parse(ParsingContext context) {
-        Token returnToken = context.consume(TokenType.RETURN);
+        Token returnToken = context.consumeCurrentToken(TokenType.RETURN);
 
         if (context.getTokenStream().isCurrentToken(TokenType.SEMICOLON)) {
-            context.consume(TokenType.SEMICOLON);
+            context.consumeCurrentToken(TokenType.SEMICOLON);
             return new ReturnStatement(returnToken, new NullExpression(returnToken));
         }
 
-        ExpressionParser expressionParser = new ExpressionParser(statementParser);
         Expression returnValue = expressionParser.parseExpression(context,
-                PrecedenceTable.Precedence.LOWEST);
+                Precedence.LOWEST);
 
         if (returnValue == null) {
             context.addError("Expected expression after 'return'", returnToken);
             return null;
         }
 
-        context.consume(TokenType.SEMICOLON);
+        context.consumeCurrentToken(TokenType.SEMICOLON);
         return new ReturnStatement(returnToken, returnValue);
     }
 }

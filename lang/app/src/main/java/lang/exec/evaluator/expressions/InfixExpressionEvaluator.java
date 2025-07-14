@@ -92,6 +92,9 @@ public class InfixExpressionEvaluator implements NodeEvaluator<InfixExpression> 
                 return new IntegerObject(leftInteger * rightInteger);
 
             case "/":
+                if (rightInteger == 0) {
+                    return new ErrorObject("division by zero");
+                }
                 return new IntegerObject(leftInteger / rightInteger);
 
             case "%":

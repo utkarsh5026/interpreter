@@ -3,9 +3,9 @@ package lang.parser.parsers;
 import lang.ast.base.Expression;
 import lang.ast.base.Identifier;
 import lang.ast.base.Statement;
-import lang.parser.core.ParsingContext;
-import lang.parser.core.PrecedenceTable;
-import lang.parser.core.StatementParse;
+
+import lang.parser.core.*;
+
 import lang.token.Token;
 import lang.token.TokenType;
 
@@ -18,7 +18,7 @@ import lang.token.TokenType;
  * This eliminates code duplication between ConstStatementParser and
  * LetStatementParser.
  */
-public class AssignmentStatementParser<T extends Statement> implements StatementParser<T> {
+public class AssignmentStatementParser<T extends Statement> implements TypedStatementParser<T> {
 
     @FunctionalInterface
     public interface StatementFactory<T extends Statement> {
@@ -54,7 +54,7 @@ public class AssignmentStatementParser<T extends Statement> implements Statement
      * @return The parsed statement
      */
     @Override
-    public T parse(ParsingContext context) {
+    public T parse(ParsingContext context) throws ParserException {
         Token keywordToken = context.consume(expectedTokenType);
         Token nameToken = context.consume(TokenType.IDENTIFIER);
         Identifier name = new Identifier(nameToken, nameToken.literal());
@@ -65,8 +65,7 @@ public class AssignmentStatementParser<T extends Statement> implements Statement
         Expression value = expressionParser.parseExpression(context, PrecedenceTable.Precedence.LOWEST);
 
         if (value == null) {
-            context.addError("Expected expression after '='", context.getTokenStream().getCurrentToken().copy());
-            return null;
+            throw new ParserException("Expected expression after '='");
         }
 
         context.consume(TokenType.SEMICOLON);

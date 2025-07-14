@@ -3,12 +3,13 @@ package lang.parser.parsers;
 import lang.ast.statements.LetStatement;
 import lang.parser.core.ParsingContext;
 import lang.parser.core.StatementParse;
+import lang.parser.core.TypedStatementParser;
 import lang.token.TokenType;
 
 /**
  * 📝 LetStatementParser - Specialized for let statements 📝
  */
-public class LetStatementParser implements StatementParser<LetStatement> {
+public class LetStatementParser implements TypedStatementParser<LetStatement> {
 
     private final AssignmentStatementParser<LetStatement> delegate;
 

@@ -3,12 +3,13 @@ package lang.parser.parsers;
 import lang.ast.statements.ConstStatement;
 import lang.parser.core.ParsingContext;
 import lang.parser.core.StatementParse;
+import lang.parser.core.TypedStatementParser;
 import lang.token.TokenType;
 
 /**
  * 🔒 ConstStatementParser - Specialized for const statements 🔒
  */
-public class ConstStatementParser implements StatementParser<ConstStatement> {
+public class ConstStatementParser implements TypedStatementParser<ConstStatement> {
 
     private final AssignmentStatementParser<ConstStatement> delegate;
 

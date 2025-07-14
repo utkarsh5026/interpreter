@@ -27,4 +27,8 @@ public record Token(TokenType type, String literal, TokenPosition position) {
                     position: %s
                 }""", type, literal, position);
     }
+
+    public Token copy() {
+        return new Token(type, literal, position);
+    }
 }

@@ -8,6 +8,7 @@ import lang.parser.core.ParsingContext;
 import lang.parser.core.StatementParse;
 import lang.parser.interfaces.TypedStatementParser;
 import lang.ast.base.Statement;
+import lang.parser.interfaces.ExpressionParser;
 
 /**
  * StatementParserRegistry manages all statement parsers and coordinates
@@ -19,8 +20,10 @@ import lang.ast.base.Statement;
  */
 public class StatementParserRegistry implements StatementParse {
     private final List<TypedStatementParser<? extends Statement>> parsers = new ArrayList<>();
+    private final ExpressionParser expressionParser;
 
-    public StatementParserRegistry() {
+    public StatementParserRegistry(ExpressionParser expressionParser) {
+        this.expressionParser = expressionParser;
         registerDefaultParsers();
     }
 
@@ -29,20 +32,17 @@ public class StatementParserRegistry implements StatementParse {
      * Order matters - more specific parsers should come first.
      */
     private void registerDefaultParsers() {
-        // Core statements
-        parsers.add(new LetStatementParser(this));
-        parsers.add(new ConstStatementParser(this));
-        parsers.add(new ReturnStatementParser(this));
+        parsers.add(new LetStatementParser(expressionParser));
+        parsers.add(new ConstStatementParser(expressionParser));
+        parsers.add(new ReturnStatementParser(expressionParser));
 
-        // Control flow
-        parsers.add(new WhileStatementParser(this));
-        parsers.add(new ForStatementParser(this));
+        parsers.add(new WhileStatementParser(expressionParser, this));
+        parsers.add(new ForStatementParser(expressionParser, this));
         parsers.add(new BreakStatementParser());
         parsers.add(new ContinueStatementParser());
 
-        // Block statements
         parsers.add(new BlockStatementParser(this));
-        parsers.add(new ExpressionStatementParser(this));
+        parsers.add(new ExpressionStatementParser(expressionParser));
     }
 
     /**

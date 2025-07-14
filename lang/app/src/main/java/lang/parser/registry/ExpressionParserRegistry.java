@@ -5,16 +5,24 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import lang.parser.interfaces.PrefixExpressionParser;
 import lang.parser.interfaces.InfixExpressionParser;
+import lang.parser.interfaces.ExpressionParser;
 import lang.token.TokenType;
 import lang.parser.expressions.prefix.*;
+import lang.parser.expressions.infix.*;
+import lang.parser.core.StatementParse;
 
 public class ExpressionParserRegistry {
 
     private final Map<TokenType, PrefixExpressionParser> prefixParsers = new ConcurrentHashMap<>();
     private final Map<TokenType, InfixExpressionParser> infixParsers = new ConcurrentHashMap<>();
+    private final ExpressionParser expressionParser;
+    private final StatementParse statementParser;
 
-    public ExpressionParserRegistry() {
-        registerLiteralParsers();
+    public ExpressionParserRegistry(ExpressionParser expressionParser, StatementParse statementParser) {
+        this.expressionParser = expressionParser;
+        this.statementParser = statementParser;
+        registerPrefixParsers();
+        registerInfixParsers();
     }
 
     // 📋 Lists of registered parsers for management
@@ -33,12 +41,22 @@ public class ExpressionParserRegistry {
         }
     }
 
-    private void registerLiteralParsers() {
+    private void registerPrefixParsers() {
         registerPrefixParser(new IdentifierExpressionParser());
         registerPrefixParser(new IntegerLiteralParser());
         registerPrefixParser(new StringLiteralParser());
         registerPrefixParser(new BooleanLiteralParser());
         registerPrefixParser(new NullLiteralParser());
+        registerPrefixParser(new PrefixOperatorParser(expressionParser));
+        registerPrefixParser(new FunctionalLiteralParser(statementParser));
+        registerPrefixParser(new HashLiteralParser(expressionParser));
+    }
+
+    private void registerInfixParsers() {
+        registerInfixParser(new ArithmeticOperatorParser(expressionParser));
+        registerInfixParser(new ComparisonOperatorParser(expressionParser));
+        registerInfixParser(new LogicalOperatorParser(expressionParser));
+
     }
 
     public void registerInfixParser(InfixExpressionParser parser) {

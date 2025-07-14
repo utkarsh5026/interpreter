@@ -89,17 +89,14 @@ public class ListParsingUtils {
         List<T> items = new ArrayList<>();
         TokenStream tokens = context.getTokenStream();
 
-        // Handle empty lists
         if (tokens.isCurrentToken(closingDelimiter)) {
             return items;
         }
 
-        // Parse items until we reach the closing delimiter
         while (!tokens.isCurrentToken(closingDelimiter)) {
             T item = parser.apply(context);
             items.add(item);
 
-            // Check for proper delimiter usage
             if (!tokens.isCurrentToken(TokenType.COMMA) && !tokens.isCurrentToken(closingDelimiter)) {
                 String expectedDelimiter = getDelimiterName(closingDelimiter);
                 throw new ParserException(
@@ -107,7 +104,6 @@ public class ListParsingUtils {
                         tokens.getCurrentToken());
             }
 
-            // Consume comma if present
             if (tokens.isCurrentToken(TokenType.COMMA)) {
                 context.consumeCurrentToken(TokenType.COMMA);
             }

@@ -1,25 +1,24 @@
 package lang.parser.parsers;
 
 import lang.ast.statements.ExpressionStatement;
-import lang.parser.core.ParsingContext;
-import lang.parser.core.TokenStream;
 import lang.ast.base.Expression;
-import lang.parser.core.PrecedenceTable;
+import lang.parser.core.*;
+import lang.parser.error.ParserException;
+import lang.parser.interfaces.TypedStatementParser;
+import lang.parser.interfaces.ExpressionParser;
+import lang.parser.precedence.Precedence;
 
-import lang.token.Token;
-import lang.token.TokenType;
-
-import lang.parser.core.StatementParse;
+import lang.token.*;
 
 /**
  * Parses expression statements: 5 + 3; or functionCall();
  */
-public class ExpressionStatementParser implements StatementParser<ExpressionStatement> {
+public class ExpressionStatementParser implements TypedStatementParser<ExpressionStatement> {
 
-    private final StatementParse statementParser;
+    private final ExpressionParser expressionParser;
 
-    public ExpressionStatementParser(StatementParse statementParser) {
-        this.statementParser = statementParser;
+    public ExpressionStatementParser(ExpressionParser expressionParser) {
+        this.expressionParser = expressionParser;
     }
 
     @Override
@@ -34,18 +33,15 @@ public class ExpressionStatementParser implements StatementParser<ExpressionStat
         TokenStream tokens = context.getTokenStream();
         Token token = tokens.getCurrentToken();
 
-        ExpressionParser expressionParser = new ExpressionParser(statementParser);
         Expression expression = expressionParser.parseExpression(context,
-                PrecedenceTable.Precedence.LOWEST);
+                Precedence.LOWEST);
 
         if (expression == null) {
-            context.addError("Expected expression", tokens.getCurrentToken());
-            return null;
+            throw new ParserException("Expected expression", token);
         }
 
-        // Optional semicolon
-        if (tokens.isPeekToken(TokenType.SEMICOLON)) {
-            tokens.advance();
+        if (tokens.isCurrentToken(TokenType.SEMICOLON)) {
+            context.consumeCurrentToken(TokenType.SEMICOLON);
         }
 
         return new ExpressionStatement(token, expression);

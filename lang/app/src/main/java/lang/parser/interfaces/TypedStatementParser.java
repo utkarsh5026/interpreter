@@ -1,6 +1,8 @@
-package lang.parser.core;
+package lang.parser.interfaces;
 
 import lang.ast.base.Statement;
+import lang.parser.core.ParserException;
+import lang.parser.core.ParsingContext;
 
 /**
  * Parser interface for statement parsing.

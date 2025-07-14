@@ -5,14 +5,8 @@ import java.util.ArrayList;
 import java.util.Set;
 import java.util.Stack;
 
-import lang.token.Token;
-import lang.token.TokenPosition;
-import lang.token.TokenType;
-import lang.token.Keywords;
-
-import lang.lexer.debug.DebugEvent;
-import lang.lexer.debug.LexerDebugger;
-import lang.lexer.debug.DebugConfig;
+import lang.token.*;
+import lang.lexer.debug.*;
 
 /**
  * 🔍 Lexer - The Text Scanner 🔍
@@ -25,6 +19,7 @@ import lang.lexer.debug.DebugConfig;
 public final class Lexer {
 
     private Stack<LineColumn> positionHistory;
+    private String[] inputLines;
     private final String input;
     private int currentPosition;
     private int nextPosition;
@@ -60,6 +55,7 @@ public final class Lexer {
         this.lineColumn = new LineColumn(1, 0);
         this.positionHistory = new Stack<>();
 
+        this.inputLines = input.split("\\r\\n|\\r|\\n");
         if (isDebugging()) {
             this.debugger.onSessionStart(input);
         }
@@ -69,6 +65,10 @@ public final class Lexer {
 
     private boolean isDebugging() {
         return this.debugger != null;
+    }
+
+    public String[] getInputLines() {
+        return this.inputLines;
     }
 
     /**

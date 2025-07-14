@@ -57,9 +57,6 @@ public class TokenStream {
     /**
      * 🏁 Creates a default EOF token
      * 
-     * Used as a placeholder when initializing the stream.
-     * Like having a "THE END" bookmark ready! 📖🏁
-     * 
      * @return A default EOF token at position (0, 0) 🎫
      */
     private Token createEofToken() {
@@ -68,11 +65,6 @@ public class TokenStream {
 
     /**
      * 👀 Gets the current token
-     * 
-     * Returns the token that the parser is currently examining.
-     * Like asking "What word am I looking at right now?" 📖👀
-     * 
-     * @return The current token being processed 🎫
      */
     public Token getCurrentToken() {
         return currentToken;
@@ -80,11 +72,6 @@ public class TokenStream {
 
     /**
      * 👁️ Gets the next token (peek ahead)
-     * 
-     * Returns the next token without consuming it.
-     * Like peeking at the next word in a book without turning the page! 📖👁️
-     * 
-     * This is essential for making parsing decisions based on what's coming next.
      * 
      * @return The next token in the stream 🎫
      */
@@ -94,13 +81,6 @@ public class TokenStream {
 
     /**
      * ➡️ Advances to the next token
-     * 
-     * Moves the stream forward by one token.
-     * Like turning to the next word in a book! 📖➡️
-     * 
-     * After advancing:
-     * - Current token becomes the old peek token
-     * - Peek token becomes a new token from the lexer
      */
     public void advance() {
         currentToken = peekToken;
@@ -109,12 +89,6 @@ public class TokenStream {
 
     /**
      * 🎯 Checks if the current token matches a specific type
-     * 
-     * Tests whether the current token is of the expected type.
-     * Like asking "Is this word a noun?" 📖❓
-     * 
-     * @param type The token type to check for 🏷️
-     * @return True if current token matches the type, false otherwise ✅❌
      */
     public boolean isCurrentToken(TokenType type) {
         return currentToken.type() == type;
@@ -122,12 +96,6 @@ public class TokenStream {
 
     /**
      * 👁️ Checks if the peek token matches a specific type
-     * 
-     * Tests whether the next token is of the expected type.
-     * Like asking "Is the next word a verb?" 📖❓
-     * 
-     * @param type The token type to check for 🏷️
-     * @return True if peek token matches the type, false otherwise ✅❌
      */
     public boolean isPeekToken(TokenType type) {
         return peekToken.type() == type;
@@ -135,15 +103,6 @@ public class TokenStream {
 
     /**
      * 🤔 Optionally consumes a token if it matches the expected type
-     * 
-     * Advances if the next token matches, otherwise does nothing.
-     * Like saying "If the next word is 'and', skip over it" 📖🤔
-     * 
-     * This is perfect for optional tokens like semicolons that might or might not
-     * be there.
-     * 
-     * @param expectedType The token type we're hoping to find 🎯
-     * @return True if the token was consumed, false if it didn't match ✅❌
      */
     public boolean expect(TokenType expectedType) {
         if (isPeekToken(expectedType)) {
@@ -154,25 +113,36 @@ public class TokenStream {
     }
 
     /**
-     * 🎯 Consumes the next token, requiring it to match the expected type
+     * 🎯 Consumes the current token, requiring it to match the expected type
      * 
-     * Advances to the next token but throws an exception if it's not the expected
-     * type.
-     * Like demanding "The next word MUST be a semicolon!" 📖💪
-     * 
-     * This is used when the grammar absolutely requires a specific token.
-     * 
-     * @param expectedType The token type that MUST come next 🎯
-     * @return The consumed token (now the current token) 🎫
-     * @throws ParserException if the next token doesn't match 💥
      */
-    public Token consume(TokenType expectedType) {
+    public Token consume(TokenType expectedType) throws ParserException {
+        System.out.println("Consuming: " + expectedType + "| Current: " + currentToken.type());
+        if (!isCurrentToken(expectedType)) {
+            System.out.println("Throwing ParserException");
+            throw new ParserException(String.format(
+                    "Expected %s, got %s at %s",
+                    expectedType,
+                    currentToken.type(),
+                    currentToken.position()), currentToken);
+        }
+
+        Token consumed = currentToken;
+        advance();
+        return consumed;
+    }
+
+    /**
+     * 🎯 Consume next token (peek) and advance
+     * 
+     */
+    public Token consumeNext(TokenType expectedType) throws ParserException {
         if (!isPeekToken(expectedType)) {
             throw new ParserException(String.format(
                     "Expected %s, got %s at %s",
                     expectedType,
                     peekToken.type(),
-                    peekToken.position()));
+                    peekToken.position()), peekToken);
         }
         advance();
         return currentToken;
@@ -188,5 +158,11 @@ public class TokenStream {
      */
     public boolean isAtEnd() {
         return isCurrentToken(TokenType.EOF);
+    }
+
+    public void advanceIfPeek(TokenType type) {
+        if (isPeekToken(type)) {
+            advance();
+        }
     }
 }

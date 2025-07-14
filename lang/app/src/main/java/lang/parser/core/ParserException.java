@@ -1,5 +1,7 @@
 package lang.parser.core;
 
+import java.util.Optional;
+
 import lang.token.Token;
 
 /**
@@ -24,49 +26,28 @@ import lang.token.Token;
  * - "Invalid token sequence" 🎫❌
  */
 public class ParserException extends RuntimeException {
-    private final Token token; // 🎫 The token that caused the critical error (optional)
-
-    /**
-     * 💥 Creates a parser exception with just a message
-     * 
-     * Used for general parsing errors that don't relate to a specific token.
-     * Like declaring a general emergency without pointing to a specific cause! 🚨
-     * 
-     * @param message A clear description of what went critically wrong 💬
-     */
-    public ParserException(String message) {
-        super(message);
-        this.token = null;
-    }
+    private final Optional<Token> token; // 🎫 The token that caused the critical error (optional)
 
     /**
      * 💥 Creates a parser exception with message and token context
-     * 
-     * Used when a specific token caused the critical error.
-     * Like pointing to the exact cause of the emergency! 🚨🎯
      * 
      * @param message A clear description of what went critically wrong 💬
      * @param token   The token that caused the critical error 🎫
      */
     public ParserException(String message, Token token) {
         super(message);
-        this.token = token;
+        this.token = Optional.of(token);
+    }
+
+    public ParserException(String message) {
+        super(message);
+        this.token = Optional.empty();
     }
 
     /**
      * 🎫 Gets the token that caused the exception
-     * 
-     * Returns the problematic token if one was specified, null otherwise.
-     * Like getting the evidence from the scene of the crash! 🔍🎫
-     * 
-     * This is useful for:
-     * - Showing exactly where the critical error occurred 📍
-     * - Providing context for error messages 💬
-     * - Debugging parser issues 🐛
-     * 
-     * @return The token that caused the exception, or null if not specified 🎫
      */
-    public Token getToken() {
+    public Optional<Token> getToken() {
         return token;
     }
 }

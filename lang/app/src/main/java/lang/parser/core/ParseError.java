@@ -33,8 +33,8 @@ public class ParseError {
      * Packages up all the information about a parsing problem.
      * Like creating a detailed incident report! 📋🎯
      * 
-     * @param message A clear description of what went wrong 💬
-     * @param token   The token that caused the problem (provides position info) 🎫
+     * @param message A clear description of what went wrong
+     * @param token   The token that caused the problem (provides position info)
      */
     public ParseError(String message, Token token) {
         this.message = message;

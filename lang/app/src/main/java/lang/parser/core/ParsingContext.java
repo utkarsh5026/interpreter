@@ -68,15 +68,6 @@ public class ParsingContext {
     /**
      * 📊 Gets the precedence table
      * 
-     * Returns the PrecedenceTable that determines operator order of operations.
-     * Like getting access to the math rulebook! 📐📚
-     * 
-     * Use this to:
-     * - Determine operator precedence levels 📈
-     * - Resolve expression parsing ambiguities 🤔
-     * - Ensure correct evaluation order ✅
-     * 
-     * @return The PrecedenceTable for operator precedence 📊
      */
     public PrecedenceTable getPrecedenceTable() {
         return precedenceTable;
@@ -84,16 +75,6 @@ public class ParsingContext {
 
     /**
      * 🔄 Enters a new loop level
-     * 
-     * Increments the loop depth counter when parsing enters a loop structure.
-     * Like going down one level in a nested loop maze! 🏗️⬇️
-     * 
-     * Call this when starting to parse:
-     * - While loops 🔄
-     * - For loops 🔁
-     * - Do-while loops 🔃
-     * 
-     * This is essential for validating break/continue statements!
      */
     public void enterLoop() {
         loopDepth++;
@@ -114,24 +95,6 @@ public class ParsingContext {
 
     /**
      * ❓ Checks if currently inside any loop
-     * 
-     * Returns true if we're currently parsing inside one or more loops.
-     * Like asking "Are we in a loop right now?" 🔄❓
-     * 
-     * This is crucial for validating:
-     * - Break statements (only valid in loops) 🚪
-     * - Continue statements (only valid in loops) ⏭️
-     * 
-     * Example usage:
-     * ```
-     * if (context.isInLoop()) {
-     * // Break/continue are valid here
-     * } else {
-     * // Error: break/continue outside loop
-     * }
-     * ```
-     * 
-     * @return True if inside a loop, false otherwise ✅❌
      */
     public boolean isInLoop() {
         return loopDepth > 0;
@@ -139,14 +102,6 @@ public class ParsingContext {
 
     /**
      * 🚨 Adds a custom error message
-     * 
-     * Convenience method to report parsing errors with context.
-     * Like filing a complaint with the problem department! 📋🚨
-     * 
-     * This is a shortcut for `getErrors().addError(message, token)`.
-     * 
-     * @param message A clear description of what went wrong 💬
-     * @param token   The token where the error occurred 🎫
      */
     public void addError(String message, Token token) {
         errors.addError(message, token);
@@ -154,16 +109,12 @@ public class ParsingContext {
 
     /**
      * 🎯 Adds a token expectation error
-     * 
-     * Convenience method to report token mismatch errors.
-     * Like saying "I expected a hammer but got a screwdriver!" 🔨🪛
-     * 
-     * This is a shortcut for `getErrors().addTokenError(expected, actual)`.
-     * 
-     * @param expected The token type we were expecting 🎯
-     * @param actual   The token we actually found 🎫
      */
     public void addTokenError(TokenType expected, Token actual) {
         errors.addTokenError(expected, actual);
+    }
+
+    public Token consume(TokenType type) {
+        return tokens.consume(type);
     }
 }

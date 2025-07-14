@@ -3,6 +3,8 @@ package lang.parser.interfaces;
 import lang.ast.base.Expression;
 import lang.parser.core.ParsingContext;
 import lang.token.TokenType;
+import java.util.Set;
+import java.util.HashSet;
 
 /**
  * ⚡ InfixExpressionParser - Expression Combiner Interface ⚡
@@ -28,7 +30,7 @@ public interface InfixExpressionParser {
     /**
      * 🔍 Gets the token types this parser can handle as infix operators
      */
-    default TokenType[] getHandledTokenTypes() {
-        return new TokenType[0];
+    default Set<TokenType> getHandledTokenTypes() {
+        return new HashSet<>();
     }
 }

@@ -3,6 +3,8 @@ package lang.parser.interfaces;
 import lang.ast.base.Expression;
 import lang.parser.core.ParsingContext;
 import lang.token.TokenType;
+import java.util.Set;
+import java.util.HashSet;
 
 /**
  * 🎯 PrefixExpressionParser - Expression Starter Interface 🎯
@@ -27,7 +29,7 @@ public interface PrefixExpressionParser {
     /**
      * 🔍 Gets the token types this parser can handle as prefix
      */
-    default TokenType[] getHandledTokenTypes() {
-        return new TokenType[0];
+    default Set<TokenType> getHandledTokenTypes() {
+        return new HashSet<>();
     }
 }

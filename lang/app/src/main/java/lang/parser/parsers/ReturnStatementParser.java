@@ -26,29 +26,18 @@ public class ReturnStatementParser implements StatementParser<ReturnStatement> {
 
     @Override
     public ReturnStatement parse(ParsingContext context) {
-        TokenStream tokens = context.getTokenStream();
-        Token returnToken = tokens.getCurrentToken();
-
-        if (!canParse(context)) {
-            context.addError("Expected 'return' keyword", returnToken);
-            return null;
-        }
-
-        tokens.advance();
+        Token returnToken = context.consume(TokenType.RETURN);
 
         ExpressionParser expressionParser = new ExpressionParser(statementParser);
         Expression returnValue = expressionParser.parseExpression(context,
                 PrecedenceTable.Precedence.LOWEST);
 
         if (returnValue == null) {
-            context.addError("Expected expression after 'return'", tokens.getCurrentToken());
+            context.addError("Expected expression after 'return'", returnToken);
             return null;
         }
 
-        if (!tokens.expect(TokenType.SEMICOLON)) {
-            context.addError("Expected ';' after expression", tokens.getCurrentToken());
-            return null;
-        }
+        context.consume(TokenType.SEMICOLON);
 
         return new ReturnStatement(returnToken, returnValue);
     }

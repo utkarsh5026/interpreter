@@ -56,6 +56,14 @@ public final class ObjectValidator {
         return obj instanceof BuiltinObject;
     }
 
+    public static boolean isArray(BaseObject obj) {
+        return obj instanceof ArrayObject;
+    }
+
+    public static boolean isHash(BaseObject obj) {
+        return obj instanceof HashObject;
+    }
+
     /**
      * Safe casting methods that return Optional or null.
      * These provide type-safe access to specific object types.

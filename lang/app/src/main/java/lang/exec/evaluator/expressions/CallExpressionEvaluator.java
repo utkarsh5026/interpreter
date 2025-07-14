@@ -28,7 +28,14 @@ public class CallExpressionEvaluator implements NodeEvaluator<CallExpression> {
 
         List<BaseObject> args = context.evaluateExpressions(node.getArguments(), env);
 
-        if (ObjectValidator.isFunction(function) || ObjectValidator.isBuiltin(function)) {
+        boolean isFunction = ObjectValidator.isFunction(function);
+        boolean isBuiltin = ObjectValidator.isBuiltin(function);
+
+        if (isFunction || isBuiltin) {
+            if (isFunction && args.size() != ObjectValidator.asFunction(function).getParameters().size()) {
+                return new ErrorObject("Wrong number of arguments. Expected "
+                        + ObjectValidator.asFunction(function).getParameters().size() + ", got " + args.size());
+            }
             return applyFunction(ObjectValidator.asFunction(function), args, env, context);
         }
 
@@ -43,7 +50,7 @@ public class CallExpressionEvaluator implements NodeEvaluator<CallExpression> {
             return new ErrorObject("Not a function: " + function.type());
         }
 
-        Environment extendedEnv = new Environment(env, false);
+        Environment extendedEnv = new Environment(function.getEnvironment(), false);
         List<Identifier> parameters = function.getParameters();
 
         IntStream.range(0, parameters.size())

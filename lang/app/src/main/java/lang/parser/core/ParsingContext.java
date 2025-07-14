@@ -3,6 +3,7 @@ package lang.parser.core;
 import lang.lexer.Lexer;
 import lang.token.Token;
 import lang.token.TokenType;
+import lang.parser.precedence.PrecedenceTable;
 
 /**
  * 🎯 ParsingContext - The Parser's Control Center 🎯

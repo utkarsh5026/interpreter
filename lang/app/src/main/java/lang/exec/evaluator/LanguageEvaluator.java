@@ -36,6 +36,8 @@ public class LanguageEvaluator implements EvaluationContext {
         registerEvaluator(BlockStatement.class, new BlockStatementEvaluator());
         registerEvaluator(WhileStatement.class, new WhileStatementEvaluator(loopContext));
         registerEvaluator(ForStatement.class, new ForStatementEvaluator(loopContext));
+        registerEvaluator(BreakStatement.class, new BreakStatementParser());
+        registerEvaluator(ContinueStatement.class, new ContinueStatementParser());
     }
 
     private void registerExpressionEvaluators() {

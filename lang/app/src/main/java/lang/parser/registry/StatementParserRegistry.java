@@ -8,7 +8,8 @@ import lang.parser.core.ParsingContext;
 import lang.parser.core.StatementParse;
 import lang.parser.interfaces.TypedStatementParser;
 import lang.ast.base.Statement;
-import lang.parser.interfaces.ExpressionParser;
+
+import lang.parser.expressions.LanguageExpressionParser;
 
 /**
  * StatementParserRegistry manages all statement parsers and coordinates
@@ -20,11 +21,21 @@ import lang.parser.interfaces.ExpressionParser;
  */
 public class StatementParserRegistry implements StatementParse {
     private final List<TypedStatementParser<? extends Statement>> parsers = new ArrayList<>();
-    private final ExpressionParser expressionParser;
+    private final LanguageExpressionParser expressionParser;
+    private final ExpressionParserRegistry expressionParserRegistry;
 
-    public StatementParserRegistry(ExpressionParser expressionParser) {
-        this.expressionParser = expressionParser;
+    public StatementParserRegistry() {
+        this.expressionParser = new LanguageExpressionParser(this);
+        this.expressionParserRegistry = new ExpressionParserRegistry(this.expressionParser, this);
         registerDefaultParsers();
+    }
+
+    public ExpressionParserRegistry getExpressionParserRegistry() {
+        return expressionParserRegistry;
+    }
+
+    public LanguageExpressionParser getExpressionParser() {
+        return expressionParser;
     }
 
     /**

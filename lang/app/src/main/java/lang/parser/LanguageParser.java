@@ -8,13 +8,13 @@ import lang.parser.core.*;
 import lang.parser.error.ParseError;
 import lang.parser.error.ParserException;
 import lang.parser.interfaces.TypedStatementParser;
+import lang.parser.interfaces.ExpressionParser;
 import lang.parser.precedence.Precedence;
-import lang.parser.registry.StatementParserRegistry;
+import lang.parser.registry.*;
 import lang.token.Token;
 import lang.lexer.Lexer;
 import lang.ast.statements.Program;
 
-import lang.parser.parsers.ExpressionParser;
 import lang.ast.base.Statement;
 import lang.ast.base.Expression;
 import lang.token.TokenType;
@@ -31,10 +31,12 @@ import lang.token.TokenType;
 public class LanguageParser {
     private final ParsingContext context;
     private final StatementParserRegistry statementRegistry;
+    private final ExpressionParser expressionParser;
 
     public LanguageParser(Lexer lexer) {
         this.context = new ParsingContext(lexer);
         this.statementRegistry = new StatementParserRegistry();
+        this.expressionParser = statementRegistry.getExpressionParser();
     }
 
     /**
@@ -148,7 +150,6 @@ public class LanguageParser {
      * Parses a single expression (useful for REPL or testing).
      */
     public Expression parseExpression() {
-        ExpressionParser expressionParser = new ExpressionParser(this.statementRegistry);
         return expressionParser.parseExpression(context,
                 Precedence.LOWEST);
     }

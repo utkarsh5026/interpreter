@@ -1,17 +1,13 @@
 package lang.parser.parsers;
 
 import lang.ast.statements.ReturnStatement;
-import lang.parser.core.ParsingContext;
 import lang.ast.base.Expression;
 import lang.ast.expressions.NullExpression;
-import lang.parser.core.PrecedenceTable;
+import lang.parser.core.*;
 
-import lang.token.Token;
-import lang.token.TokenType;
+import lang.token.*;
 
-import lang.parser.core.StatementParse;
-
-public class ReturnStatementParser implements StatementParser<ReturnStatement> {
+public class ReturnStatementParser implements TypedStatementParser<ReturnStatement> {
 
     private final StatementParse statementParser;
 

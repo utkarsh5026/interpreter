@@ -10,9 +10,12 @@ import lang.parser.interfaces.PrefixExpressionParser;
 import lang.parser.core.ParsingContext;
 import lang.parser.precedence.Precedence;
 import lang.parser.registry.ExpressionParserRegistry;
-import lang.parser.core.TokenStream;
+import lang.parser.core.*;
 import lang.parser.interfaces.ExpressionParser;
 import lang.parser.core.StatementParse;
+import lang.parser.error.ParserException;
+
+import lang.token.Token;
 
 public class LanguageExpressionParser implements ExpressionParser {
 
@@ -43,32 +46,36 @@ public class LanguageExpressionParser implements ExpressionParser {
     private boolean shouldContinueParsing(ParsingContext context, Precedence minPrecedence) {
         TokenStream tokens = context.getTokenStream();
 
-        if (tokens.isPeekToken(TokenType.SEMICOLON)) {
+        System.out.println("Should continue parsing: " + tokens.getPeekToken() + " " + tokens.getCurrentToken()
+                + " " + tokens.isCurrentToken(TokenType.SEMICOLON) + " " + tokens.isCurrentToken(TokenType.COMMA)
+                + " " + tokens.isCurrentToken(TokenType.RPAREN));
+
+        if (tokens.isCurrentToken(TokenType.SEMICOLON) || tokens.isCurrentToken(TokenType.COMMA)) {
             return false;
         }
 
-        TokenType peekTokenType = tokens.getPeekToken().type();
+        TokenType currentTokenType = tokens.getCurrentToken().type();
         Precedence nextPrecedence = context.getPrecedenceTable()
-                .getPrecedence(peekTokenType);
+                .getPrecedence(currentTokenType);
 
         if (minPrecedence.getLevel() >= nextPrecedence.getLevel()) {
             return false;
         }
 
-        return registry.hasInfixParser(peekTokenType);
+        return registry.hasInfixParser(currentTokenType);
     }
 
     private Expression parseInfix(ParsingContext context, Expression left) {
         TokenStream tokens = context.getTokenStream();
-        TokenType peekTokenType = tokens.getPeekToken().type();
+        Token currentToken = tokens.getCurrentToken();
 
-        Optional<InfixExpressionParser> parser = registry.getInfixParser(peekTokenType);
+        System.out.println("Parsing infix: " + currentToken);
 
+        Optional<InfixExpressionParser> parser = registry.getInfixParser(currentToken.type());
         if (parser.isEmpty()) {
             return left;
         }
 
-        tokens.advance();
         return parser.get().parseInfix(context, left);
     }
 
@@ -76,16 +83,13 @@ public class LanguageExpressionParser implements ExpressionParser {
         TokenStream tokens = context.getTokenStream();
         TokenType currentTokenType = tokens.getCurrentToken().type();
 
-        // 🔍 Find a prefix parser for the current token
         Optional<PrefixExpressionParser> parser = registry.getPrefixParser(currentTokenType);
 
         if (parser.isEmpty()) {
-            // 🚫 No prefix parser found - this token can't start an expression
-            context.getErrors().addPrefixError(currentTokenType, tokens.getCurrentToken());
-            return null;
+            throw new ParserException("No prefix parser found for token type: " + currentTokenType,
+                    tokens.getCurrentToken());
         }
 
-        // ✅ Delegate to the specialized prefix parser
         return parser.get().parsePrefix(context);
     }
 
@@ -105,21 +109,12 @@ public class LanguageExpressionParser implements ExpressionParser {
      * @return The parsed expression, or null if parsing fails
      */
     public Expression parseExpression(ParsingContext context, Precedence minPrecedence) {
-        TokenStream tokens = context.getTokenStream();
-
         Expression leftExpression = parsePrefix(context);
-        if (leftExpression == null) {
-            return null;
-        }
 
         while (shouldContinueParsing(context, minPrecedence)) {
             leftExpression = parseInfix(context, leftExpression);
-            if (leftExpression == null) {
-                return null; // Infix parsing failed
-            }
         }
 
-        tokens.advanceIfPeek(TokenType.SEMICOLON);
         return leftExpression;
     }
 }

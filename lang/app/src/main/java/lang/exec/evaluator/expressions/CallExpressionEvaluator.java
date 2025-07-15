@@ -6,7 +6,6 @@ import java.util.stream.IntStream;
 import lang.ast.base.Identifier;
 import lang.exec.evaluator.base.NodeEvaluator;
 import lang.exec.base.BaseObject;
-
 import lang.exec.objects.Environment;
 import lang.exec.objects.FunctionObject;
 import lang.exec.validator.ObjectValidator;
@@ -43,22 +42,27 @@ public class CallExpressionEvaluator implements NodeEvaluator<CallExpression> {
 
     }
 
-    private BaseObject applyFunction(FunctionObject function, List<BaseObject> args, Environment env,
+    private BaseObject applyFunction(BaseObject function, List<BaseObject> args, Environment env,
             EvaluationContext context) {
+
+        if (ObjectValidator.isBuiltin(function)) {
+            return ObjectValidator.asBuiltin(function).getFunction().apply(args.toArray(new BaseObject[0]));
+        }
 
         if (!ObjectValidator.isFunction(function)) {
             return new ErrorObject("Not a function: " + function.type());
         }
 
-        Environment extendedEnv = new Environment(function.getEnvironment(), false);
-        List<Identifier> parameters = function.getParameters();
+        FunctionObject functionObject = ObjectValidator.asFunction(function);
+        Environment extendedEnv = new Environment(functionObject.getEnvironment(), false);
+        List<Identifier> parameters = functionObject.getParameters();
 
         IntStream.range(0, parameters.size())
                 .forEach(i -> extendedEnv.set(
                         parameters.get(i).getValue(),
                         args.get(i)));
 
-        BaseObject result = context.evaluate(function.getBody(), extendedEnv);
+        BaseObject result = context.evaluate(functionObject.getBody(), extendedEnv);
 
         if (ObjectValidator.isError(result)) {
             return result;

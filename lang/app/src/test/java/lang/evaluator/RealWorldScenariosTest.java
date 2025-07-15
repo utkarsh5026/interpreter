@@ -437,7 +437,7 @@ public class RealWorldScenariosTest {
                         let isPrime = [];
 
                         // Initialize array
-                        for (let p = 0; p <= limit; p = p + 1) {
+                        for (let i = 0; i <= limit; i = i + 1) {
                             isPrime = push(isPrime, true);
                         }
 
@@ -453,9 +453,9 @@ public class RealWorldScenariosTest {
                         }
 
                         let primes = [];
-                        for (let k = 2; k <= limit; k = k + 1) {
-                            if (isPrime[k]) {
-                                primes = push(primes, k);
+                        for (let i = 2; i <= limit; i = i + 1) {
+                            if (isPrime[i]) {
+                                primes = push(primes, i);
                             }
                         }
 
@@ -833,11 +833,15 @@ public class RealWorldScenariosTest {
                     let root = createNode(1, [branch, createNode(3, [])]);
 
                     let path = dfs(root, 5, []);
-                    len(path);  // Should include path to target
+                    path;  // Should include path to target
                     """;
 
             BaseObject result = evaluateCode(code);
-            assertEquals(2, ObjectValidator.asInteger(result).getValue());
+            ArrayObject path = ObjectValidator.asArray(result);
+            assertEquals(3, path.size());
+            assertEquals(1, ObjectValidator.asInteger(path.get(0)).getValue());
+            assertEquals(2, ObjectValidator.asInteger(path.get(1)).getValue());
+            assertEquals(5, ObjectValidator.asInteger(path.get(2)).getValue());
         }
 
         @Test

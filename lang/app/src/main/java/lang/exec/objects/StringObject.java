@@ -24,7 +24,7 @@ public final class StringObject implements BaseObject {
 
     @Override
     public String inspect() {
-        return "\"" + value + "\"";
+        return value;
     }
 
     @Override

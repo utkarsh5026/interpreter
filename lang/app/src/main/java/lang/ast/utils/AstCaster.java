@@ -14,6 +14,20 @@ public class AstCaster {
         return (LetStatement) node;
     }
 
+    public static AssignmentExpression asAssignmentExpression(Node node) {
+        if (!AstValidator.isAssignmentExpression(node)) {
+            throw new IllegalArgumentException("Node is not an AssignmentExpression");
+        }
+        return (AssignmentExpression) node;
+    }
+
+    public static IndexExpression asIndexExpression(Node node) {
+        if (!AstValidator.isIndexExpression(node)) {
+            throw new IllegalArgumentException("Node is not an IndexExpression");
+        }
+        return (IndexExpression) node;
+    }
+
     public static ConstStatement asConstStatement(Node node) {
         if (!AstValidator.isConstStatement(node)) {
             throw new IllegalArgumentException("Node is not a ConstStatement");

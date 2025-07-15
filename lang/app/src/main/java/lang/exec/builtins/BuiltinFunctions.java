@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import lang.exec.base.BaseObject;
+import lang.exec.validator.ObjectValidator;
 import lang.exec.objects.*;
 
 /**
@@ -149,8 +150,7 @@ public final class BuiltinFunctions {
             }
         }
 
-        return new ErrorObject(String.format(
-                "argument to 'int' not supported, got %s", arg.type()));
+        return new ErrorObject(String.format("argument to 'int' not supported, got %s", arg.type()));
     };
 
     /**
@@ -658,6 +658,31 @@ public final class BuiltinFunctions {
         return new BooleanObject(contains);
     };
 
+    private static final BuiltinFunction CHAR_AT_FUNCTION = (args) -> {
+        if (args.length != 2) {
+            return new ErrorObject(String.format(
+                    "wrong number of arguments. got=%d, want=2", args.length));
+        }
+
+        BaseObject str = args[0];
+        BaseObject index = args[1];
+
+        if (!(ObjectValidator.isString(str) || ObjectValidator.isInteger(index))) {
+            return new ErrorObject(String.format(
+                    "first argument to 'charAt' must be STRING or INTEGER, got %s and %s", str.type(), index.type()));
+        }
+
+        String string = ObjectValidator.asString(str).getValue();
+        int indexInt = (int) ObjectValidator.asInteger(index).getValue();
+
+        if (indexInt < 0 || indexInt >= string.length()) {
+            return new ErrorObject(
+                    String.format("index out of bounds: %d for string of length %d", indexInt, string.length()));
+        }
+
+        return new StringObject(String.valueOf(string.charAt(indexInt)));
+    };
+
     // ============================================================================
     // 4. MATHEMATICAL OPERATIONS
     // ============================================================================
@@ -1114,6 +1139,7 @@ public final class BuiltinFunctions {
         builtins.put("indexOf", new BuiltinObject(INDEX_OF_FUNCTION, "indexOf", "Find index of substring"));
         builtins.put("contains",
                 new BuiltinObject(CONTAINS_FUNCTION, "contains", "Check if string contains substring"));
+        builtins.put("charAt", new BuiltinObject(CHAR_AT_FUNCTION, "charAt", "Get character at index"));
 
         // Mathematical operations
         builtins.put("abs", new BuiltinObject(ABS_FUNCTION, "abs", "Absolute value"));

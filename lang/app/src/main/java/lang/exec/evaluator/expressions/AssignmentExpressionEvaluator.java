@@ -126,12 +126,13 @@ public class AssignmentExpressionEvaluator implements NodeEvaluator<AssignmentEx
     private BaseObject evaluateHashIndexAssignment(BaseObject hashObject, BaseObject keyObject, BaseObject value) {
         HashObject hash = ObjectValidator.asHash(hashObject);
 
-        if (!ObjectValidator.isString(keyObject)) {
+        if (!ObjectValidator.isString(keyObject) && !ObjectValidator.isInteger(keyObject)) {
             return new ErrorObject(String.format(
-                    "Hash key must be a string, got: %s", keyObject.type()));
+                    "Hash key must be a string or integer, got: %s", keyObject.type()));
         }
 
-        String key = ObjectValidator.asString(keyObject).getValue();
+        String key = ObjectValidator.isString(keyObject) ? ObjectValidator.asString(keyObject).getValue()
+                : String.valueOf(ObjectValidator.asInteger(keyObject).getValue());
         return hash.set(key, value);
     }
 }

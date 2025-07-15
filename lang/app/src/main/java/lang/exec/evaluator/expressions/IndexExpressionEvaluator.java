@@ -58,11 +58,13 @@ public class IndexExpressionEvaluator implements NodeEvaluator<IndexExpression> 
         HashObject hashObject = ObjectValidator.asHash(hash);
         BaseObject indexObject = context.evaluate(index, env);
 
-        if (!ObjectValidator.isString(indexObject)) {
-            return new ErrorObject(String.format("Index must be a string literal, got: %s", indexObject.inspect()));
+        if (!ObjectValidator.isString(indexObject) && !ObjectValidator.isInteger(indexObject)) {
+            return new ErrorObject(
+                    String.format("Index must be a string or integer literal, got: %s", indexObject.inspect()));
         }
 
-        String key = ObjectValidator.asString(indexObject).getValue();
+        String key = ObjectValidator.isString(indexObject) ? ObjectValidator.asString(indexObject).getValue()
+                : String.valueOf(ObjectValidator.asInteger(indexObject).getValue());
 
         if (!hashObject.getPairs().containsKey(key)) {
             return NullObject.INSTANCE;

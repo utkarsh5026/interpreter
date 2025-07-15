@@ -1,5 +1,8 @@
 package lang.exec.utils;
 
+import java.util.Map;
+
+import lang.exec.objects.BuiltinObject;
 import lang.exec.objects.Environment;
 import lang.exec.builtins.BuiltinRegistry;
 
@@ -17,8 +20,8 @@ public class EnvironmentFactory {
     public Environment createGlobalEnvironment(BuiltinRegistry builtinRegistry) {
         Environment global = new Environment();
 
-        // Pre-populate with builtin functions
-        builtinRegistry.getBuiltins().forEach((name, builtin) -> {
+        Map<String, BuiltinObject> builtins = BuiltinRegistry.getAllBuiltins();
+        builtins.forEach((name, builtin) -> {
             global.set(name, builtin);
         });
 

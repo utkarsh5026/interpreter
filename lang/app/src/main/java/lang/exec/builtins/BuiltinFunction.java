@@ -1,7 +1,6 @@
 package lang.exec.builtins;
 
 import lang.exec.base.BaseObject;
-import lang.exec.objects.Environment;
 
 /**
  * Functional interface for built-in functions.
@@ -11,5 +10,5 @@ import lang.exec.objects.Environment;
  */
 @FunctionalInterface
 public interface BuiltinFunction {
-    BaseObject apply(BaseObject[] arguments, Environment environment);
+    BaseObject apply(BaseObject[] arguments);
 }

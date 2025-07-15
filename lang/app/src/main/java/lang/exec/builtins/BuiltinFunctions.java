@@ -483,17 +483,17 @@ public final class BuiltinFunctions {
         BaseObject search = args[1];
         BaseObject replace = args[2];
 
-        if (!(str instanceof StringObject)) {
+        if (!ObjectValidator.isString(str)) {
             return new ErrorObject(String.format(
                     "first argument to 'replace' must be STRING, got %s", str.type()));
         }
 
-        if (!(search instanceof StringObject)) {
+        if (!ObjectValidator.isString(search)) {
             return new ErrorObject(String.format(
                     "second argument to 'replace' must be STRING, got %s", search.type()));
         }
 
-        if (!(replace instanceof StringObject)) {
+        if (!ObjectValidator.isString(replace)) {
             return new ErrorObject(String.format(
                     "third argument to 'replace' must be STRING, got %s", replace.type()));
         }

@@ -69,7 +69,7 @@ public class LanguageEvaluator implements EvaluationContext {
     }
 
     /**
-     * 🏗️ Creates new scopes for blocks, functions, etc.
+     * 🏗️ Creates new scopes for blocks, functions, loops etc.
      */
     @Override
     public Environment newScope(Environment parent, boolean isBlockScope) {

@@ -21,11 +21,12 @@ public class ForStatementEvaluator implements NodeEvaluator<ForStatement> {
 
     @Override
     public BaseObject evaluate(ForStatement node, Environment env, EvaluationContext context) {
+        Environment loopEnv = context.newScope(env, true);
         loopContext.enterLoop();
         BaseObject result = NullObject.INSTANCE;
 
         try {
-            BaseObject initResult = context.evaluate(node.getInitializer(), env);
+            BaseObject initResult = context.evaluate(node.getInitializer(), loopEnv);
             if (ObjectValidator.isError(initResult)) {
                 return initResult;
             }
@@ -37,7 +38,7 @@ public class ForStatementEvaluator implements NodeEvaluator<ForStatement> {
                     return new ErrorObject(message);
                 }
 
-                BaseObject condition = context.evaluate(node.getCondition(), env);
+                BaseObject condition = context.evaluate(node.getCondition(), loopEnv);
                 if (ObjectValidator.isError(condition)) {
                     return condition;
                 }
@@ -46,13 +47,13 @@ public class ForStatementEvaluator implements NodeEvaluator<ForStatement> {
                     break;
                 }
 
-                result = context.evaluate(node.getBody(), env);
+                result = context.evaluate(node.getBody(), loopEnv);
 
                 if (ObjectValidator.isReturnValue(result) || ObjectValidator.isError(result)) {
                     return result;
                 }
 
-                BaseObject updateResult = context.evaluate(node.getIncrement(), env);
+                BaseObject updateResult = context.evaluate(node.getIncrement(), loopEnv);
                 if (ObjectValidator.isError(updateResult)) {
                     return updateResult;
                 }

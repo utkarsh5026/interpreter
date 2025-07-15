@@ -23,6 +23,49 @@ public class HashObject implements BaseObject {
         return Collections.unmodifiableMap(pairs);
     }
 
+    /**
+     * 🔧 Sets or updates a key-value pair in this hash
+     */
+    public BaseObject set(String key, BaseObject value) {
+        pairs.put(key, value);
+        return value;
+    }
+
+    /**
+     * 🔍 Gets a value by key, returning null if not found
+     */
+    public BaseObject get(String key) {
+        return pairs.get(key);
+    }
+
+    /**
+     * ❓ Checks if a key exists in this hash
+     */
+    public boolean hasKey(String key) {
+        return pairs.containsKey(key);
+    }
+
+    /**
+     * ➖ Removes a key-value pair from this hash
+     */
+    public BaseObject remove(String key) {
+        return pairs.remove(key);
+    }
+
+    /**
+     * 📊 Gets the number of key-value pairs in this hash
+     */
+    public int size() {
+        return pairs.size();
+    }
+
+    /**
+     * 🧹 Removes all key-value pairs from this hash
+     */
+    public void clear() {
+        pairs.clear();
+    }
+
     @Override
     public ObjectType type() {
         return ObjectType.HASH;

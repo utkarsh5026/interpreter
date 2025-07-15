@@ -150,6 +150,11 @@ public class InfixExpressionEvaluator implements NodeEvaluator<InfixExpression> 
     }
 
     private BaseObject evalInfixExpression(String operator, BaseObject left, BaseObject right) {
+        // Handle null operations first
+        if (ObjectValidator.isNull(left) || ObjectValidator.isNull(right)) {
+            return evalNullInfixExpression(operator, left, right);
+        }
+
         if (ObjectValidator.isString(left) && ObjectValidator.isString(right))
             return evalStringInfixExpression(operator, left, right);
 
@@ -160,6 +165,23 @@ public class InfixExpressionEvaluator implements NodeEvaluator<InfixExpression> 
             return evalBooleanInfixExpression(operator, left, right);
 
         return createInvalidOperatorError(operator, left, right);
+    }
+
+    private BaseObject evalNullInfixExpression(String operator, BaseObject left, BaseObject right) {
+        switch (operator) {
+            case "==":
+                // null == null -> true, null == anything -> false
+                return new BooleanObject(ObjectValidator.isNull(left) && ObjectValidator.isNull(right));
+
+            case "!=":
+                // null != null -> false, null != anything -> true
+                return new BooleanObject(!(ObjectValidator.isNull(left) && ObjectValidator.isNull(right)));
+
+            default:
+                // All other operations with null are errors
+                return new ErrorObject("Cannot perform '" + operator + "' operation with null values. " +
+                        "Only equality (==) and inequality (!=) operations are supported with null.");
+        }
     }
 
     private ErrorObject createInvalidOperatorError(String operator, BaseObject left, BaseObject right) {

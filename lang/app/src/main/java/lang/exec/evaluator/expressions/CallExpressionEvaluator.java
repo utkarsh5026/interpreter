@@ -35,7 +35,7 @@ public class CallExpressionEvaluator implements NodeEvaluator<CallExpression> {
                 return new ErrorObject("Wrong number of arguments. Expected "
                         + ObjectValidator.asFunction(function).getParameters().size() + ", got " + args.size());
             }
-            return applyFunction(ObjectValidator.asFunction(function), args, env, context);
+            return applyFunction(function, args, env, context);
         }
 
         return new ErrorObject("Not a function: " + function.type());

@@ -14,13 +14,13 @@ public class IndentifierEvaluator implements NodeEvaluator<Identifier> {
 
     @Override
     public BaseObject evaluate(Identifier node, Environment env, EvaluationContext context) {
-        if (BuiltinRegistry.isBuiltin(node.getValue())) {
-            return BuiltinRegistry.getBuiltin(node.getValue());
-        }
-
         BaseObject value = env.get(node.getValue());
         if (value != null) {
             return value;
+        }
+
+        if (BuiltinRegistry.isBuiltin(node.getValue())) {
+            return BuiltinRegistry.getBuiltin(node.getValue());
         }
 
         return new ErrorObject("identifier not found: " + node.getValue());

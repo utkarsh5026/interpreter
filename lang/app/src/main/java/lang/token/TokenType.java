@@ -35,6 +35,7 @@ public enum TokenType {
     MINUS_ASSIGN("-="),
     ASTERISK_ASSIGN("*="),
     SLASH_ASSIGN("/="),
+    MODULUS_ASSIGN("%="),
 
     // Bitwise operators
     BITWISE_AND("&"),

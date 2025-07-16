@@ -161,7 +161,7 @@ public class ParserASTValidationTests {
 
         @Override
         public String visitFStringLiteral(FStringLiteral fStringLiteral) {
-            return "FStringLiteral[" + fStringLiteral.getValue() + "]";
+            return "FStringLiteral[" + fStringLiteral.getActualStrings().toString() + "]";
         }
 
         @Override

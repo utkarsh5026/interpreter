@@ -432,8 +432,8 @@ public class AstTreeVisualizer extends BaseAstVisitor<TreeNode> {
     @Override
     public TreeNode visitFStringLiteral(FStringLiteral fStringLiteral) {
         TreeNode node = createNode("FStringLiteral", "LITERAL", fStringLiteral.position());
-        node.addMetadata("template", fStringLiteral.getValue());
-        node.setValue("f\"" + fStringLiteral.getValue() + "\"");
+        node.addMetadata("template", fStringLiteral.getActualStrings().toString());
+        node.setValue("f\"" + fStringLiteral.getActualStrings().toString() + "\"");
         return node;
     }
 

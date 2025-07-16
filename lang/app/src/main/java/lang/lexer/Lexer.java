@@ -595,6 +595,59 @@ public final class Lexer {
     }
 
     /**
+     * 🎯 Reads an f-string literal from the input
+     * 
+     * F-strings start with 'f"' and contain both static text and expressions in
+     * braces.
+     * Example: f"Hello {name}, you are {age} years old!"
+     * 
+     * The lexer treats the entire f-string as one token - the parser will handle
+     * the internal structure of static parts and expressions.
+     * 
+     * @return The complete f-string content (without the f" and closing ")
+     * @throws RuntimeException if f-string is not properly closed
+     */
+    private String readFString() {
+        StringBuilder sb = new StringBuilder();
+        int braceDepth = 0;
+
+        while (true) {
+            this.advanceToNextCharacter();
+
+            if (this.currentCharacter == '\0') {
+                throw new RuntimeException("Unterminated f-string");
+            }
+
+            if (this.currentCharacter == '"' && braceDepth == 0) {
+                break; // End of f-string
+            }
+
+            if (this.currentCharacter == '{') {
+                braceDepth++;
+            } else if (this.currentCharacter == '}') {
+                braceDepth--;
+                if (braceDepth < 0) {
+                    throw new RuntimeException("Unmatched '}' in f-string");
+                }
+            }
+
+            if (this.currentCharacter == '\\') {
+                this.advanceToNextCharacter();
+                sb.append(this.handleEscapeSequence());
+                continue;
+            }
+
+            sb.append(this.currentCharacter);
+        }
+
+        if (braceDepth > 0) {
+            throw new RuntimeException("Unclosed '{' in f-string");
+        }
+
+        return sb.toString();
+    }
+
+    /**
      * 🎯 Identifies and handles identifiers and numbers
      * 
      * Determines if we're looking at a variable name, keyword, or number.
@@ -605,6 +658,13 @@ public final class Lexer {
     private Token parseIdentifierOrNumber() {
         if (Lexer.isLetter(this.currentCharacter)) {
             String identifier = this.readIdentifier();
+
+            if (identifier.equals("f") && this.peekNextCharacter() == '"') {
+                this.advanceToNextCharacter();
+                String fString = this.readFString();
+                return this.createToken(TokenType.F_STRING, fString);
+            }
+
             TokenType type = Keywords.lookupIdentifier(identifier);
             return this.createToken(type, identifier);
         } else if (Lexer.isDigit(this.currentCharacter)) {

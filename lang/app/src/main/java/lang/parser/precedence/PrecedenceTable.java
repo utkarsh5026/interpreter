@@ -52,6 +52,7 @@ public class PrecedenceTable {
         precedences.put(TokenType.ASTERISK, Precedence.PRODUCT);
         precedences.put(TokenType.SLASH, Precedence.PRODUCT);
         precedences.put(TokenType.MODULUS, Precedence.PRODUCT);
+        precedences.put(TokenType.INT_DIVISION, Precedence.PRODUCT);
 
         // 📝 Assignment
         precedences.put(TokenType.ASSIGN, Precedence.EQUALS);

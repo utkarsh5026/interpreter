@@ -8,6 +8,7 @@ public enum TokenType {
     IDENTIFIER("IDENTIFIER"),
     INT("INT"),
     STRING("STRING"),
+    FLOAT("FLOAT"),
 
     // Operators
     ASSIGN("="),
@@ -16,6 +17,7 @@ public enum TokenType {
     BANG("!"),
     ASTERISK("*"),
     SLASH("/"),
+    INT_DIVISION("//"),
     MODULUS("%"),
 
     // Comparison operators

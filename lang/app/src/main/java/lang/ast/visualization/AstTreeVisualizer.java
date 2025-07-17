@@ -437,6 +437,14 @@ public class AstTreeVisualizer extends BaseAstVisitor<TreeNode> {
         return node;
     }
 
+    @Override
+    public TreeNode visitFloatLiteral(FloatLiteral floatLiteral) {
+        TreeNode node = createNode("FloatLiteral", "LITERAL", floatLiteral.position());
+        node.addMetadata("value", floatLiteral.getValue());
+        node.setValue(String.valueOf(floatLiteral.getValue()));
+        return node;
+    }
+
     // =========================================================================
     // HELPER METHODS
     // =========================================================================

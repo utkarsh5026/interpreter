@@ -70,5 +70,7 @@ public interface AstVisitor<T> {
 
     T visitFStringLiteral(FStringLiteral fStringLiteral);
 
+    T visitFloatLiteral(FloatLiteral floatLiteral);
+
     T visitNullExpression(NullExpression nullExpression);
 }

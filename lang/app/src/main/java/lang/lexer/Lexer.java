@@ -158,6 +158,10 @@ public final class Lexer {
                 break;
 
             case '/':
+                token = this.createToken(TokenType.INT_DIVISION, this.currentCharacter);
+                if (token.type() == TokenType.INT_DIVISION) {
+                    break;
+                }
                 token = this.parseTwoCharacterOperator(
                         TokenType.SLASH_ASSIGN,
                         TokenType.SLASH);

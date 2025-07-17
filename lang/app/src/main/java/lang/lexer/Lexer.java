@@ -168,15 +168,10 @@ public final class Lexer {
                 break;
 
             case '/':
-                token = this.parseTwoCharacterOperator(TokenType.INT_DIVISION, TokenType.SLASH);
-                if (token.type() == TokenType.INT_DIVISION) {
-                    break;
-                } else {
-
+                token = this.parseTwoCharacterOperator(TokenType.INT_DIVISION, TokenType.SLASH, '/');
+                if (token.type() == TokenType.SLASH) {
+                    token = this.parseTwoCharacterOperator(TokenType.SLASH_ASSIGN, TokenType.SLASH, '/');
                 }
-                token = this.parseTwoCharacterOperator(
-                        TokenType.SLASH_ASSIGN,
-                        TokenType.SLASH);
                 break;
 
             case '%':
@@ -507,23 +502,26 @@ public final class Lexer {
         while (true) {
             this.skipWhitespace();
 
-            if (this.currentCharacter == '/' && this.peekNextCharacter() == '/') {
+            if (this.currentCharacter == '#') {
                 this.skipSingleLineComment();
             } else if (this.currentCharacter == '/' && this.peekNextCharacter() == '*') {
+                System.out.println("Skipping multi-line comment");
                 this.skipMultiLineComment();
             } else {
                 break;
             }
+
         }
     }
 
     /**
-     * 💬 Skips a single-line comment (//)
+     * 💬 Skips a single-line comment (#)
      * 
      * Reads and ignores everything until the end of the line.
      * Like skipping a side note in a book! 📝➡️🗑️
      */
     private void skipSingleLineComment() {
+        // Skip everything until end of line (# is already current char)
         while (this.currentCharacter != '\n' && this.currentCharacter != EOF) {
             this.advanceToNextCharacter();
         }

@@ -68,6 +68,10 @@ public final class ObjectValidator {
         return obj instanceof FloatObject;
     }
 
+    public static boolean isNumeric(BaseObject obj) {
+        return isInteger(obj) || isFloat(obj);
+    }
+
     /**
      * Safe casting methods that return Optional or null.
      * These provide type-safe access to specific object types.

@@ -11,6 +11,7 @@ public enum ObjectType {
     INTEGER,
     BOOLEAN,
     STRING,
+    FLOAT,
     NULL,
     RETURN_VALUE,
     ERROR,

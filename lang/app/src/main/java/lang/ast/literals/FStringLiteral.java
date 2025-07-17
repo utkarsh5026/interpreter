@@ -7,7 +7,6 @@ import lang.ast.visitor.AstVisitor;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 🎯 FStringLiteral - Formatted String with Embedded Expressions 🎯
@@ -131,16 +130,5 @@ public class FStringLiteral extends Expression {
     @Override
     public <T> T accept(AstVisitor<T> visitor) {
         return visitor.visitFStringLiteral(this);
-    }
-
-    /**
-     * 📊 Gets debug information about the f-string structure
-     * 
-     * @return Formatted string showing the internal structure
-     */
-    public String getDebugInfo() {
-        return String.format("FStringLiteral{actualStrings=%s, expressions=%s}",
-                actualStrings,
-                expressions.stream().map(Object::toString).collect(Collectors.toList()));
     }
 }

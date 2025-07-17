@@ -107,6 +107,12 @@ public class InfixExpressionEvaluator implements NodeEvaluator<InfixExpression> 
                 }
                 return new FloatObject((double) leftInteger / rightInteger);
 
+            case "//":
+                if (rightInteger == 0) {
+                    return new ErrorObject("integer division by zero");
+                }
+                return new IntegerObject(leftInteger / rightInteger);
+
             case "%":
                 if (rightInteger == 0) {
                     return new ErrorObject("modulo by zero");
@@ -208,6 +214,13 @@ public class InfixExpressionEvaluator implements NodeEvaluator<InfixExpression> 
                 }
                 return new FloatObject(leftDoubleValue / rightDoubleValue);
 
+            case "//":
+                if (rightDoubleValue == 0.0) {
+                    return new ErrorObject("integer division by zero");
+                }
+                // Floor division - always returns integer
+                return new IntegerObject((long) Math.floor(leftDoubleValue / rightDoubleValue));
+
             case "%":
                 return new FloatObject(leftDoubleValue % rightDoubleValue);
 
@@ -269,7 +282,8 @@ public class InfixExpressionEvaluator implements NodeEvaluator<InfixExpression> 
         if (operator.equals("/")) {
             return Double.class;
         }
-
+        // Integer division should preserve the natural type promotion
+        // If either operand is float, use float evaluation but return integer result
         return NumericOperations.getPromotedType(left, right);
     }
 

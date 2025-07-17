@@ -67,7 +67,7 @@ public class RealWorldScenariosTest {
         @DisplayName("Find maximum value in array with custom comparison")
         void testFindMaximumValue() {
             String code = """
-                    let findMax = fn(arr) {
+                    let findMax = fn(arr) { // funtion to check the max value in an array
                         if (len(arr) == 0) {
                             return null;
                         }

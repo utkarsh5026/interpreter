@@ -70,6 +70,11 @@ public class ParserASTValidationTests {
         }
 
         @Override
+        public String visitFloatLiteral(FloatLiteral floatLiteral) {
+            return "FloatLiteral[" + floatLiteral.getValue() + "]";
+        }
+
+        @Override
         public String visitBlockStatement(BlockStatement blockStatement) {
             return "BlockStatement[" + blockStatement.getStatements().size() + " statements]";
         }

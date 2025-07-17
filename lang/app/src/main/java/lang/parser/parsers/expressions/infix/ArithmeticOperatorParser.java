@@ -33,7 +33,8 @@ public class ArithmeticOperatorParser implements InfixExpressionParser {
                 TokenType.MINUS,
                 TokenType.ASTERISK,
                 TokenType.SLASH,
-                TokenType.MODULUS);
+                TokenType.MODULUS,
+                TokenType.INT_DIVISION);
 
         this.delegate = new BinaryOperatorParser(
                 expressionParser,

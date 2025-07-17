@@ -5,6 +5,7 @@ import lang.exec.base.BaseObject;
 import lang.exec.evaluator.base.EvaluationContext;
 import lang.exec.objects.BooleanObject;
 import lang.exec.objects.ErrorObject;
+import lang.exec.objects.FloatObject;
 
 import lang.ast.expressions.PrefixExpression;
 
@@ -12,6 +13,27 @@ import lang.exec.objects.Environment;
 import lang.exec.validator.ObjectValidator;
 import lang.exec.objects.IntegerObject;
 
+/**
+ * 🔄 PrefixExpressionEvaluator - Unary Operation Specialist (Enhanced with
+ * Float Support) 🔄
+ * 
+ * Handles prefix (unary) operators with comprehensive support for both integers
+ * and floats.
+ * 
+ * From first principles, unary operations need to:
+ * 1. Preserve the original type when possible (-5 → int, -5.0 → float)
+ * 2. Handle special float values (NaN, Infinity) appropriately
+ * 3. Provide consistent behavior across numeric types
+ * 
+ * Enhanced operations:
+ * - Negation (-): Works on both int and float
+ * - Logical NOT (!): Works on all types (uses truthiness)
+ * 
+ * Type preservation rules:
+ * - -int → int
+ * - -float → float
+ * - !anything → boolean
+ */
 public class PrefixExpressionEvaluator implements NodeEvaluator<PrefixExpression> {
 
     @Override
@@ -38,28 +60,65 @@ public class PrefixExpressionEvaluator implements NodeEvaluator<PrefixExpression
                         operator, right.type()));
     }
 
-    private final BooleanObject evalLogicalNotOperator(BaseObject value) {
-        if (ObjectValidator.isBoolean(value)) {
-            return new BooleanObject(!ObjectValidator.asBoolean(value).getValue());
-        }
-
-        if (ObjectValidator.isNull(value)) {
-            return new BooleanObject(true);
-        }
-
+    /**
+     * ❗ Logical NOT operation (enhanced for better type handling)
+     * 
+     * From first principles, logical NOT should:
+     * 1. Work on any type (using truthiness rules)
+     * 2. Always return a boolean
+     * 3. Use consistent truthiness across all types
+     * 
+     * Truthiness rules:
+     * - Numbers: 0 and 0.0 are falsy, everything else is truthy
+     * - Strings: empty string is falsy, non-empty is truthy
+     * - Booleans: use their value directly
+     * - Null: always falsy
+     * - Arrays/Objects: empty is falsy, non-empty is truthy
+     * - Special float values: NaN and Infinity are falsy
+     */
+    private BooleanObject evalLogicalNotOperator(BaseObject value) {
+        // Use the object's isTruthy() method for consistent behavior
         return new BooleanObject(!value.isTruthy());
     }
 
-    private final static BaseObject evalNegationOperator(BaseObject value) {
+    /**
+     * ➖ Negation operation (enhanced with float support)
+     * 
+     * From first principles, negation should:
+     * 1. Preserve the original type (int → int, float → float)
+     * 2. Handle special float values correctly
+     * 3. Return appropriate errors for non-numeric types
+     * 
+     * Special float cases:
+     * - -NaN → NaN
+     * - -Infinity → -Infinity
+     * - -(-Infinity) → Infinity
+     * - -0.0 → -0.0 (IEEE 754 signed zero)
+     */
+    private BaseObject evalNegationOperator(BaseObject value) {
+        // Handle integer negation
         if (ObjectValidator.isInteger(value)) {
-            return new IntegerObject(-ObjectValidator.asInteger(value).getValue());
+            long intValue = ObjectValidator.asInteger(value).getValue();
+
+            // Check for overflow on Long.MIN_VALUE
+            if (intValue == Long.MIN_VALUE) {
+                // -Long.MIN_VALUE would overflow, so promote to float
+                return new FloatObject(-(double) intValue);
+            }
+
+            return new IntegerObject(-intValue);
         }
 
-        String errorMessage = String.format(
-                "unknown operator: -%s, You can only use - operator with INTEGER like -5, -10, -100, -1000, etc.",
-                value.type());
+        // Handle float negation
+        if (ObjectValidator.isFloat(value)) {
+            double floatValue = ObjectValidator.asFloat(value).getValue();
+            return new FloatObject(-floatValue);
+        }
 
-        return new ErrorObject(errorMessage);
+        // Error for non-numeric types
+        return new ErrorObject(
+                String.format(
+                        "unknown operator: -%s. Negation operator (-) can only be used with numbers (INTEGER or FLOAT)",
+                        value.type()));
     }
-
 }

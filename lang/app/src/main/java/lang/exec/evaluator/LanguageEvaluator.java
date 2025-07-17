@@ -60,6 +60,7 @@ public class LanguageEvaluator implements EvaluationContext {
         registerEvaluator(FunctionLiteral.class, new FunctionLiteralEvaluator());
         registerEvaluator(NullExpression.class, new NullLiteralEvaluator());
         registerEvaluator(FStringLiteral.class, new FStringLiteralEvaluator());
+        registerEvaluator(FloatLiteral.class, new FloatLiteralEvaluator());
     }
 
     /**

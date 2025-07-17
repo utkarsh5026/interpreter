@@ -64,6 +64,10 @@ public final class ObjectValidator {
         return obj instanceof HashObject;
     }
 
+    public static boolean isFloat(BaseObject obj) {
+        return obj instanceof FloatObject;
+    }
+
     /**
      * Safe casting methods that return Optional or null.
      * These provide type-safe access to specific object types.
@@ -114,6 +118,10 @@ public final class ObjectValidator {
 
     public static NullObject asNull(BaseObject obj) {
         return obj instanceof NullObject ? (NullObject) obj : null;
+    }
+
+    public static FloatObject asFloat(BaseObject obj) {
+        return obj instanceof FloatObject ? (FloatObject) obj : null;
     }
 
 }

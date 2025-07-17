@@ -31,6 +31,16 @@ public final class Lexer {
     private final LexerDebugger debugger;
 
     /**
+     * 📊 Number parsing result container
+     * 
+     * Contains both the parsed number string and whether it's a float or integer.
+     * This helps us create the correct token type without parsing the number twice.
+     */
+    private record NumberParseResult(String numberString, boolean isFloat) {
+
+    }
+
+    /**
      * 📍 LineColumn - Position Tracker 📍
      * 
      * Keeps track of where we are in the text file (line and column numbers).
@@ -158,9 +168,11 @@ public final class Lexer {
                 break;
 
             case '/':
-                token = this.createToken(TokenType.INT_DIVISION, this.currentCharacter);
+                token = this.parseTwoCharacterOperator(TokenType.INT_DIVISION, TokenType.SLASH);
                 if (token.type() == TokenType.INT_DIVISION) {
                     break;
+                } else {
+
                 }
                 token = this.parseTwoCharacterOperator(
                         TokenType.SLASH_ASSIGN,
@@ -579,23 +591,67 @@ public final class Lexer {
     }
 
     /**
-     * 🔢 Reads a complete number from the input
+     * 🔢 Enhanced readNumber method that handles both integers and floats
      * 
-     * Collects consecutive digits to form a number.
-     * Like counting digit by digit! 1️⃣2️⃣3️⃣
+     * From first principles, a number can be:
+     * - Integer: sequence of digits (123, 0, 999)
+     * - Float: digits + decimal point + digits (12.34, 0.5, 999.0)
+     * - Float starting with decimal: .5 becomes 0.5
+     * - Float ending with decimal: 5. becomes 5.0
      * 
-     * @return The complete number as a string 📝🔢
+     * Algorithm:
+     * 1. Read initial digits
+     * 2. Check for decimal point
+     * 3. If decimal found, read fractional part
+     * 4. Return result indicating integer or float
+     * 
+     * @return NumberParseResult containing the number string and type
      */
-    private String readNumber() {
+    private NumberParseResult readNumber() {
         int startPosition = this.currentPosition;
+        boolean isFloat = false;
 
-        while (Lexer.isDigit(this.currentCharacter)) {
+        // Handle numbers starting with decimal point (like .5)
+        if (this.currentCharacter == '.') {
+            isFloat = true;
+            this.advanceToNextCharacter();
+
+            // Must have digits after decimal point
+            if (!isDigit(this.currentCharacter)) {
+                // This is just a dot, not a number - backtrack
+                this.backtrack(1);
+                return new NumberParseResult("", false);
+            }
+
+            // Read fractional part
+            while (isDigit(this.currentCharacter)) {
+                this.advanceToNextCharacter();
+            }
+
+            String numberStr = this.input.substring(startPosition, this.currentPosition);
+            this.backtrack(1);
+            return new NumberParseResult(numberStr, true);
+        }
+
+        // Read integer part
+        while (isDigit(this.currentCharacter)) {
             this.advanceToNextCharacter();
         }
 
-        String number = this.input.substring(startPosition, this.currentPosition);
+        // Check for decimal point
+        if (this.currentCharacter == '.' && isDigit(this.peekNextCharacter())) {
+            isFloat = true;
+            this.advanceToNextCharacter(); // consume the '.'
+
+            // Read fractional part
+            while (isDigit(this.currentCharacter)) {
+                this.advanceToNextCharacter();
+            }
+        }
+
+        String numberStr = this.input.substring(startPosition, this.currentPosition);
         this.backtrack(1);
-        return number;
+        return new NumberParseResult(numberStr, isFloat);
     }
 
     /**
@@ -652,17 +708,28 @@ public final class Lexer {
     }
 
     /**
-     * 🎯 Identifies and handles identifiers and numbers
+     * 🎯 Enhanced parseIdentifierOrNumber method with float support
      * 
-     * Determines if we're looking at a variable name, keyword, or number.
-     * The detective work of figuring out what something is! 🕵️‍♂️🔍
+     * From first principles, when we encounter a character:
+     * - If it's a letter → identifier or keyword
+     * - If it's a digit → integer or float
+     * - If it's a decimal point → potential float (like .5)
+     * - Otherwise → illegal character
      * 
-     * @return A token representing what was identified 🎫
+     * The key insight: decimal points can start numbers (.5) or be part of numbers
+     * (3.14)
+     * We need to distinguish between:
+     * - Decimal point as number start: .5 → FLOAT token
+     * - Decimal point as operator: obj.property → DOT token
+     * 
+     * @return Token representing the parsed identifier, number, or error
      */
     private Token parseIdentifierOrNumber() {
-        if (Lexer.isLetter(this.currentCharacter)) {
+        // Handle identifiers and keywords
+        if (isLetter(this.currentCharacter)) {
             String identifier = this.readIdentifier();
 
+            // Check for f-string syntax
             if (identifier.equals("f") && this.peekNextCharacter() == '"') {
                 this.advanceToNextCharacter();
                 String fString = this.readFString();
@@ -671,11 +738,22 @@ public final class Lexer {
 
             TokenType type = Keywords.lookupIdentifier(identifier);
             return this.createToken(type, identifier);
-        } else if (Lexer.isDigit(this.currentCharacter)) {
-            String number = this.readNumber();
-            return this.createToken(TokenType.INT, number);
         }
 
+        // Handle numbers (integers and floats)
+        if (isDigit(this.currentCharacter)) {
+            NumberParseResult result = this.readNumber();
+            TokenType tokenType = result.isFloat ? TokenType.FLOAT : TokenType.INT;
+            return this.createToken(tokenType, result.numberString);
+        }
+
+        // Handle numbers starting with decimal point (.5)
+        if (this.currentCharacter == '.' && isDigit(this.peekNextCharacter())) {
+            NumberParseResult result = this.readNumber();
+            return this.createToken(TokenType.FLOAT, result.numberString);
+        }
+
+        // If we get here, it's an illegal character
         return this.createToken(TokenType.ILLEGAL, this.currentCharacter);
     }
 

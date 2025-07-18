@@ -7,7 +7,6 @@ import lang.exec.base.BaseObject;
 import lang.exec.evaluator.base.EvaluationContext;
 import lang.exec.evaluator.base.NodeEvaluator;
 import lang.exec.objects.Environment;
-import lang.exec.objects.ErrorObject;
 
 /**
  * 👆 ThisExpressionEvaluator - Current Instance Reference Evaluator 👆
@@ -26,7 +25,7 @@ public class ThisExpressionEvaluator implements NodeEvaluator<ThisExpression> {
         Optional<BaseObject> thisObj = env.resolveVariable("this");
 
         if (thisObj.isEmpty()) {
-            return new ErrorObject("'this' is not available in this context");
+            return context.createError("'this' is not available in this context", node.position());
         }
 
         return thisObj.get();

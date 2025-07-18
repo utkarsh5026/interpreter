@@ -59,6 +59,13 @@ public class AssignmentExpression extends Expression {
     }
 
     /**
+     * Checks if this assignment targets a property expression
+     */
+    public boolean isPropertyAssignment() {
+        return AstValidator.isPropertyExpression(target);
+    }
+
+    /**
      * Checks if this assignment targets an index expression (array[i] or
      * hash["key"])
      */

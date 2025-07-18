@@ -11,7 +11,6 @@ import lang.exec.evaluator.base.EvaluationContext;
 import lang.exec.evaluator.base.NodeEvaluator;
 import lang.exec.objects.*;
 import lang.exec.validator.ObjectValidator;
-import lang.exec.objects.errors.ErrorFactory;
 
 /**
  * 🔗 PropertyExpressionEvaluator - Property Access Evaluator 🔗
@@ -35,22 +34,28 @@ public class PropertyExpressionEvaluator implements NodeEvaluator<PropertyExpres
 
         Optional<String> propertyName = extractPropertyName(node.getProperty(), env, context);
         if (propertyName.isEmpty()) {
-            return ErrorFactory.invalidPropertyName();
+            return context.createError("Invalid property name", node.getProperty().position());
         }
 
         if (ObjectValidator.isInstance(instance)) {
-            return evaluateInstancePropertyAccess((InstanceObject) instance, propertyName.get());
+            return evaluateInstancePropertyAccess(
+                    ObjectValidator.asInstance(instance),
+                    propertyName.get(),
+                    context,
+                    node);
         }
 
-        return ErrorFactory.propertyError("Cannot access property '" + propertyName.get() + "' on non-instance object: "
-                + instance.type().toString());
+        String message = String.format("Cannot access property '%s' on non-instance object: %s",
+                propertyName.get(), instance.type().toString());
+        return context.createError(message, node.position());
 
     }
 
     /**
      * 🎭 Evaluates property access on an instance object
      */
-    private BaseObject evaluateInstancePropertyAccess(InstanceObject instance, String propertyName) {
+    private BaseObject evaluateInstancePropertyAccess(InstanceObject instance, String propertyName,
+            EvaluationContext context, PropertyExpression node) {
         Optional<BaseObject> property = instance.getProperty(propertyName);
         if (property.isPresent()) {
             return property.get();
@@ -61,8 +66,9 @@ public class PropertyExpressionEvaluator implements NodeEvaluator<PropertyExpres
             return createBoundMethod(method.get(), instance);
         }
 
-        return ErrorFactory.propertyError("Property '" + propertyName + "' not found on instance of "
-                + instance.getClassObject().getName());
+        String message = String.format("Property '%s' not found on instance of %s",
+                propertyName, instance.getClassObject().getName());
+        return context.createError(message, node.position());
     }
 
     /**

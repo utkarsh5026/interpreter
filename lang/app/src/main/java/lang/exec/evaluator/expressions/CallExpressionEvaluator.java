@@ -6,14 +6,13 @@ import java.util.stream.IntStream;
 import lang.ast.base.Identifier;
 import lang.exec.evaluator.base.NodeEvaluator;
 import lang.exec.base.BaseObject;
-import lang.exec.objects.Environment;
-import lang.exec.objects.FunctionObject;
+import lang.exec.objects.*;
 import lang.exec.validator.ObjectValidator;
-
+import lang.token.TokenPosition;
 import lang.ast.expressions.CallExpression;
+import lang.ast.utils.*;
 import lang.exec.evaluator.base.EvaluationContext;
-
-import lang.exec.objects.ErrorObject;
+import lang.exec.debug.StackFrame;
 
 public class CallExpressionEvaluator implements NodeEvaluator<CallExpression> {
 
@@ -35,7 +34,7 @@ public class CallExpressionEvaluator implements NodeEvaluator<CallExpression> {
                 return new ErrorObject("Wrong number of arguments. Expected "
                         + ObjectValidator.asFunction(function).getParameters().size() + ", got " + args.size());
             }
-            return applyFunction(function, args, env, context);
+            return applyFunction(function, args, env, context, node);
         }
 
         return new ErrorObject("Not a function: " + function.type());
@@ -43,35 +42,84 @@ public class CallExpressionEvaluator implements NodeEvaluator<CallExpression> {
     }
 
     private BaseObject applyFunction(BaseObject function, List<BaseObject> args, Environment env,
-            EvaluationContext context) {
-
+            EvaluationContext context, CallExpression caller) {
+        TokenPosition functionPos = caller.getFunction().position();
         if (ObjectValidator.isBuiltin(function)) {
-            return ObjectValidator.asBuiltin(function).getFunction().apply(args.toArray(new BaseObject[0]));
+            return applyBuiltinFunction(function, args, context, functionPos);
         }
 
-        if (!ObjectValidator.isFunction(function)) {
-            return new ErrorObject("Not a function: " + function.type());
+        if (ObjectValidator.isFunction(function)) {
+            return applyUserFunction(function, args, env, context, caller);
         }
 
+        return context.createError("Not a function: " + function.type(), functionPos);
+    }
+
+    /**
+     * Applies a builtin function to the given arguments and returns the result.
+     */
+    private BaseObject applyBuiltinFunction(
+            BaseObject function,
+            List<BaseObject> args,
+            EvaluationContext context,
+            TokenPosition functionPos) {
+        BuiltinObject builtin = ObjectValidator.asBuiltin(function);
+        String functionName = builtin.getName();
+        context.enterFunction(functionName, functionPos, StackFrame.FrameType.BUILTIN);
+
+        try {
+            return builtin.getFunction().apply(args.toArray(new BaseObject[0]));
+        } finally {
+            context.exitFunction();
+        }
+    }
+
+    /**
+     * Applies a user function to the given arguments and returns the result.
+     */
+    private BaseObject applyUserFunction(
+            BaseObject function,
+            List<BaseObject> args,
+            Environment env,
+            EvaluationContext context,
+            CallExpression caller) {
         FunctionObject functionObject = ObjectValidator.asFunction(function);
-        Environment extendedEnv = new Environment(functionObject.getEnvironment(), false);
-        List<Identifier> parameters = functionObject.getParameters();
 
-        IntStream.range(0, parameters.size())
-                .forEach(i -> extendedEnv.defineVariable(
-                        parameters.get(i).getValue(),
-                        args.get(i)));
+        String functionName = determineFunctionName(caller);
+        context.enterFunction(functionName, caller.getFunction().position(), StackFrame.FrameType.USER_FUNCTION);
 
-        BaseObject result = context.evaluate(functionObject.getBody(), extendedEnv);
+        try {
+            Environment extendedEnv = new Environment(functionObject.getEnvironment(), false);
+            List<Identifier> parameters = functionObject.getParameters();
 
-        if (ObjectValidator.isError(result)) {
+            IntStream.range(0, parameters.size())
+                    .forEach(i -> extendedEnv.defineVariable(
+                            parameters.get(i).getValue(),
+                            args.get(i)));
+
+            BaseObject result = context.evaluate(functionObject.getBody(), extendedEnv);
+            if (ObjectValidator.isError(result)) {
+                return result;
+            }
+
+            if (ObjectValidator.isReturnValue(result)) {
+                return ObjectValidator.asReturnValue(result).getValue();
+            }
+
             return result;
-        }
 
-        if (ObjectValidator.isReturnValue(result)) {
-            return ObjectValidator.asReturnValue(result).getValue();
+        } finally {
+            context.exitFunction();
         }
+    }
 
-        return result;
+    /**
+     * Determines the name of the function to be used in the stack trace.
+     */
+    private String determineFunctionName(CallExpression node) {
+        if (AstValidator.isIdentifier(node.getFunction())) {
+            return AstCaster.asIdentifier(node.getFunction()).getValue();
+        }
+        return "<anonymous>";
     }
 }

@@ -6,6 +6,7 @@ import lang.ast.expressions.IndexExpression;
 import lang.exec.evaluator.base.NodeEvaluator;
 
 import lang.exec.validator.ObjectValidator;
+import lang.token.TokenPosition;
 import lang.ast.utils.*;
 import lang.exec.evaluator.base.EvaluationContext;
 import lang.ast.expressions.AssignmentExpression;
@@ -13,7 +14,6 @@ import lang.ast.expressions.AssignmentExpression;
 import lang.exec.base.BaseObject;
 import lang.exec.objects.*;
 import lang.ast.base.*;
-import lang.exec.objects.errors.ErrorFactory;
 
 /**
  * 📝 AssignmentExpressionEvaluator - Universal Assignment Specialist 📝
@@ -33,7 +33,7 @@ public class AssignmentExpressionEvaluator implements NodeEvaluator<AssignmentEx
         }
 
         if (node.isIdentifierAssignment()) {
-            return assignToVariable(node, assignedValue, env);
+            return assignToVariable(node, assignedValue, env, context);
         }
 
         if (node.isIndexAssignment()) {
@@ -44,7 +44,8 @@ public class AssignmentExpressionEvaluator implements NodeEvaluator<AssignmentEx
             return assignToProperty(node, assignedValue, env, context);
         }
 
-        return ErrorFactory.invalidAssignmentTarget(node.getTarget().getClass().getSimpleName());
+        return context.createError("Invalid assignment target: " + node.getTarget().getClass().getSimpleName(),
+                node.position());
 
     }
 
@@ -54,16 +55,17 @@ public class AssignmentExpressionEvaluator implements NodeEvaluator<AssignmentEx
      * This is the traditional variable assignment where we store a value
      * in a variable name within the current environment scope.
      */
-    private BaseObject assignToVariable(AssignmentExpression node, BaseObject value, Environment env) {
+    private BaseObject assignToVariable(AssignmentExpression node, BaseObject value, Environment env,
+            EvaluationContext context) {
         String variableName = AstCaster.asIdentifier(node.getTarget()).getValue();
         Optional<Environment> definingScope = env.findVariableDeclarationScope(variableName);
 
         if (definingScope.isEmpty()) {
-            return ErrorFactory.identifierNotFound(variableName);
+            return context.createError("Identifier not found: " + variableName, node.getTarget().position());
         }
 
         if (definingScope.get().isVariableImmutable(variableName)) {
-            return ErrorFactory.constantAssignment(variableName);
+            return context.createError("Constant already assigned: " + variableName, node.getTarget().position());
         }
 
         definingScope.get().defineVariable(variableName, value);
@@ -80,6 +82,7 @@ public class AssignmentExpressionEvaluator implements NodeEvaluator<AssignmentEx
             Environment env,
             EvaluationContext context) {
         IndexExpression indexExpr = AstCaster.asIndexExpression(node.getTarget());
+        TokenPosition position = indexExpr.getLeft().position();
 
         BaseObject container = context.evaluate(indexExpr.getLeft(), env);
         if (ObjectValidator.isError(container)) {
@@ -92,35 +95,37 @@ public class AssignmentExpressionEvaluator implements NodeEvaluator<AssignmentEx
         }
 
         if (ObjectValidator.isArray(container)) {
-            return assignToArrayElement(container, indexObject, value);
+            return assignToArrayElement(container, indexObject, value, context, position);
         }
 
         if (ObjectValidator.isHash(container)) {
-            return assignToHashEntry(container, indexObject, value);
+            return assignToHashEntry(container, indexObject, value, context, position);
         }
 
-        return ErrorFactory.indexNotSupported(container.type());
+        return context.createError("Index not supported for type: " + container.type(), node.position());
     }
 
     /**
      * 📋 Handles array index assignment: array[index] = value
      */
-    private BaseObject assignToArrayElement(BaseObject arrayObject, BaseObject indexObject, BaseObject value) {
+    private BaseObject assignToArrayElement(BaseObject arrayObject, BaseObject indexObject, BaseObject value,
+            EvaluationContext context, TokenPosition position) {
         ArrayObject array = ObjectValidator.asArray(arrayObject);
 
         if (!ObjectValidator.isInteger(indexObject)) {
-            return ErrorFactory.typeMismatch(array.type(), "array index", indexObject.type());
+            return context.createError("Type mismatch: array index must be an integer", position);
         }
 
         int index = (int) ObjectValidator.asInteger(indexObject).getValue();
         if (!array.isValidIndex(index)) {
-            return ErrorFactory.indexOutOfBounds(index, array.size());
+            return context.createError("Index out of bounds: " + index + " is not in the range [0, "
+                    + array.size() + ")", position);
         }
 
         try {
             return array.set(index, value);
         } catch (IndexOutOfBoundsException e) {
-            return ErrorFactory.indexError(e.getMessage());
+            return context.createError(e.getMessage(), position);
         }
     }
 
@@ -132,11 +137,12 @@ public class AssignmentExpressionEvaluator implements NodeEvaluator<AssignmentEx
      * 2. Update or create the key-value pair in the hash
      * 3. Return the assigned value
      */
-    private BaseObject assignToHashEntry(BaseObject hashObject, BaseObject keyObject, BaseObject value) {
+    private BaseObject assignToHashEntry(BaseObject hashObject, BaseObject keyObject, BaseObject value,
+            EvaluationContext context, TokenPosition position) {
         HashObject hash = ObjectValidator.asHash(hashObject);
 
         if (!ObjectValidator.isString(keyObject) && !ObjectValidator.isInteger(keyObject)) {
-            return ErrorFactory.typeMismatch(hash.type(), "hash key", keyObject.type());
+            return context.createError("Type mismatch: hash key must be a string or integer", position);
         }
 
         String key = null;
@@ -145,7 +151,7 @@ public class AssignmentExpressionEvaluator implements NodeEvaluator<AssignmentEx
         } else if (ObjectValidator.isInteger(keyObject)) {
             key = String.valueOf(ObjectValidator.asInteger(keyObject).getValue());
         } else {
-            return ErrorFactory.typeMismatch(hash.type(), "hash key", keyObject.type());
+            return context.createError("Type mismatch: hash key must be a string or integer", position);
         }
 
         return hash.set(key, value);
@@ -162,7 +168,7 @@ public class AssignmentExpressionEvaluator implements NodeEvaluator<AssignmentEx
 
         Optional<String> propertyName = extractPropertyName(propertyExpr.getProperty(), env, context);
         if (propertyName.isEmpty()) {
-            return ErrorFactory.invalidPropertyName();
+            return context.createError("Invalid property name", propertyExpr.getProperty().position());
         }
 
         if (ObjectValidator.isInstance(targetObject)) {
@@ -170,8 +176,9 @@ public class AssignmentExpressionEvaluator implements NodeEvaluator<AssignmentEx
             return instance.setProperty(propertyName.get(), value);
         }
 
-        return ErrorFactory.propertyError("Cannot assign property '" + propertyName.get() + "' on non-instance object: "
-                + targetObject.type());
+        String message = String.format("Cannot assign property '%s' on non-instance object: %s",
+                propertyName.get(), targetObject.type());
+        return context.createError(message, propertyExpr.getProperty().position());
 
     }
 

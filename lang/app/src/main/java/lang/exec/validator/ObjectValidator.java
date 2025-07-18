@@ -2,6 +2,7 @@ package lang.exec.validator;
 
 import lang.exec.base.BaseObject;
 import lang.exec.objects.*;
+import lang.ast.base.Identifier;
 
 /**
  * Utility class for type checking objects without casting.
@@ -80,6 +81,10 @@ public final class ObjectValidator {
         return obj instanceof InstanceObject;
     }
 
+    public static boolean isIdentifier(BaseObject obj) {
+        return obj instanceof Identifier;
+    }
+
     /**
      * Safe casting methods that return Optional or null.
      * These provide type-safe access to specific object types.
@@ -140,4 +145,7 @@ public final class ObjectValidator {
         return obj instanceof InstanceObject ? (InstanceObject) obj : null;
     }
 
+    public static Identifier asIdentifier(BaseObject obj) {
+        return obj instanceof Identifier ? (Identifier) obj : null;
+    }
 }

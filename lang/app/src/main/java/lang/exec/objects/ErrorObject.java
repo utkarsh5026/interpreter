@@ -6,7 +6,7 @@ import lang.exec.base.ObjectType;
 /**
  * Error object for representing runtime errors.
  */
-public final class ErrorObject implements BaseObject {
+public class ErrorObject implements BaseObject {
     private final String message;
 
     public ErrorObject(String message) {

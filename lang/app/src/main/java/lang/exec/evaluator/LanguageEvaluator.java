@@ -38,6 +38,7 @@ public class LanguageEvaluator implements EvaluationContext {
         registerEvaluator(ForStatement.class, new ForStatementEvaluator(loopContext));
         registerEvaluator(BreakStatement.class, new BreakStatementParser());
         registerEvaluator(ContinueStatement.class, new ContinueStatementParser());
+        registerEvaluator(ClassStatement.class, new ClassStatementEvaluator());
     }
 
     private void registerExpressionEvaluators() {
@@ -49,6 +50,10 @@ public class LanguageEvaluator implements EvaluationContext {
         registerEvaluator(Identifier.class, new IndentifierEvaluator());
         registerEvaluator(AssignmentExpression.class, new AssignmentExpressionEvaluator());
         registerEvaluator(IndexExpression.class, new IndexExpressionEvaluator());
+        registerEvaluator(NewExpression.class, new NewExpressionEvaluator());
+        registerEvaluator(PropertyExpression.class, new PropertyExpressionEvaluator());
+        registerEvaluator(SuperExpression.class, new SuperExpressionEvaluator());
+        registerEvaluator(ThisExpression.class, new ThisExpressionEvaluator());
     }
 
     private void registerLiteralEvaluators() {

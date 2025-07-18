@@ -67,8 +67,6 @@ public class LanguageExpressionParser implements ExpressionParser {
         TokenStream tokens = context.getTokenStream();
         Token currentToken = tokens.getCurrentToken();
 
-        System.out.println("Parsing infix: " + currentToken);
-
         Optional<InfixExpressionParser> parser = registry.getInfixParser(currentToken.type());
         if (parser.isEmpty()) {
             throw new ParserException("No infix parser found for token type: " + currentToken.type(),

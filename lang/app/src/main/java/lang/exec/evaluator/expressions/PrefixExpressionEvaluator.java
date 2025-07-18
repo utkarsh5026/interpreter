@@ -4,7 +4,6 @@ import lang.exec.evaluator.base.NodeEvaluator;
 import lang.exec.base.BaseObject;
 import lang.exec.evaluator.base.EvaluationContext;
 import lang.exec.objects.BooleanObject;
-import lang.exec.objects.ErrorObject;
 import lang.exec.objects.FloatObject;
 
 import lang.ast.expressions.PrefixExpression;
@@ -12,6 +11,7 @@ import lang.ast.expressions.PrefixExpression;
 import lang.exec.objects.Environment;
 import lang.exec.validator.ObjectValidator;
 import lang.exec.objects.IntegerObject;
+import lang.exec.objects.errors.ErrorFactory;
 
 /**
  * 🔄 PrefixExpressionEvaluator - Unary Operation Specialist (Enhanced with
@@ -55,9 +55,7 @@ public class PrefixExpressionEvaluator implements NodeEvaluator<PrefixExpression
             return evalNegationOperator(right);
         }
 
-        return new ErrorObject(
-                String.format("unknown operator: %s%s, You can only use ! or - operator with BOOLEAN or INTEGER",
-                        operator, right.type()));
+        return ErrorFactory.unknownOperator(operator, right.type().toString());
     }
 
     /**
@@ -77,7 +75,6 @@ public class PrefixExpressionEvaluator implements NodeEvaluator<PrefixExpression
      * - Special float values: NaN and Infinity are falsy
      */
     private BooleanObject evalLogicalNotOperator(BaseObject value) {
-        // Use the object's isTruthy() method for consistent behavior
         return new BooleanObject(!value.isTruthy());
     }
 
@@ -99,8 +96,6 @@ public class PrefixExpressionEvaluator implements NodeEvaluator<PrefixExpression
         // Handle integer negation
         if (ObjectValidator.isInteger(value)) {
             long intValue = ObjectValidator.asInteger(value).getValue();
-
-            // Check for overflow on Long.MIN_VALUE
             if (intValue == Long.MIN_VALUE) {
                 // -Long.MIN_VALUE would overflow, so promote to float
                 return new FloatObject(-(double) intValue);
@@ -116,9 +111,6 @@ public class PrefixExpressionEvaluator implements NodeEvaluator<PrefixExpression
         }
 
         // Error for non-numeric types
-        return new ErrorObject(
-                String.format(
-                        "unknown operator: -%s. Negation operator (-) can only be used with numbers (INTEGER or FLOAT)",
-                        value.type()));
+        return ErrorFactory.unknownOperator("-", value.type().toString());
     }
 }

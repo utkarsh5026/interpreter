@@ -136,4 +136,20 @@ public class ParsingContext {
     public Token consumeCurrentToken(TokenType type) throws ParserException {
         return consumeCurrentToken(type, "");
     }
+
+    public boolean isCurrentToken(TokenType type) {
+        return tokens.isCurrentToken(type);
+    }
+
+    public boolean isPeekToken(TokenType type) {
+        return tokens.isPeekToken(type);
+    }
+
+    public Token getCurrentToken() {
+        return tokens.getCurrentToken();
+    }
+
+    public boolean isAtEnd() {
+        return tokens.isAtEnd();
+    }
 }

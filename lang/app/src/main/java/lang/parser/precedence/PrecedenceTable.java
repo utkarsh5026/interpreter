@@ -60,6 +60,7 @@ public class PrecedenceTable {
         // 📞 Function calls and indexing
         precedences.put(TokenType.LPAREN, Precedence.CALL);
         precedences.put(TokenType.LBRACKET, Precedence.INDEX);
+        precedences.put(TokenType.DOT, Precedence.INDEX);
     }
 
     /**

@@ -462,4 +462,29 @@ public class AstTreeVisualizer extends BaseAstVisitor<TreeNode> {
     protected TreeNode defaultResult() {
         return createNode("Unknown", "UNKNOWN", null);
     }
+
+    @Override
+    public TreeNode visitSuperExpression(SuperExpression superExpression) {
+        return createNode("SuperExpression", "SUPER", superExpression.position());
+    }
+
+    @Override
+    public TreeNode visitNewExpression(NewExpression newExpression) {
+        return createNode("NewExpression", "NEW", newExpression.position());
+    }
+
+    @Override
+    public TreeNode visitThisExpression(ThisExpression thisExpression) {
+        return createNode("ThisExpression", "THIS", thisExpression.position());
+    }
+
+    @Override
+    public TreeNode visitClassStatement(ClassStatement classStatement) {
+        return createNode("ClassStatement", "CLASS", classStatement.position());
+    }
+
+    @Override
+    public TreeNode visitPropertyExpression(PropertyExpression propertyExpression) {
+        return createNode("PropertyExpression", "PROPERTY", propertyExpression.position());
+    }
 }

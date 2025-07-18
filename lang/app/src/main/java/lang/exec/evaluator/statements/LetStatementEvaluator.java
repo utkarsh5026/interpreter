@@ -15,7 +15,7 @@ public class LetStatementEvaluator implements NodeEvaluator<LetStatement> {
     public BaseObject evaluate(LetStatement node, Environment env, EvaluationContext context) {
         String varName = node.getName().getValue();
 
-        if (env.has(varName)) {
+        if (env.containsVariableLocally(varName)) {
             return new ErrorObject("variable '" + varName + "' already declared in this scope");
         }
 
@@ -23,7 +23,7 @@ public class LetStatementEvaluator implements NodeEvaluator<LetStatement> {
         if (ObjectValidator.isError(value))
             return value;
 
-        env.set(varName, value);
+        env.defineVariable(varName, value);
 
         return value;
     }

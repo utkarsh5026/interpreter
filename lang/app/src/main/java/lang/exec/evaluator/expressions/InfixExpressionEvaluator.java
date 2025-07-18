@@ -8,6 +8,7 @@ import lang.exec.objects.*;
 
 import lang.exec.evaluator.base.EvaluationContext;
 import lang.exec.evaluator.base.NodeEvaluator;
+import lang.token.TokenPosition;
 
 import lang.exec.validator.*;
 
@@ -33,7 +34,9 @@ public class InfixExpressionEvaluator implements NodeEvaluator<InfixExpression> 
         return evalInfixExpression(
                 node.getOperator(),
                 left,
-                right);
+                right,
+                context,
+                node);
     }
 
     /**
@@ -42,9 +45,10 @@ public class InfixExpressionEvaluator implements NodeEvaluator<InfixExpression> 
      * Handles operations when both operands are strings and the result
      * should remain a string.
      */
-    private BaseObject evalStringInfixExpression(String operator, BaseObject left, BaseObject right) {
+    private BaseObject evalStringInfixExpression(String operator, BaseObject left, BaseObject right,
+            TokenPosition position, EvaluationContext context) {
         if (!ObjectValidator.isString(left) || !ObjectValidator.isString(right)) {
-            return createTypeMismatchError(operator, left, right);
+            return createTypeMismatchError(operator, left, right, position, context);
         }
 
         String leftString = ObjectValidator.asString(left).getValue();
@@ -83,9 +87,10 @@ public class InfixExpressionEvaluator implements NodeEvaluator<InfixExpression> 
      * Handles operations when both operands are integers and the result
      * should remain an integer.
      */
-    private BaseObject evalIntegerInfixExpression(String operator, BaseObject left, BaseObject right) {
+    private BaseObject evalIntegerInfixExpression(String operator, BaseObject left, BaseObject right,
+            TokenPosition position, EvaluationContext context) {
         if (!ObjectValidator.isInteger(left) || !ObjectValidator.isInteger(right)) {
-            return createTypeMismatchError(operator, left, right);
+            return createTypeMismatchError(operator, left, right, position, context);
         }
 
         long leftInteger = ObjectValidator.asInteger(left).getValue();
@@ -148,9 +153,10 @@ public class InfixExpressionEvaluator implements NodeEvaluator<InfixExpression> 
      * Handles operations when both operands are booleans and the result
      * should remain a boolean.
      */
-    private BaseObject evalBooleanInfixExpression(String operator, BaseObject left, BaseObject right) {
+    private BaseObject evalBooleanInfixExpression(String operator, BaseObject left, BaseObject right,
+            TokenPosition position, EvaluationContext context) {
         if (!ObjectValidator.isBoolean(left) || !ObjectValidator.isBoolean(right)) {
-            return createTypeMismatchError(operator, left, right);
+            return createTypeMismatchError(operator, left, right, position, context);
         }
 
         boolean leftBoolean = ObjectValidator.asBoolean(left).getValue();
@@ -180,12 +186,13 @@ public class InfixExpressionEvaluator implements NodeEvaluator<InfixExpression> 
      * Handles all arithmetic and comparison operations on floating-point numbers.
      * Both operands are converted to double for calculation.
      */
-    private BaseObject evalFloatInfixExpression(String operator, BaseObject left, BaseObject right) {
+    private BaseObject evalFloatInfixExpression(String operator, BaseObject left, BaseObject right,
+            TokenPosition position, EvaluationContext context) {
         Optional<Double> leftDouble = NumericOperations.toDouble(left);
         Optional<Double> rightDouble = NumericOperations.toDouble(right);
 
         if (!leftDouble.isPresent() || !rightDouble.isPresent()) {
-            return createTypeMismatchError(operator, left, right);
+            return createTypeMismatchError(operator, left, right, position, context);
         }
 
         double leftDoubleValue = leftDouble.get();
@@ -262,13 +269,14 @@ public class InfixExpressionEvaluator implements NodeEvaluator<InfixExpression> 
      * - If both operands are integer → result is integer (except for division)
      * - Division always returns float (5/2 = 2.5, not 2)
      */
-    private BaseObject evalNumericInfixExpression(String operator, BaseObject left, BaseObject right) {
+    private BaseObject evalNumericInfixExpression(String operator, BaseObject left, BaseObject right,
+            TokenPosition position, EvaluationContext context) {
         Class<?> promotedType = getPromotedTypeForOperation(operator, left, right);
 
         if (promotedType == Double.class) {
-            return evalFloatInfixExpression(operator, left, right);
+            return evalFloatInfixExpression(operator, left, right, position, context);
         } else {
-            return evalIntegerInfixExpression(operator, left, right);
+            return evalIntegerInfixExpression(operator, left, right, position, context);
         }
     }
 
@@ -294,7 +302,8 @@ public class InfixExpressionEvaluator implements NodeEvaluator<InfixExpression> 
      * integer.
      * Only supports the '+' operator for concatenation.
      */
-    private BaseObject evalStringIntegerConcatenation(String operator, BaseObject left, BaseObject right) {
+    private BaseObject evalStringIntegerConcatenation(String operator, BaseObject left, BaseObject right,
+            TokenPosition position, EvaluationContext context) {
         if (!operator.equals("+")) {
             return createInvalidOperatorError(operator, left, right);
         }
@@ -309,7 +318,7 @@ public class InfixExpressionEvaluator implements NodeEvaluator<InfixExpression> 
             leftString = String.valueOf(ObjectValidator.asInteger(left).getValue());
             rightString = ObjectValidator.asString(right).getValue();
         } else {
-            return createTypeMismatchError(operator, left, right);
+            return createTypeMismatchError(operator, left, right, position, context);
         }
 
         return new StringObject(leftString + rightString);
@@ -326,31 +335,34 @@ public class InfixExpressionEvaluator implements NodeEvaluator<InfixExpression> 
      * 5. Handle boolean operations
      * 6. Return appropriate error for unsupported combinations
      */
-    private BaseObject evalInfixExpression(String operator, BaseObject left, BaseObject right) {
+    private BaseObject evalInfixExpression(String operator, BaseObject left, BaseObject right,
+            EvaluationContext context, InfixExpression node) {
+        TokenPosition position = node.position();
+
         if (ObjectValidator.isNull(left) || ObjectValidator.isNull(right)) {
-            return evalNullInfixExpression(operator, left, right);
+            return evalNullInfixExpression(operator, left, right, position, context);
         }
 
         if (ObjectValidator.isString(left) && ObjectValidator.isString(right))
-            return evalStringInfixExpression(operator, left, right);
+            return evalStringInfixExpression(operator, left, right, position, context);
 
-        // Handle string + integer concatenation
         if ((ObjectValidator.isString(left) && ObjectValidator.isInteger(right)) ||
                 (ObjectValidator.isInteger(left) && ObjectValidator.isString(right))) {
-            return evalStringIntegerConcatenation(operator, left, right);
+            return evalStringIntegerConcatenation(operator, left, right, position, context);
         }
 
         if (ObjectValidator.isNumeric(left) && ObjectValidator.isNumeric(right)) {
-            return evalNumericInfixExpression(operator, left, right);
+            return evalNumericInfixExpression(operator, left, right, position, context);
         }
 
         if (ObjectValidator.isBoolean(left) && ObjectValidator.isBoolean(right))
-            return evalBooleanInfixExpression(operator, left, right);
+            return evalBooleanInfixExpression(operator, left, right, position, context);
 
         return createInvalidOperatorError(operator, left, right);
     }
 
-    private BaseObject evalNullInfixExpression(String operator, BaseObject left, BaseObject right) {
+    private BaseObject evalNullInfixExpression(String operator, BaseObject left, BaseObject right,
+            TokenPosition position, EvaluationContext context) {
         switch (operator) {
             case "==":
                 // null == null -> true, null == anything -> false
@@ -362,8 +374,8 @@ public class InfixExpressionEvaluator implements NodeEvaluator<InfixExpression> 
 
             default:
                 // All other operations with null are errors
-                return new ErrorObject("Cannot perform '" + operator + "' operation with null values. " +
-                        "Only equality (==) and inequality (!=) operations are supported with null.");
+                return context.createError("Cannot perform '" + operator + "' operation with null values. " +
+                        "Only equality (==) and inequality (!=) operations are supported with null.", position);
         }
     }
 
@@ -372,8 +384,9 @@ public class InfixExpressionEvaluator implements NodeEvaluator<InfixExpression> 
                 + ". This operation is not supported.");
     }
 
-    private ErrorObject createTypeMismatchError(String operator, BaseObject left, BaseObject right) {
-        return new ErrorObject("Type mismatch: " + left.type() + " " + operator + " " + right.type()
-                + ". This operation is not supported.");
+    private ErrorObject createTypeMismatchError(String operator, BaseObject left, BaseObject right,
+            TokenPosition position, EvaluationContext context) {
+        return context.createError("Type mismatch: " + left.type() + " " + operator + " " + right.type()
+                + ". This operation is not supported.", position);
     }
 }

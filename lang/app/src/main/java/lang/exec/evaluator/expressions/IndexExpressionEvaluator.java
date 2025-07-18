@@ -10,7 +10,6 @@ import lang.exec.objects.ArrayObject;
 import lang.exec.validator.ObjectValidator;
 import lang.exec.objects.HashObject;
 import lang.exec.objects.NullObject;
-import lang.exec.objects.errors.ErrorFactory;
 import lang.ast.base.Expression;
 
 public class IndexExpressionEvaluator implements NodeEvaluator<IndexExpression> {
@@ -30,7 +29,7 @@ public class IndexExpressionEvaluator implements NodeEvaluator<IndexExpression> 
             return evalHashIndexExpression(left, node.getIndex(), env, context);
         }
 
-        return ErrorFactory.indexNotSupported(left.type());
+        return context.createError("Index not supported for type: " + left.type(), node.position());
     }
 
     private BaseObject evalArrayIndexExpression(BaseObject array, Expression index, Environment env,
@@ -39,13 +38,14 @@ public class IndexExpressionEvaluator implements NodeEvaluator<IndexExpression> 
         BaseObject indexObject = context.evaluate(index, env);
 
         if (!ObjectValidator.isInteger(indexObject)) {
-            return ErrorFactory.typeMismatch(array.type(), "array index", indexObject.type());
+            return context.createError("Type mismatch: array index must be an integer", index.position());
         }
 
         int arrIndex = (int) ObjectValidator.asInteger(indexObject).getValue();
 
         if (arrIndex < 0 || arrIndex >= arrayObject.getElements().size()) {
-            return ErrorFactory.indexOutOfBounds(arrIndex, arrayObject.getElements().size());
+            return context.createError("Index out of bounds: " + arrIndex + " is not in the range [0, "
+                    + arrayObject.getElements().size() + ")", index.position());
         }
 
         return arrayObject.getElements().get(arrIndex);
@@ -57,7 +57,7 @@ public class IndexExpressionEvaluator implements NodeEvaluator<IndexExpression> 
         BaseObject indexObject = context.evaluate(index, env);
 
         if (!ObjectValidator.isString(indexObject) && !ObjectValidator.isInteger(indexObject)) {
-            return ErrorFactory.typeMismatch(hash.type(), "hash index", indexObject.type());
+            return context.createError("Type mismatch: hash index must be a string or integer", index.position());
         }
 
         String key = ObjectValidator.isString(indexObject) ? ObjectValidator.asString(indexObject).getValue()

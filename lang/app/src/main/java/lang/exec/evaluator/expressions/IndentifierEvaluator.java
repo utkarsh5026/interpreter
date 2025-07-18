@@ -1,5 +1,7 @@
 package lang.exec.evaluator.expressions;
 
+import java.util.Optional;
+
 import lang.exec.evaluator.base.NodeEvaluator;
 import lang.exec.base.BaseObject;
 
@@ -14,9 +16,9 @@ public class IndentifierEvaluator implements NodeEvaluator<Identifier> {
 
     @Override
     public BaseObject evaluate(Identifier node, Environment env, EvaluationContext context) {
-        BaseObject value = env.get(node.getValue());
-        if (value != null) {
-            return value;
+        Optional<BaseObject> value = env.resolveVariable(node.getValue());
+        if (value.isPresent()) {
+            return value.get();
         }
 
         if (BuiltinRegistry.isBuiltin(node.getValue())) {

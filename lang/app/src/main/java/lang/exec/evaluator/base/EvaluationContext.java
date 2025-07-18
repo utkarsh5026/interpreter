@@ -1,10 +1,13 @@
 package lang.exec.evaluator.base;
 
+import lang.exec.debug.StackFrame;
 import java.util.List;
 
 import lang.ast.base.Node;
 import lang.exec.base.BaseObject;
 import lang.exec.objects.Environment;
+import lang.exec.objects.ErrorObject;
+import lang.token.TokenPosition;
 
 /**
  * 🎛️ EvaluationContext - The Master Control Center 🎛️
@@ -34,4 +37,19 @@ public interface EvaluationContext {
      * Creates a new scope for block statements, functions, etc.
      */
     Environment newScope(Environment parent, boolean isBlockScope);
+
+    /**
+     * Creates a new error object
+     */
+    ErrorObject createError(String message, TokenPosition position);
+
+    /**
+     * Enters a new function
+     */
+    void enterFunction(String functionName, TokenPosition position, StackFrame.FrameType frameType);
+
+    /**
+     * Exits a function
+     */
+    void exitFunction();
 }

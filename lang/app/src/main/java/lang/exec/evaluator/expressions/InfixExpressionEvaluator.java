@@ -108,19 +108,19 @@ public class InfixExpressionEvaluator implements NodeEvaluator<InfixExpression> 
 
             case "/":
                 if (rightInteger == 0) {
-                    return new ErrorObject("division by zero");
+                    return context.createError("division by zero", position);
                 }
                 return new FloatObject((double) leftInteger / rightInteger);
 
             case "//":
                 if (rightInteger == 0) {
-                    return new ErrorObject("integer division by zero");
+                    return context.createError("integer division by zero", position);
                 }
                 return new IntegerObject(leftInteger / rightInteger);
 
             case "%":
                 if (rightInteger == 0) {
-                    return new ErrorObject("modulo by zero");
+                    return context.createError("modulo by zero", position);
                 }
                 return new IntegerObject(leftInteger % rightInteger);
 
@@ -223,7 +223,7 @@ public class InfixExpressionEvaluator implements NodeEvaluator<InfixExpression> 
 
             case "//":
                 if (rightDoubleValue == 0.0) {
-                    return new ErrorObject("integer division by zero");
+                    return context.createError("integer division by zero", position);
                 }
                 // Floor division - always returns integer
                 return new IntegerObject((long) Math.floor(leftDoubleValue / rightDoubleValue));

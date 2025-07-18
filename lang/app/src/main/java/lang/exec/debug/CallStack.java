@@ -23,13 +23,13 @@ import java.util.ArrayList;
  * 
  * ```
  * ┌─────────────────┐ <- Top (most recent call)
- * │ innerFunc() │
+ * │ innerFunc()
  * ├─────────────────┤
- * │ middleFunc() │
+ * │ middleFunc()
  * ├─────────────────┤
- * │ outerFunc() │
+ * │ outerFunc()
  * ├─────────────────┤
- * │ <global> │ <- Bottom (program start)
+ * │ <global> <- Bottom (program start)
  * └─────────────────┘
  * ```
  * 
@@ -42,19 +42,11 @@ public class CallStack {
     private final int maxStackDepth;
 
     private int maxDepthReached;
-    private long totalPushes;
-    private long totalPops;
 
-    /**
-     * 🏗️ Creates a new call stack with default configuration
-     */
     public CallStack() {
         this(1000);
     }
 
-    /**
-     * 🏗️ Creates a new call stack with custom configuration
-     */
     public CallStack(int maxStackDepth) {
         this.frames = new ArrayDeque<>();
         this.maxStackDepth = maxStackDepth;
@@ -62,8 +54,6 @@ public class CallStack {
         this.frames.push(StackFrame.createGlobalFrame());
 
         this.maxDepthReached = 1;
-        this.totalPushes = 1;
-        this.totalPops = 0;
     }
 
     /**
@@ -78,7 +68,6 @@ public class CallStack {
         }
 
         frames.push(frame);
-        totalPushes++;
 
         if (frames.size() > maxDepthReached) {
             maxDepthReached = frames.size();
@@ -87,10 +76,6 @@ public class CallStack {
 
     /**
      * ⬇️ Pops the top frame from the stack (exiting a function)
-     * 
-     * This should be called whenever the interpreter finishes executing a function.
-     * 
-     * @return The popped frame, or null if stack is empty
      */
     public StackFrame pop() {
         if (frames.isEmpty()) {
@@ -101,155 +86,30 @@ public class CallStack {
             return null;
         }
 
-        totalPops++;
         return frames.pop();
     }
 
     /**
-     * 👀 Peeks at the current (top) frame without removing it
-     * 
-     * @return The current frame, or null if stack is empty
-     */
-    public StackFrame peek() {
-        return frames.peek();
-    }
-
-    /**
      * 📊 Gets the current stack depth
-     * 
-     * @return Number of frames currently on the stack
      */
     public int depth() {
         return frames.size();
     }
 
     /**
-     * ❓ Checks if the stack is empty (only global frame remains)
-     */
-    public boolean isEmpty() {
-        return frames.size() <= 1; // Consider only global frame as "empty"
-    }
-
-    /**
-     * 📸 Captures the current stack state for error reporting
-     * 
-     * Creates a snapshot of the entire call stack that can be used
-     * to generate detailed error messages and stack traces.
-     * 
-     * @return A list of stack frames from top (most recent) to bottom (oldest)
+     * 📸 Captures the current stack state for error reporting from (oldest) to
+     * (newest)
      */
     public List<StackFrame> captureStackTrace() {
-        return new ArrayList<>(frames); // Top to bottom order
-    }
-
-    /**
-     * 📝 Formats the current stack trace as a readable string
-     * 
-     * Creates a formatted stack trace similar to what you'd see in other
-     * programming languages. Perfect for error messages and debugging.
-     * 
-     * @return Formatted stack trace string
-     */
-    public String formatStackTrace() {
-        if (frames.isEmpty()) {
-            return "  <empty stack>";
-        }
-
-        StringBuilder sb = new StringBuilder();
-        sb.append("Stack trace (most recent call first):\n");
-
-        int frameNumber = 0;
-        for (StackFrame frame : frames) {
-            if (frameNumber > 0) { // Skip numbering for global frame
-                sb.append(String.format("  #%d ", frameNumber));
-            }
-            sb.append(frame.formatForStackTrace()).append("\n");
-            frameNumber++;
-        }
-
-        return sb.toString().trim();
-    }
-
-    /**
-     * 📝 Formats a detailed stack trace with local variables and source context
-     * 
-     * Provides much more detailed information than the basic stack trace.
-     * Useful for deep debugging but can be verbose.
-     * 
-     * @return Detailed formatted stack trace string
-     */
-    public String formatDetailedStackTrace() {
-        if (frames.isEmpty()) {
-            return "  <empty stack>";
-        }
-
-        StringBuilder sb = new StringBuilder();
-        sb.append("Detailed stack trace (most recent call first):\n");
-
-        int frameNumber = 0;
-        for (StackFrame frame : frames) {
-            sb.append(String.format("  #%d ", frameNumber));
-            sb.append(frame.formatDetailed()).append("\n");
-            frameNumber++;
-        }
-
-        return sb.toString().trim();
-    }
-
-    /**
-     * 🔍 Finds the most recent user code frame
-     * 
-     * Skips built-in function calls to find where the error actually
-     * occurred in user-written code.
-     * 
-     * @return The most recent user code frame, or null if none found
-     */
-    public StackFrame findMostRecentUserFrame() {
-        return frames.stream()
-                .filter(StackFrame::isUserCode)
-                .findFirst()
-                .orElse(null);
+        return new ArrayList<>(frames);
     }
 
     /**
      * 🧹 Clears the entire stack (except global frame)
-     * 
-     * Useful for error recovery or resetting execution state.
      */
     public void clear() {
         frames.clear();
         frames.push(StackFrame.createGlobalFrame());
         maxDepthReached = 1;
-    }
-
-    /**
-     * 📊 Gets execution statistics for debugging and performance analysis
-     * 
-     * @return Statistics about stack usage
-     */
-    public StackStatistics getStatistics() {
-        return new StackStatistics(
-                frames.size(),
-                maxDepthReached,
-                maxStackDepth,
-                totalPushes,
-                totalPops);
-    }
-
-    /**
-     * 📊 Container for stack usage statistics
-     */
-    public static record StackStatistics(
-            int currentDepth,
-            int maxDepthReached,
-            int maxDepthAllowed,
-            long totalPushes,
-            long totalPops) {
-
-        public String formatStats() {
-            return String.format(
-                    "Stack Stats: depth=%d, max=%d/%d, pushes=%d, pops=%d",
-                    currentDepth, maxDepthReached, maxDepthAllowed, totalPushes, totalPops);
-        }
     }
 }

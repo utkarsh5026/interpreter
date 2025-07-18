@@ -12,6 +12,8 @@ import lang.exec.evaluator.statements.*;
 import lang.exec.evaluator.literals.*;
 import lang.exec.validator.ObjectValidator;
 import lang.exec.base.*;
+import lang.exec.debug.*;
+import lang.token.TokenPosition;
 
 import lang.exec.objects.*;
 
@@ -19,14 +21,21 @@ public class LanguageEvaluator implements EvaluationContext {
 
     private final Map<Class<? extends Node>, NodeEvaluator<? extends Node>> evaluators;
     private final LoopContext loopContext;
+    private final Optional<CallStack> callStack;
 
     public LanguageEvaluator() {
+        this(false);
+    }
+
+    public LanguageEvaluator(boolean enableStackTraces) {
         this.evaluators = new HashMap<>();
         this.loopContext = new LoopContext();
+        this.callStack = enableStackTraces ? Optional.of(new CallStack(1000)) : Optional.empty();
 
         registerStatementEvaluators();
         registerExpressionEvaluators();
         registerLiteralEvaluators();
+
     }
 
     private void registerStatementEvaluators() {
@@ -139,5 +148,30 @@ public class LanguageEvaluator implements EvaluationContext {
         }
 
         return result;
+    }
+
+    public void enterFunction(String functionName, TokenPosition position, StackFrame.FrameType frameType) {
+        if (!callStack.isPresent())
+            return;
+        StackFrame frame = new StackFrame(functionName, position, frameType);
+        callStack.ifPresent(stack -> stack.push(frame));
+    }
+
+    public void exitFunction() {
+        if (!callStack.isPresent())
+            return;
+        callStack.ifPresent(stack -> stack.pop());
+    }
+
+    public Optional<CallStack> getCallStack() {
+        return callStack;
+    }
+
+    public ErrorObject createError(String message, TokenPosition position) {
+        if (callStack.isPresent()) {
+            return ErrorObject.withStackTrace(message, callStack.get());
+        } else {
+            return new ErrorObject(message, position, null, null);
+        }
     }
 }

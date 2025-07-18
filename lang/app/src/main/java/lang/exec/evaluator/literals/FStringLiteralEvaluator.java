@@ -13,17 +13,6 @@ import lang.ast.base.Expression;
 
 import java.util.List;
 
-/**
- * 🎯 FStringLiteralEvaluator - F-String Interpolation Specialist 🎯
- * 
- * Evaluates f-string literals by interpolating expressions into static text.
- * 
- * Example evaluation process:
- * - f"Hello {name}!" with name="Alice"
- * - Static parts: ["Hello ", "!"]
- * - Expressions: [name] → ["Alice"]
- * - Result: "Hello " + "Alice" + "!" = "Hello Alice!"
- */
 public class FStringLiteralEvaluator implements NodeEvaluator<FStringLiteral> {
 
     @Override
@@ -35,8 +24,9 @@ public class FStringLiteralEvaluator implements NodeEvaluator<FStringLiteral> {
             return new StringObject(staticParts.get(0));
         }
 
-        String[] expressionValues = new String[expressions.size()];
-        for (int i = 0; i < expressions.size(); i++) {
+        int epxressionCount = expressions.size();
+        String[] expressionValues = new String[epxressionCount];
+        for (int i = 0; i < epxressionCount; i++) {
             BaseObject result = context.evaluate(expressions.get(i), env);
 
             if (ObjectValidator.isError(result)) {
@@ -79,10 +69,6 @@ public class FStringLiteralEvaluator implements NodeEvaluator<FStringLiteral> {
         }
     }
 
-    /**
-     * 🔄 Creates the final string by interpolating static parts with expression
-     * values
-     */
     private StringObject createFinalString(List<String> staticParts, String[] expressionValues) {
         StringBuilder result = new StringBuilder();
 

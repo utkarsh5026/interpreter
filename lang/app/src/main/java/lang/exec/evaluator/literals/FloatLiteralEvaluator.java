@@ -7,11 +7,6 @@ import lang.exec.objects.Environment;
 import lang.exec.evaluator.base.EvaluationContext;
 import lang.ast.literals.FloatLiteral;
 
-/**
- * 🌊 FloatLiteralEvaluator - Float Literal Evaluation Specialist 🌊
- * 
- * Evaluates FloatLiteral AST nodes into FloatObject runtime values.
- */
 public class FloatLiteralEvaluator implements NodeEvaluator<FloatLiteral> {
 
     @Override

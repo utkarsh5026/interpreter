@@ -213,24 +213,55 @@ public class LanguageEvaluator implements EvaluationContext {
         int startLine = Math.max(1, line - 1);
         int endLine = Math.min(sourceLines.length, line + 1);
 
+        // Calculate the maximum width needed for the box
+        int maxLineNumWidth = String.valueOf(endLine).length();
+        int maxContentWidth = 0;
+
+        // First pass: calculate max content width
         for (int i = startLine; i <= endLine; i++) {
             String lineContent = sourceLines[i - 1];
+            int contentWidth = String.format("  %s  %s",
+                    String.format("%" + maxLineNumWidth + "d", i), lineContent).length();
+            maxContentWidth = Math.max(maxContentWidth, contentWidth);
+        }
+
+        // Ensure minimum width for the box
+        maxContentWidth = Math.max(maxContentWidth, 50);
+
+        // Top border
+        context.append("┌").append("─".repeat(maxContentWidth + 2)).append("┐\n");
+        context.append("│").append(String.format(" %-" + (maxContentWidth + 1) + "s", "Source Context")).append("│\n");
+        context.append("├").append("─".repeat(maxContentWidth + 2)).append("┤\n");
+
+        for (int i = startLine; i <= endLine; i++) {
+            String lineContent = sourceLines[i - 1];
+            String lineNumStr = String.format("%" + maxLineNumWidth + "d", i);
 
             if (i == line) {
-                context.append(String.format("→ %3d  %s\n", i, lineContent));
+                // Error line with arrow
+                String content = String.format(" → %s  %s", lineNumStr, lineContent);
+                context.append("│").append(String.format(" %-" + (maxContentWidth + 1) + "s", content)).append("│\n");
 
+                // Add pointer line if column is specified
                 if (column > 0) {
                     StringBuilder pointer = new StringBuilder();
+                    pointer.append("   ").append(" ".repeat(maxLineNumWidth)).append("  ");
                     for (int j = 0; j < column - 1; j++) {
                         pointer.append(" ");
                     }
                     pointer.append("^");
-                    context.append(pointer.toString()).append("\n");
+                    context.append("│").append(String.format(" %-" + (maxContentWidth + 1) + "s", pointer.toString()))
+                            .append("│\n");
                 }
             } else {
-                context.append(String.format("  %3d  %s\n", i, lineContent));
+                // Regular context line
+                String content = String.format("   %s  %s", lineNumStr, lineContent);
+                context.append("│").append(String.format(" %-" + (maxContentWidth + 1) + "s", content)).append("│\n");
             }
         }
+
+        // Bottom border
+        context.append("└").append("─".repeat(maxContentWidth + 2)).append("┘\n");
 
         return context.toString();
     }

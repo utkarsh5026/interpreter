@@ -8,7 +8,6 @@ import lang.exec.validator.ObjectValidator;
 
 import lang.ast.statements.ConstStatement;
 import lang.exec.evaluator.base.EvaluationContext;
-import lang.exec.objects.errors.ErrorFactory;
 
 public class ConstStatementEvaluator implements NodeEvaluator<ConstStatement> {
     @Override
@@ -17,7 +16,7 @@ public class ConstStatementEvaluator implements NodeEvaluator<ConstStatement> {
         String variableName = node.getName().getValue();
 
         if (env.containsVariableLocally(variableName)) {
-            return ErrorFactory.constantAssignment(variableName);
+            return context.createError("Constant already assigned: " + variableName, node.getName().position());
         }
 
         BaseObject value = context.evaluate(node.getValue(), env);

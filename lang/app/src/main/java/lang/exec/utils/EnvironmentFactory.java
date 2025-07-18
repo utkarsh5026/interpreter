@@ -22,7 +22,7 @@ public class EnvironmentFactory {
 
         Map<String, BuiltinObject> builtins = BuiltinRegistry.getAllBuiltins();
         builtins.forEach((name, builtin) -> {
-            global.set(name, builtin);
+            global.defineVariable(name, builtin);
         });
 
         return global;

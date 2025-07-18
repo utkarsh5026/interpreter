@@ -16,9 +16,6 @@ public final class NumericOperations {
 
     /**
      * Converts a BaseObject to Double if it's a numeric type.
-     * 
-     * @param obj The object to convert
-     * @return Double value if conversion is possible, null otherwise
      */
     public static Optional<Double> toDouble(BaseObject obj) {
         if (ObjectValidator.isInteger(obj)) {
@@ -83,41 +80,6 @@ public final class NumericOperations {
             return new IntegerObject(value.longValue());
         }
         throw new IllegalArgumentException("Unsupported numeric type: " + targetType);
-    }
-
-    /**
-     * Performs type-safe numeric addition with automatic promotion.
-     * 
-     * @param left  Left operand
-     * @param right Right operand
-     * @return Result object with appropriate type, or null if not numeric
-     */
-    public static Optional<BaseObject> addNumeric(BaseObject left, BaseObject right) {
-        if (!isNumericPair(left, right)) {
-            return Optional.empty();
-        }
-
-        Class<?> targetType = getPromotedType(left, right);
-
-        if (targetType == Double.class) {
-            Optional<Double> leftVal = toDouble(left);
-            Optional<Double> rightVal = toDouble(right);
-
-            if (leftVal.isPresent() && rightVal.isPresent()) {
-                var result = new FloatObject(leftVal.get() + rightVal.get());
-                return Optional.of(result);
-            }
-
-            return Optional.empty();
-        } else {
-            Optional<Long> leftVal = toLong(left);
-            Optional<Long> rightVal = toLong(right);
-            if (leftVal.isPresent() && rightVal.isPresent()) {
-                var result = new IntegerObject(leftVal.get() + rightVal.get());
-                return Optional.of(result);
-            }
-            return Optional.empty();
-        }
     }
 
     /**

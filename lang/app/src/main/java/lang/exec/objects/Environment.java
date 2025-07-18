@@ -3,6 +3,7 @@ package lang.exec.objects;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import lang.exec.base.BaseObject;
 
@@ -137,16 +138,16 @@ public class Environment {
      * @param name the variable name
      * @return the environment where the variable is defined, or null if not found
      */
-    public Environment getDefiningScope(String name) {
+    public Optional<Environment> getDefiningScope(String name) {
         if (store.containsKey(name)) {
-            return this;
+            return Optional.of(this);
         }
 
         if (outer != null) {
             return outer.getDefiningScope(name);
         }
 
-        return null;
+        return Optional.empty();
     }
 
     /**

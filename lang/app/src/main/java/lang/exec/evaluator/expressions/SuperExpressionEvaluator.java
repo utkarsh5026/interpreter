@@ -10,7 +10,6 @@ import lang.exec.evaluator.base.NodeEvaluator;
 import lang.exec.objects.*;
 import lang.exec.validator.ObjectValidator;
 import lang.ast.base.Expression;
-import lang.exec.objects.errors.ErrorFactory;
 
 /**
  * ⬆️ SuperExpressionEvaluator - Parent Class Access Evaluator ⬆️
@@ -30,18 +29,18 @@ public class SuperExpressionEvaluator implements NodeEvaluator<SuperExpression> 
         // Get current instance ('this' must be bound in environment)
         Optional<BaseObject> thisObj = env.resolveVariable("this");
         if (thisObj.isEmpty()) {
-            return ErrorFactory.thisNotAvailable();
+            return context.createError("'this' is not available in this context", node.position());
         }
 
         if (!ObjectValidator.isInstance(thisObj.get())) {
-            return ErrorFactory.thisNotAvailable();
+            return context.createError("'this' is not available in this context", node.position());
         }
 
         InstanceObject instance = ObjectValidator.asInstance(thisObj.get());
         ClassObject currentClass = instance.getClassObject();
 
         if (!currentClass.hasParentClass()) {
-            return ErrorFactory.superNoParent(currentClass.getName());
+            return context.createError("No parent class found for class: " + currentClass.getName(), node.position());
         }
 
         ClassObject parentClass = currentClass.getParentClass().get();
@@ -61,7 +60,7 @@ public class SuperExpressionEvaluator implements NodeEvaluator<SuperExpression> 
             EvaluationContext context) {
         if (!parentClass.hasConstructor()) {
             if (node.getArguments().size() > 0) {
-                return ErrorFactory.noConstructor(parentClass.getName());
+                return context.createError("No constructor found for class: " + parentClass.getName(), node.position());
             }
             return instance;
         }
@@ -77,10 +76,9 @@ public class SuperExpressionEvaluator implements NodeEvaluator<SuperExpression> 
 
         int requiredArgs = parentConstructor.getParameters().size();
         if (arguments.size() != requiredArgs) {
-            return ErrorFactory.constructorArgumentMismatch(
-                    parentClass.getName(),
-                    requiredArgs,
-                    arguments.size());
+            String message = String.format("Constructor argument mismatchs: %s requires %d got %d",
+                    parentClass.getName(), requiredArgs, arguments.size());
+            return context.createError(message, node.position());
         }
 
         return callParentConstructor(parentConstructor, instance, arguments, env, context);
@@ -113,10 +111,9 @@ public class SuperExpressionEvaluator implements NodeEvaluator<SuperExpression> 
         FunctionObject parentMethod = method.get();
         int requiredArgs = parentMethod.getParameters().size();
         if (arguments.size() != requiredArgs) {
-            return ErrorFactory.constructorArgumentMismatch(
-                    parentClass.getName(),
-                    requiredArgs,
-                    arguments.size());
+            String message = String.format("Constructor argument mismatchs: %s requires %d got %d",
+                    parentClass.getName(), requiredArgs, arguments.size());
+            return context.createError(message, node.position());
         }
 
         return callParentMethod(parentMethod, instance, arguments, env, context);

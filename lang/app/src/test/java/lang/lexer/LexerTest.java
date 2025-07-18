@@ -34,7 +34,6 @@ class LexerTest {
 
     @BeforeEach
     void setUp() {
-        // Reset state before each test
         lexer = null;
     }
 
@@ -606,14 +605,14 @@ class LexerTest {
         @DisplayName("Should handle mixed comments and code")
         void testMixedCommentsAndCode() {
             String input = """
-                    // Main function
+                    # Main function
                     fn main() { /* entry point */
-                        let x = 5; // initialize x
+                        let x = 5; # initialize x
                         /*
                          * Multi-line calculation
                          */
-                        let y = x * 2; // double x
-                    } // end main
+                        let y = x * 2; # double x
+                    } # end main
                     """;
 
             List<Token> tokens = tokenizeInput(input);

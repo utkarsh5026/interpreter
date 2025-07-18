@@ -173,6 +173,31 @@ public class ParserASTValidationTests {
         public String visitNullExpression(NullExpression nullExpression) {
             return "NullExpression[]";
         }
+
+        @Override
+        public String visitSuperExpression(SuperExpression superExpression) {
+            return "SuperExpression[]";
+        }
+
+        @Override
+        public String visitNewExpression(NewExpression newExpression) {
+            return "NewExpression[]";
+        }
+
+        @Override
+        public String visitThisExpression(ThisExpression thisExpression) {
+            return "ThisExpression[]";
+        }
+
+        @Override
+        public String visitClassStatement(ClassStatement classStatement) {
+            return "ClassStatement[]";
+        }
+
+        @Override
+        public String visitPropertyExpression(PropertyExpression propertyExpression) {
+            return "PropertyExpression[]";
+        }
     }
 
     @BeforeEach

@@ -334,7 +334,7 @@ public class LanguageREPL {
     private void showEnvironment() {
         System.out.printf("\n%s🌍 Current Environment:%s\n", BRIGHT_YELLOW, RESET);
 
-        Map<String, BaseObject> env = globalEnvironment.getStore();
+        Map<String, BaseObject> env = globalEnvironment.getLocalVariableBindings();
         if (env.isEmpty()) {
             System.out.printf("%sNo user-defined variables.%s\n", DIM, RESET);
         } else {
@@ -404,7 +404,7 @@ public class LanguageREPL {
      * 🔄 Resets the environment
      */
     private void resetEnvironment() {
-        Map<String, BaseObject> store = globalEnvironment.getStore();
+        Map<String, BaseObject> store = globalEnvironment.getLocalVariableBindings();
 
         // Remove all user-defined variables, keep builtins
         store.entrySet().removeIf(entry -> !BuiltinRegistry.isBuiltin(entry.getKey()));
@@ -490,7 +490,7 @@ public class LanguageREPL {
 
         // Add all built-in functions
         BuiltinRegistry.getAllBuiltins().forEach((name, builtin) -> {
-            env.set(name, builtin);
+            env.defineVariable(name, builtin);
         });
 
         return env;

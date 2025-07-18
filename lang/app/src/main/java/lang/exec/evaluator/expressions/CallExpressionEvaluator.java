@@ -31,8 +31,11 @@ public class CallExpressionEvaluator implements NodeEvaluator<CallExpression> {
 
         if (isFunction || isBuiltin) {
             if (isFunction && args.size() != ObjectValidator.asFunction(function).getParameters().size()) {
-                return new ErrorObject("Wrong number of arguments. Expected "
-                        + ObjectValidator.asFunction(function).getParameters().size() + ", got " + args.size());
+                var functionObject = ObjectValidator.asFunction(function);
+                String message = String.format("Wrong number of arguments. Expected %d, got %d",
+                        functionObject.getParameters().size(), args.size());
+
+                return context.createError(message, node.getFunction().position());
             }
             return applyFunction(function, args, env, context, node);
         }
@@ -68,7 +71,14 @@ public class CallExpressionEvaluator implements NodeEvaluator<CallExpression> {
         context.enterFunction(functionName, functionPos, StackFrame.FrameType.BUILTIN);
 
         try {
-            return builtin.getFunction().apply(args.toArray(new BaseObject[0]));
+            var result = builtin.getFunction().apply(args.toArray(new BaseObject[0]));
+            if (ObjectValidator.isError(result)) {
+                ErrorObject error = ObjectValidator.asError(result);
+                String message = String.format("Error in evaluation of the builtin function %s: %s",
+                        functionName, error.getMessage());
+                return context.createError(message, error.getPosition().orElse(functionPos));
+            }
+            return result;
         } finally {
             context.exitFunction();
         }

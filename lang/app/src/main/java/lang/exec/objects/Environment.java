@@ -28,16 +28,18 @@ import lang.exec.base.BaseObject;
  */
 public class Environment {
 
-    private final Map<String, BaseObject> store;
+    // Maps variable names to their values in this scope
+    private final Map<String, BaseObject> variableBindings;
 
     // Reference to the enclosing scope (null for global scope)
-    private final Environment outer;
+    private final Environment enclosingScope;
 
     // Set of variable names that are constants (cannot be reassigned)
-    private final Set<String> constants;
+    private final Set<String> immutableVariableNames;
 
-    // Flag indicating if this is a block scope (for let/const scoping rules)
-    private final boolean isBlockScope;
+    // Flag indicating if this represents a block scope (for let/const scoping
+    // rules)
+    private final boolean representsBlockScope;
 
     /**
      * Creates a new global environment (no parent).
@@ -49,14 +51,14 @@ public class Environment {
     /**
      * Creates a new environment with an optional parent.
      * 
-     * @param outer        the parent environment, or null for global scope
-     * @param isBlockScope true if this represents a block scope (like { })
+     * @param enclosingScope       the parent environment, or null for global scope
+     * @param representsBlockScope true if this represents a block scope (like { })
      */
-    public Environment(Environment outer, boolean isBlockScope) {
-        this.store = new HashMap<>();
-        this.outer = outer;
-        this.constants = new HashSet<>();
-        this.isBlockScope = isBlockScope;
+    public Environment(Environment enclosingScope, boolean representsBlockScope) {
+        this.variableBindings = new HashMap<>();
+        this.enclosingScope = enclosingScope;
+        this.immutableVariableNames = new HashSet<>();
+        this.representsBlockScope = representsBlockScope;
     }
 
     /**
@@ -67,67 +69,66 @@ public class Environment {
      * 2. If not found and there's a parent, recursively check parent
      * 3. Return null if not found anywhere
      * 
-     * @param name the variable name to look up
+     * @param variableName the variable name to look up
      * @return the value, or null if not found
      */
-    public BaseObject get(String name) {
-        BaseObject value = store.get(name);
+    public Optional<BaseObject> resolveVariable(String variableName) {
+        BaseObject value = variableBindings.get(variableName);
 
-        // If not found in current scope, try parent scope
-        if (value == null && outer != null) {
-            return outer.get(name);
+        if (value == null && enclosingScope != null) {
+            return enclosingScope.resolveVariable(variableName);
         }
 
+        return Optional.ofNullable(value);
+    }
+
+    /**
+     * Defines a variable in the current environment.
+     * 
+     * @param variableName the variable name
+     * @param value        the value to store
+     * @return the value that was stored
+     */
+    public BaseObject defineVariable(String variableName, BaseObject value) {
+        variableBindings.put(variableName, value);
         return value;
     }
 
     /**
-     * Sets a variable in the current environment.
+     * Defines a constant variable (cannot be reassigned).
      * 
-     * @param name  the variable name
-     * @param value the value to store
+     * @param constantName the constant name
+     * @param value        the value to store
      * @return the value that was stored
      */
-    public BaseObject set(String name, BaseObject value) {
-        store.put(name, value);
-        return value;
-    }
-
-    /**
-     * Sets a constant variable (cannot be reassigned).
-     * 
-     * @param name  the constant name
-     * @param value the value to store
-     * @return the value that was stored
-     */
-    public BaseObject setConst(String name, BaseObject value) {
-        constants.add(name);
-        return set(name, value);
+    public BaseObject defineConstant(String constantName, BaseObject value) {
+        immutableVariableNames.add(constantName);
+        return defineVariable(constantName, value);
     }
 
     /**
      * Checks if a variable exists in the current environment only (not parents).
      * 
-     * @param name the variable name to check
+     * @param variableName the variable name to check
      * @return true if the variable exists in this environment
      */
-    public boolean has(String name) {
-        return store.containsKey(name);
+    public boolean containsVariableLocally(String variableName) {
+        return variableBindings.containsKey(variableName);
     }
 
     /**
      * Checks if a variable is marked as constant in this environment or any parent.
      * 
-     * @param name the variable name to check
+     * @param variableName the variable name to check
      * @return true if the variable is a constant
      */
-    public boolean isConstant(String name) {
-        if (constants.contains(name)) {
+    public boolean isVariableImmutable(String variableName) {
+        if (immutableVariableNames.contains(variableName)) {
             return true;
         }
 
         // Check parent environments
-        return outer != null && outer.isConstant(name);
+        return enclosingScope != null && enclosingScope.isVariableImmutable(variableName);
     }
 
     /**
@@ -135,16 +136,16 @@ public class Environment {
      * This is used for assignment operations - we need to modify the variable
      * in the scope where it was originally declared.
      * 
-     * @param name the variable name
-     * @return the environment where the variable is defined, or null if not found
+     * @param variableName the variable name
+     * @return the environment where the variable is defined, or empty if not found
      */
-    public Optional<Environment> getDefiningScope(String name) {
-        if (store.containsKey(name)) {
+    public Optional<Environment> findVariableDeclarationScope(String variableName) {
+        if (variableBindings.containsKey(variableName)) {
             return Optional.of(this);
         }
 
-        if (outer != null) {
-            return outer.getDefiningScope(name);
+        if (enclosingScope != null) {
+            return enclosingScope.findVariableDeclarationScope(variableName);
         }
 
         return Optional.empty();
@@ -156,7 +157,7 @@ public class Environment {
      * 
      * @return a new Environment representing a block scope
      */
-    public Environment newBlockScope() {
+    public Environment createChildBlockScope() {
         return new Environment(this, true);
     }
 
@@ -166,54 +167,54 @@ public class Environment {
      * 
      * @return a new Environment representing a function scope
      */
-    public Environment newFunctionScope() {
+    public Environment createChildFunctionScope() {
         return new Environment(this, false);
     }
 
     /**
-     * Returns whether this is a block scope.
+     * Returns whether this represents a block scope.
      */
     public boolean isBlockScope() {
-        return isBlockScope;
+        return representsBlockScope;
     }
 
     /**
      * Returns the parent environment.
      */
-    public Environment getOuter() {
-        return outer;
+    public Environment getEnclosingScope() {
+        return enclosingScope;
     }
 
     /**
-     * Returns a copy of the current environment's variables.
+     * Returns a copy of the current environment's variable bindings.
      * Useful for debugging and introspection.
      */
-    public Map<String, BaseObject> getStore() {
-        return new HashMap<>(store);
+    public Map<String, BaseObject> getLocalVariableBindings() {
+        return new HashMap<>(variableBindings);
     }
 
     /**
-     * Debugging method to dump the entire scope chain.
-     * This helps visualize the environment hierarchy.
+     * Debugging method to visualize the entire scope hierarchy.
+     * This helps understand the environment chain structure.
      */
-    public String dumpScopeChain() {
-        StringBuilder sb = new StringBuilder();
-        Environment current = this;
-        int level = 0;
+    public String debugScopeHierarchy() {
+        StringBuilder hierarchyDescription = new StringBuilder();
+        Environment currentScope = this;
+        int scopeDepth = 0;
 
-        while (current != null) {
-            sb.append("  ".repeat(level))
-                    .append("Scope ")
-                    .append(level)
-                    .append(current.isBlockScope ? " (block)" : " (function)")
+        while (currentScope != null) {
+            hierarchyDescription.append("  ".repeat(scopeDepth))
+                    .append("Scope Level ")
+                    .append(scopeDepth)
+                    .append(currentScope.representsBlockScope ? " (block scope)" : " (function scope)")
                     .append(": ")
-                    .append(current.store.keySet())
+                    .append(currentScope.variableBindings.keySet())
                     .append("\n");
 
-            current = current.outer;
-            level++;
+            currentScope = currentScope.enclosingScope;
+            scopeDepth++;
         }
 
-        return sb.toString();
+        return hierarchyDescription.toString();
     }
 }

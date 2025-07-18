@@ -49,9 +49,10 @@ public class StatementParserRegistry implements StatementParse {
         parsers.add(new ForStatementParser(expressionParser, this));
         parsers.add(new BreakStatementParser());
         parsers.add(new ContinueStatementParser());
-
+        parsers.add(new ClassStatementParser(this));
         parsers.add(new BlockStatementParser(this));
         parsers.add(new ExpressionStatementParser(expressionParser));
+
     }
 
     /**

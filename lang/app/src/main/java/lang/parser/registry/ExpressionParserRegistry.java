@@ -55,6 +55,9 @@ public class ExpressionParserRegistry {
         registerPrefixParser(new IfExpressionParser(expressionParser, statementParser));
         registerPrefixParser(new FStringLiteralParser());
         registerPrefixParser(new FloatLiteralParser());
+        registerPrefixParser(new NewExpressionParser(expressionParser));
+        registerPrefixParser(new SuperExpressionParser(expressionParser));
+        registerPrefixParser(new ThisExpressionParser());
     }
 
     private void registerInfixParsers() {
@@ -64,6 +67,7 @@ public class ExpressionParserRegistry {
         registerInfixParser(new AssignmentExpressionParser(expressionParser));
         registerInfixParser(new CallExpressionParser(expressionParser));
         registerInfixParser(new IndexExpressionParser(expressionParser));
+        registerInfixParser(new PropertyExpressionParser());
     }
 
     public void registerInfixParser(InfixExpressionParser parser) {

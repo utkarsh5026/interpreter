@@ -41,7 +41,8 @@ public class ClassStatementEvaluator implements NodeEvaluator<ClassStatement> {
 
         var parentClassResolution = resolveParentClass(node, env);
         if (parentClassResolution.error().isPresent()) {
-            return parentClassResolution.error().get();
+            String errorMessage = parentClassResolution.error().get().getMessage();
+            return context.createError(errorMessage, node.position());
         }
 
         Environment classEnv = new Environment(env, false);
@@ -63,9 +64,6 @@ public class ClassStatementEvaluator implements NodeEvaluator<ClassStatement> {
         return classObj;
     }
 
-    /**
-     * 🔄 Checks for circular inheritance
-     */
     private boolean wouldCreateCircularInheritance(String newClassName, ClassObject parentClass) {
         ClassObject current = parentClass;
         while (current != null) {
@@ -77,28 +75,28 @@ public class ClassStatementEvaluator implements NodeEvaluator<ClassStatement> {
         return false;
     }
 
-    /**
-     * 🔄 Resolves the parent class for a class definition
-     */
     private ParentClassResolution resolveParentClass(ClassStatement node, Environment env) {
         String className = node.getName().getValue();
         Optional<ClassObject> parentClass = Optional.empty();
         Optional<ErrorObject> error = Optional.empty();
+
+        String parentClassName = node.getParentClass().get().getValue();
         if (node.hasParentClass()) {
-            Optional<BaseObject> parentObj = env.resolveVariable(node.getParentClass().get().getValue());
+            Optional<BaseObject> parentObj = env.resolveVariable(parentClassName);
             if (parentObj.isEmpty()) {
                 error = Optional
-                        .of(new ErrorObject("Parent class '" + node.getParentClass().get().getValue() + "' not found"));
+                        .of(new ErrorObject("Parent class '" + parentClassName + "' not found"));
             }
+
             if (!ObjectValidator.isClass(parentObj.get())) {
-                error = Optional.of(new ErrorObject("'" + node.getParentClass().get().getValue() + "' is not a class"));
+                error = Optional.of(new ErrorObject("'" + parentClassName + "' is not a class"));
             }
+
             parentClass = Optional.of((ClassObject) parentObj.get());
 
-            // Check for circular inheritance
             if (wouldCreateCircularInheritance(className, (ClassObject) parentObj.get())) {
                 error = Optional.of(new ErrorObject("Circular inheritance detected: " + className +
-                        " cannot extend " + node.getParentClass().get().getValue()));
+                        " cannot extend " + parentClassName));
             }
         }
 

@@ -9,6 +9,7 @@ import lang.exec.base.ObjectType;
 import lang.exec.debug.StackFrame;
 import lang.exec.debug.CallStack;
 import lang.token.TokenPosition;
+import lang.lexer.debug.DebugColors;
 
 /**
  * Error object for representing runtime errors.
@@ -19,17 +20,20 @@ public class ErrorObject implements BaseObject {
     private final List<StackFrame> stackTrace;
     private final boolean hasStackTrace;
     private Optional<TokenPosition> position;
+    private Optional<String> sourceContext;
 
-    public ErrorObject(String message, TokenPosition position, List<StackFrame> stackTrace, String suggestion) {
+    public ErrorObject(String message, TokenPosition position, List<StackFrame> stackTrace, String sourceContext) {
         this.message = message != null ? message : "Unknown error";
         this.position = Optional.ofNullable(position);
         this.stackTrace = stackTrace != null ? List.copyOf(stackTrace) : Collections.emptyList();
         this.hasStackTrace = !this.stackTrace.isEmpty();
+        this.sourceContext = Optional.ofNullable(sourceContext);
     }
 
-    public static ErrorObject withStackTrace(String message, CallStack callStack) {
+    public static ErrorObject withStackTrace(String message, CallStack callStack, TokenPosition position,
+            String sourceContext) {
         List<StackFrame> stackTrace = callStack != null ? callStack.captureStackTrace() : Collections.emptyList();
-        return new ErrorObject(message, null, stackTrace, null);
+        return new ErrorObject(message, position, stackTrace, sourceContext);
     }
 
     public ErrorObject(String message) {
@@ -54,14 +58,18 @@ public class ErrorObject implements BaseObject {
     public String getDetailedMessage() {
         StringBuilder sb = new StringBuilder();
 
-        sb.append("🚨 ").append(message);
+        sb.append(message);
 
         if (position.isPresent()) {
             sb.append("\n   at ").append(position.get());
         }
 
+        if (sourceContext.isPresent()) {
+            sb.append("\n\n").append(sourceContext.get());
+        }
+
         if (hasStackTrace) {
-            sb.append("\n\n📚 ").append(formatStackTrace());
+            sb.append("\n\n").append(formatStackTrace());
         }
 
         return sb.toString();
@@ -76,8 +84,7 @@ public class ErrorObject implements BaseObject {
         }
 
         StringBuilder sb = new StringBuilder();
-        sb.append("Stack trace (most recent call first):");
-
+        sb.append("Stack trace (most recent call first):\n");
         for (int i = 0; i < stackTrace.size(); i++) {
             StackFrame frame = stackTrace.get(i);
             sb.append("\n  ").append(frame.formatForStackTrace());
@@ -114,5 +121,9 @@ public class ErrorObject implements BaseObject {
     @Override
     public int hashCode() {
         return message.hashCode();
+    }
+
+    public void printStackTrace() {
+        System.out.println(DebugColors.ERROR + getDetailedMessage() + DebugColors.RESET);
     }
 }

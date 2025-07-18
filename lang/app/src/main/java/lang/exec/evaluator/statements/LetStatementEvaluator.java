@@ -4,8 +4,6 @@ import lang.ast.statements.LetStatement;
 import lang.exec.evaluator.base.EvaluationContext;
 import lang.exec.evaluator.base.NodeEvaluator;
 import lang.exec.base.BaseObject;
-
-import lang.exec.objects.ErrorObject;
 import lang.exec.objects.Environment;
 import lang.exec.validator.ObjectValidator;
 
@@ -16,7 +14,8 @@ public class LetStatementEvaluator implements NodeEvaluator<LetStatement> {
         String varName = node.getName().getValue();
 
         if (env.containsVariableLocally(varName)) {
-            return new ErrorObject("variable '" + varName + "' already declared in this scope");
+            return context.createError("Variable '" + varName + "' already declared in this scope",
+                    node.getName().position());
         }
 
         BaseObject value = context.evaluate(node.getValue(), env);

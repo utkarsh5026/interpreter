@@ -31,7 +31,8 @@ public class ClassObject implements BaseObject {
     private final Map<String, FunctionObject> methods; // 📋 Instance methods
     private final Environment classEnvironment; // 🌍 Class-level environment
 
-    public ClassObject(String name, Optional<ClassObject> parentClass,
+    public ClassObject(String name,
+            Optional<ClassObject> parentClass,
             Optional<FunctionObject> constructor,
             Map<String, FunctionObject> methods,
             Environment classEnvironment) {
@@ -88,13 +89,11 @@ public class ClassObject implements BaseObject {
      * This implements dynamic method dispatch for inheritance.
      */
     public Optional<FunctionObject> findMethod(String methodName) {
-        // Check current class first
         FunctionObject method = methods.get(methodName);
         if (method != null) {
             return Optional.of(method);
         }
 
-        // Check parent class recursively
         if (parentClass.isPresent()) {
             return parentClass.get().findMethod(methodName);
         }
@@ -139,7 +138,7 @@ public class ClassObject implements BaseObject {
      */
     public boolean isSubclassOf(ClassObject otherClass) {
         if (this == otherClass) {
-            return false; // A class is not a subclass of itself
+            return false;
         }
 
         ClassObject current = this.parentClass.orElse(null);
@@ -192,7 +191,7 @@ public class ClassObject implements BaseObject {
 
     @Override
     public boolean isTruthy() {
-        return true; // Classes are always truthy
+        return true;
     }
 
     @Override
@@ -202,7 +201,7 @@ public class ClassObject implements BaseObject {
         if (!(obj instanceof ClassObject))
             return false;
         ClassObject other = (ClassObject) obj;
-        return name.equals(other.name); // Classes are equal if they have the same name
+        return name.equals(other.name);
     }
 
     @Override

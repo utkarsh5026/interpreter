@@ -3,12 +3,12 @@ package lang.exec.evaluator.statements;
 import lang.exec.evaluator.base.NodeEvaluator;
 import lang.exec.base.BaseObject;
 
-import lang.exec.objects.ErrorObject;
 import lang.exec.objects.Environment;
 import lang.exec.validator.ObjectValidator;
 
 import lang.ast.statements.ConstStatement;
 import lang.exec.evaluator.base.EvaluationContext;
+import lang.exec.objects.errors.ErrorFactory;
 
 public class ConstStatementEvaluator implements NodeEvaluator<ConstStatement> {
     @Override
@@ -17,7 +17,7 @@ public class ConstStatementEvaluator implements NodeEvaluator<ConstStatement> {
         String variableName = node.getName().getValue();
 
         if (env.containsVariableLocally(variableName)) {
-            return new ErrorObject("variable '" + variableName + "' already declared in this scope");
+            return ErrorFactory.constantAssignment(variableName);
         }
 
         BaseObject value = context.evaluate(node.getValue(), env);

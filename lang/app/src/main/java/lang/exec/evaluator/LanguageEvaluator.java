@@ -22,20 +22,32 @@ public class LanguageEvaluator implements EvaluationContext {
     private final Map<Class<? extends Node>, NodeEvaluator<? extends Node>> evaluators;
     private final LoopContext loopContext;
     private final Optional<CallStack> callStack;
+    private final String[] sourceLines; // 📝 NEW: Store source lines for error context
 
     public LanguageEvaluator() {
-        this(false);
+        this(false, null);
     }
 
     public LanguageEvaluator(boolean enableStackTraces) {
+        this(enableStackTraces, null);
+    }
+
+    // 🆕 NEW: Constructor that accepts source lines
+    public LanguageEvaluator(boolean enableStackTraces, String[] sourceLines) {
         this.evaluators = new HashMap<>();
         this.loopContext = new LoopContext();
         this.callStack = enableStackTraces ? Optional.of(new CallStack(1000)) : Optional.empty();
+        this.sourceLines = sourceLines;
 
         registerStatementEvaluators();
         registerExpressionEvaluators();
         registerLiteralEvaluators();
+    }
 
+    // 🆕 NEW: Convenience constructor that accepts source code
+    public static LanguageEvaluator withSourceCode(String sourceCode, boolean enableStackTraces) {
+        String[] lines = sourceCode.split("\\r\\n|\\r|\\n");
+        return new LanguageEvaluator(enableStackTraces, lines);
     }
 
     private void registerStatementEvaluators() {
@@ -168,13 +180,58 @@ public class LanguageEvaluator implements EvaluationContext {
     }
 
     /**
-     * 🔴 Creates an error object with a stack trace
+     * 🔴 Creates an error object with source context and stack trace
      */
     public ErrorObject createError(String message, TokenPosition position) {
+        String sourceContext = extractSourceContext(position);
+
         if (callStack.isPresent()) {
-            return ErrorObject.withStackTrace(message, callStack.get(), position);
+            return ErrorObject.withStackTrace(message, callStack.get(), position, sourceContext);
         } else {
-            return new ErrorObject(message, position, null, null);
+            return new ErrorObject(message, position, null, sourceContext);
         }
+    }
+
+    /**
+     * 📝 Extracts source context around the error position
+     * Get the one line above and one line below the text
+     */
+    private String extractSourceContext(TokenPosition position) {
+        if (sourceLines == null || position == null) {
+            return null;
+        }
+
+        int line = position.line();
+        int column = position.column();
+
+        if (line < 1 || line > sourceLines.length) {
+            return null;
+        }
+
+        StringBuilder context = new StringBuilder();
+
+        int startLine = Math.max(1, line - 1);
+        int endLine = Math.min(sourceLines.length, line + 1);
+
+        for (int i = startLine; i <= endLine; i++) {
+            String lineContent = sourceLines[i - 1];
+
+            if (i == line) {
+                context.append(String.format("→ %3d  %s\n", i, lineContent));
+
+                if (column > 0) {
+                    StringBuilder pointer = new StringBuilder();
+                    for (int j = 0; j < column - 1; j++) {
+                        pointer.append(" ");
+                    }
+                    pointer.append("^");
+                    context.append(pointer.toString()).append("\n");
+                }
+            } else {
+                context.append(String.format("  %3d  %s\n", i, lineContent));
+            }
+        }
+
+        return context.toString();
     }
 }

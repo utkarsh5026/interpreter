@@ -3,13 +3,6 @@ package lang.exec.objects;
 import lang.exec.base.BaseObject;
 import lang.exec.base.ObjectType;
 
-/**
- * Boolean object for true/false values.
- * 
- * Implementation note: You could use a singleton pattern here (like your
- * TypeScript TRUE/FALSE)
- * to save memory, but for simplicity we'll create new instances.
- */
 public final class BooleanObject implements BaseObject {
     private final boolean value;
 

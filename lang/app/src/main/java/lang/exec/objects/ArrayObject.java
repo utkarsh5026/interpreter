@@ -28,9 +28,6 @@ public class ArrayObject implements BaseObject {
         return "[" + String.join(", ", elementStrings) + "]";
     }
 
-    /**
-     * ➖ Removes the first occurrence of an element
-     */
     public boolean remove(BaseObject element) {
         return elements.remove(element);
     }
@@ -40,9 +37,6 @@ public class ArrayObject implements BaseObject {
         return !elements.isEmpty();
     }
 
-    /**
-     * 🔧 Sets an element at a specific index
-     */
     public BaseObject set(int index, BaseObject value) throws IndexOutOfBoundsException {
         if (index < 0 || index >= elements.size()) {
             throw new IndexOutOfBoundsException(
@@ -52,9 +46,6 @@ public class ArrayObject implements BaseObject {
         return value;
     }
 
-    /**
-     * 🔍 Gets an element at a specific index
-     */
     public BaseObject get(int index) throws IndexOutOfBoundsException {
         if (index < 0 || index >= elements.size()) {
             throw new IndexOutOfBoundsException(
@@ -63,54 +54,30 @@ public class ArrayObject implements BaseObject {
         return elements.get(index);
     }
 
-    /**
-     * ➕ Appends an element to the end of the array
-     */
     public boolean append(BaseObject element) {
         return elements.add(element);
     }
 
-    /**
-     * ➕ Inserts an element at a specific index, shifting existing elements
-     */
     public void insert(int index, BaseObject element) {
         elements.add(index, element);
     }
 
-    /**
-     * ➖ Removes the element at a specific index
-     * 
-     * @param index The index to remove
-     * @return The element that was removed
-     */
     public BaseObject removeAt(int index) {
         return elements.remove(index);
     }
 
-    /**
-     * 📊 Gets the number of elements in this array
-     */
     public int size() {
         return elements.size();
     }
 
-    /**
-     * ❓ Checks if the array is empty
-     */
     public boolean isEmpty() {
         return elements.isEmpty();
     }
 
-    /**
-     * ❓ Checks if an index is valid for this array
-     */
     public boolean isValidIndex(int index) {
         return index >= 0 && index < elements.size();
     }
 
-    /**
-     * 🧹 Removes all elements from this array
-     */
     public void clear() {
         elements.clear();
     }

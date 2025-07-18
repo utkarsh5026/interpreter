@@ -6,7 +6,6 @@ import lang.exec.validator.ObjectValidator;
 
 import lang.exec.objects.Environment;
 import lang.exec.objects.NullObject;
-import lang.exec.objects.ErrorObject;
 import lang.exec.evaluator.base.EvaluationContext;
 import lang.ast.statements.WhileStatement;
 
@@ -30,7 +29,7 @@ public class WhileStatementEvaluator implements NodeEvaluator<WhileStatement> {
                 if (loopContext.isMaxIterationsReached()) {
                     String message = String.format("Maximum iterations (%d) reached for loop",
                             LoopContext.MAX_ITERATIONS);
-                    return new ErrorObject(message);
+                    return context.createError(message, node.position());
                 }
 
                 BaseObject condition = context.evaluate(node.getCondition(), env);

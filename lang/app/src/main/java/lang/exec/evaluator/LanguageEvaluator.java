@@ -167,9 +167,12 @@ public class LanguageEvaluator implements EvaluationContext {
         return callStack;
     }
 
+    /**
+     * 🔴 Creates an error object with a stack trace
+     */
     public ErrorObject createError(String message, TokenPosition position) {
         if (callStack.isPresent()) {
-            return ErrorObject.withStackTrace(message, callStack.get());
+            return ErrorObject.withStackTrace(message, callStack.get(), position);
         } else {
             return new ErrorObject(message, position, null, null);
         }

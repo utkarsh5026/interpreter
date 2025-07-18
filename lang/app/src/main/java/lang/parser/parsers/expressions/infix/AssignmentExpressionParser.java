@@ -38,13 +38,7 @@ public class AssignmentExpressionParser implements InfixExpressionParser {
 
     @Override
     public Expression parseInfix(ParsingContext context, Expression left) {
-        System.out.println("Parsing assignment expression: " + context.getTokenStream().getCurrentToken());
-
-        if (!AstValidator.isIdentifier(left) && !AstValidator.isIndexExpression(left)) {
-            throw new ParserException("Invalid assignment target - must be an identifier or index expression",
-                    context.getTokenStream().getCurrentToken());
-        }
-
+        checkValidAssignment(left, context);
         Token assignToken = context.consumeCurrentToken(TokenType.ASSIGN, "Expected '=' after identifier");
         Expression value = expressionParser.parseExpression(context, Precedence.LOWEST);
 
@@ -53,6 +47,20 @@ public class AssignmentExpressionParser implements InfixExpressionParser {
         }
 
         return new AssignmentExpression(assignToken, left, value);
+    }
+
+    /**
+     * Checks if the left-hand side of the assignment is a valid target.
+     */
+    private void checkValidAssignment(Expression left, ParsingContext context) {
+
+        if (!AstValidator.isIdentifier(left)
+                && !AstValidator.isIndexExpression(left)
+                && !AstValidator.isPropertyExpression(left)) {
+            throw new ParserException("Invalid assignment target - must be an identifier or index expression",
+                    context.getTokenStream().getCurrentToken());
+        }
+
     }
 
     @Override

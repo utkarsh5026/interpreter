@@ -14,9 +14,6 @@ import lang.ast.literals.FloatLiteral;
  */
 public class FloatLiteralEvaluator implements NodeEvaluator<FloatLiteral> {
 
-    /**
-     * 🎯 Evaluates a FloatLiteral AST node into a FloatObject
-     */
     @Override
     public BaseObject evaluate(FloatLiteral node, Environment env, EvaluationContext context) {
         double value = node.getValue();

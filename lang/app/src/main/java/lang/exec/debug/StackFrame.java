@@ -23,13 +23,12 @@ import java.util.Collections;
  */
 public class StackFrame {
 
-    private final String functionName; // Name of the function being called
-    private final TokenPosition position; // Where in source code this call happened
-    private final FrameType frameType; // What kind of frame this is
+    private final String functionName;
+    private final TokenPosition position;
+    private final FrameType frameType;
 
-    // 📋 Context information for debugging
-    private final Map<String, String> localVariables; // Local variables at call time
-    private final String sourceContext; // Snippet of source code
+    private final Map<String, String> localVariables;
+    private final String sourceContext;
 
     /**
      * 🏷️ Types of stack frames in our interpreter
@@ -133,50 +132,6 @@ public class StackFrame {
         }
 
         return sb.toString();
-    }
-
-    /**
-     * 📝 Formats this frame with detailed context for debugging
-     * 
-     * Includes local variables and source context when available.
-     * Used for very detailed error reporting.
-     */
-    public String formatDetailed() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(formatForStackTrace());
-
-        // Add local variables if any
-        if (!localVariables.isEmpty()) {
-            sb.append("\n    Local variables: ");
-            localVariables.forEach((name, value) -> sb.append(name).append("=").append(value).append(" "));
-        }
-
-        // Add source context if available
-        if (!sourceContext.trim().isEmpty()) {
-            sb.append("\n    Source: ").append(sourceContext.trim());
-        }
-
-        return sb.toString();
-    }
-
-    /**
-     * 🎯 Checks if this frame represents user code (vs built-in/system code)
-     */
-    public boolean isUserCode() {
-        return frameType == FrameType.USER_FUNCTION || frameType == FrameType.GLOBAL;
-    }
-
-    /**
-     * 📍 Gets a short location description for error messages
-     */
-    public String getLocationDescription() {
-        if (frameType == FrameType.BUILTIN) {
-            return "in built-in function '" + functionName + "'";
-        } else if (position != null) {
-            return "in '" + functionName + "' at " + position;
-        } else {
-            return "in '" + functionName + "'";
-        }
     }
 
     @Override

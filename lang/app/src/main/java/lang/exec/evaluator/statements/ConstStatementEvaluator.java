@@ -16,7 +16,7 @@ public class ConstStatementEvaluator implements NodeEvaluator<ConstStatement> {
 
         String variableName = node.getName().getValue();
 
-        if (env.has(variableName)) {
+        if (env.containsVariableLocally(variableName)) {
             return new ErrorObject("variable '" + variableName + "' already declared in this scope");
         }
 
@@ -26,8 +26,8 @@ public class ConstStatementEvaluator implements NodeEvaluator<ConstStatement> {
             return value;
         }
 
-        env.set(variableName, value);
-        env.setConst(variableName, value);
+        env.defineVariable(variableName, value);
+        env.defineConstant(variableName, value);
 
         return value;
     }

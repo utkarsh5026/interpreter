@@ -113,4 +113,8 @@ public final class AstValidator {
         return node instanceof HashLiteral;
     }
 
+    public static boolean isPropertyExpression(Node node) {
+        return node instanceof PropertyExpression;
+    }
+
 }

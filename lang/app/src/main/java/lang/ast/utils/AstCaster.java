@@ -133,4 +133,11 @@ public class AstCaster {
         return (BooleanExpression) node;
     }
 
+    public static PropertyExpression asPropertyExpression(Node node) {
+        if (!AstValidator.isPropertyExpression(node)) {
+            throw new IllegalArgumentException("Node is not a PropertyExpression");
+        }
+        return (PropertyExpression) node;
+    }
+
 }

@@ -73,4 +73,14 @@ public interface AstVisitor<T> {
     T visitFloatLiteral(FloatLiteral floatLiteral);
 
     T visitNullExpression(NullExpression nullExpression);
+
+    T visitClassStatement(ClassStatement classStatement);
+
+    T visitNewExpression(NewExpression newExpression);
+
+    T visitPropertyExpression(PropertyExpression propertyExpression);
+
+    T visitSuperExpression(SuperExpression superExpression);
+
+    T visitThisExpression(ThisExpression thisExpression);
 }

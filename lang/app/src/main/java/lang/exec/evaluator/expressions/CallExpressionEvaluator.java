@@ -58,7 +58,7 @@ public class CallExpressionEvaluator implements NodeEvaluator<CallExpression> {
         List<Identifier> parameters = functionObject.getParameters();
 
         IntStream.range(0, parameters.size())
-                .forEach(i -> extendedEnv.set(
+                .forEach(i -> extendedEnv.defineVariable(
                         parameters.get(i).getValue(),
                         args.get(i)));
 

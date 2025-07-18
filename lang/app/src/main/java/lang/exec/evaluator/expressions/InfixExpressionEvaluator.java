@@ -288,14 +288,43 @@ public class InfixExpressionEvaluator implements NodeEvaluator<InfixExpression> 
     }
 
     /**
+     * 🔤➕🔢 String-Integer concatenation operations
+     * 
+     * Handles concatenation when one operand is a string and the other is an
+     * integer.
+     * Only supports the '+' operator for concatenation.
+     */
+    private BaseObject evalStringIntegerConcatenation(String operator, BaseObject left, BaseObject right) {
+        if (!operator.equals("+")) {
+            return createInvalidOperatorError(operator, left, right);
+        }
+
+        String leftString;
+        String rightString;
+
+        if (ObjectValidator.isString(left) && ObjectValidator.isInteger(right)) {
+            leftString = ObjectValidator.asString(left).getValue();
+            rightString = String.valueOf(ObjectValidator.asInteger(right).getValue());
+        } else if (ObjectValidator.isInteger(left) && ObjectValidator.isString(right)) {
+            leftString = String.valueOf(ObjectValidator.asInteger(left).getValue());
+            rightString = ObjectValidator.asString(right).getValue();
+        } else {
+            return createTypeMismatchError(operator, left, right);
+        }
+
+        return new StringObject(leftString + rightString);
+    }
+
+    /**
      * 🎯 Main infix expression evaluation with enhanced numeric support
      * 
      * From first principles, the evaluation strategy is:
      * 1. Handle null operations (special case)
      * 2. Handle string operations (concatenation, comparison)
-     * 3. Handle numeric operations with type promotion
-     * 4. Handle boolean operations
-     * 5. Return appropriate error for unsupported combinations
+     * 3. Handle string-integer concatenation (+ operator only)
+     * 4. Handle numeric operations with type promotion
+     * 5. Handle boolean operations
+     * 6. Return appropriate error for unsupported combinations
      */
     private BaseObject evalInfixExpression(String operator, BaseObject left, BaseObject right) {
         if (ObjectValidator.isNull(left) || ObjectValidator.isNull(right)) {
@@ -304,6 +333,12 @@ public class InfixExpressionEvaluator implements NodeEvaluator<InfixExpression> 
 
         if (ObjectValidator.isString(left) && ObjectValidator.isString(right))
             return evalStringInfixExpression(operator, left, right);
+
+        // Handle string + integer concatenation
+        if ((ObjectValidator.isString(left) && ObjectValidator.isInteger(right)) ||
+                (ObjectValidator.isInteger(left) && ObjectValidator.isString(right))) {
+            return evalStringIntegerConcatenation(operator, left, right);
+        }
 
         if (ObjectValidator.isNumeric(left) && ObjectValidator.isNumeric(right)) {
             return evalNumericInfixExpression(operator, left, right);

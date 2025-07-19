@@ -36,7 +36,7 @@ public class ClassStatementEvaluator implements NodeEvaluator<ClassStatement> {
         String className = node.getName().getValue();
 
         if (env.containsVariableLocally(className)) {
-            return new ErrorObject("Class '" + className + "' already defined in this scope");
+            return context.createError("Class '" + className + "' already defined in this scope", node.position());
         }
 
         var parentClassResolution = resolveParentClass(node, env);
@@ -59,6 +59,8 @@ public class ClassStatementEvaluator implements NodeEvaluator<ClassStatement> {
                 methods,
                 classEnv);
 
+        System.out.println("classObj: " + classObj.inspect());
+
         env.defineVariable(className, classObj);
 
         return classObj;
@@ -80,8 +82,8 @@ public class ClassStatementEvaluator implements NodeEvaluator<ClassStatement> {
         Optional<ClassObject> parentClass = Optional.empty();
         Optional<ErrorObject> error = Optional.empty();
 
-        String parentClassName = node.getParentClass().get().getValue();
         if (node.hasParentClass()) {
+            String parentClassName = node.getParentClass().get().getValue();
             Optional<BaseObject> parentObj = env.resolveVariable(parentClassName);
             if (parentObj.isEmpty()) {
                 error = Optional

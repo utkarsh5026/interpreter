@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 
 import lang.ast.expressions.SuperExpression;
+import lang.ast.utils.AstCaster;
+import lang.ast.utils.AstValidator;
 import lang.exec.base.BaseObject;
 import lang.exec.evaluator.base.EvaluationContext;
 import lang.exec.evaluator.base.NodeEvaluator;
@@ -19,8 +21,8 @@ import lang.exec.base.ObjectType;
  * 
  * From first principles, super evaluation involves:
  * 1. Find current instance from 'this' binding
- * 2. Get parent class from current instance's class
- * 3. Find method in parent class
+ * 2. Get EXECUTION CONTEXT class (not instance class!)
+ * 3. Find method in parent class of execution context
  * 4. Call method with current instance as 'this'
  */
 public class SuperExpressionEvaluator implements NodeEvaluator<SuperExpression> {
@@ -28,24 +30,31 @@ public class SuperExpressionEvaluator implements NodeEvaluator<SuperExpression> 
     // 🔑 Reserved environment variable to track current class context
     private static final String CLASS_CONTEXT_VAR = "__class_context__";
 
+    private static final String THIS_VARIABLE = "this";
+
+    private static final String NO_THIS_CONTEXT_ERROR = "'this' is not available in this context";
+    private static final String NO_PARENT_CLASS_ERROR = "No parent class found for class: %s";
+    private static final String NO_CONSTRUCTOR_ERROR = "No constructor found for class: %s with %d arguments";
+    private static final String METHOD_NOT_FOUND_ERROR = "Method '%s' not found in parent class '%s'";
+    private static final String ARGUMENT_MISMATCH_ERROR = "%s argument mismatch: requires %d, got %d";
+
     @Override
     public BaseObject evaluate(SuperExpression node, Environment env, EvaluationContext context) {
-        Optional<BaseObject> thisObj = env.resolveVariable("this");
+        Optional<BaseObject> thisObj = env.resolveVariable(THIS_VARIABLE);
         if (thisObj.isEmpty()) {
-            return context.createError("'this' is not available in this context", node.position());
+            return context.createError(NO_THIS_CONTEXT_ERROR, node.position());
         }
 
         if (!ObjectValidator.isInstance(thisObj.get())) {
-            return context.createError("'this' is not available in this context", node.position());
+            return context.createError(NO_THIS_CONTEXT_ERROR, node.position());
         }
 
         InstanceObject instance = ObjectValidator.asInstance(thisObj.get());
         ClassObject currentClass = getCurrentClassContext(env, instance);
 
         if (!currentClass.hasParentClass()) {
-            return context.createError("No parent class found for class: "
-                    + currentClass.getName(),
-                    node.position());
+            var errorMessage = String.format(NO_PARENT_CLASS_ERROR, currentClass.getName());
+            return context.createError(errorMessage, node.position());
         }
 
         ClassObject parentClass = currentClass.getParentClass().get();
@@ -66,15 +75,13 @@ public class SuperExpressionEvaluator implements NodeEvaluator<SuperExpression> 
             InstanceObject instance,
             Environment env,
             EvaluationContext context) {
-        // check if the constructir even exists
         if (!parentClass.hasConstructor()) {
             int argCount = node.getArguments().size();
             if (argCount == 0) {
                 return instance;
             }
 
-            var errorMessage = String.format("No constructor found for class: %s and %d arguments are provided",
-                    parentClass.getName(), argCount);
+            var errorMessage = String.format(NO_CONSTRUCTOR_ERROR, parentClass.getName(), argCount);
             return context.createError(errorMessage, node.position());
         }
 
@@ -88,9 +95,9 @@ public class SuperExpressionEvaluator implements NodeEvaluator<SuperExpression> 
 
         int requiredArgs = parentConstructor.getParameters().size();
         if (arguments.size() != requiredArgs) {
-            String message = String.format("Constructor argument mismatchs: %s requires %d got %d",
-                    parentClass.getName(), requiredArgs, arguments.size());
-            return context.createError(message, node.position());
+            var errorMessage = String.format(ARGUMENT_MISMATCH_ERROR, parentClass.getName(), requiredArgs,
+                    arguments.size());
+            return context.createError(errorMessage, node.position());
         }
 
         return callParentConstructor(parentConstructor, instance, arguments, parentClass, env, context);
@@ -99,18 +106,21 @@ public class SuperExpressionEvaluator implements NodeEvaluator<SuperExpression> 
     /**
      * 🔧 Evaluates super method call: super.method(args)
      */
-    private BaseObject evaluateSuperMethodCall(SuperExpression node, ClassObject parentClass,
-            InstanceObject instance, Environment env,
+    private BaseObject evaluateSuperMethodCall(
+            SuperExpression node,
+            ClassObject parentClass,
+            InstanceObject instance,
+            Environment env,
             EvaluationContext context) {
-        var methodName = extractMethodName(node.getMethod(), env, context);
-        if (!methodName.isPresent()) {
-            return new ErrorObject("Invalid method name in super call");
+        var methodName = extractMethodName(node.getMethod());
+        if (methodName.isEmpty()) {
+            return context.createError(METHOD_NOT_FOUND_ERROR, node.position());
         }
 
         Optional<FunctionObject> method = parentClass.findMethod(methodName.get());
         if (!method.isPresent()) {
-            return new ErrorObject("Method '" + methodName.get() + "' not found in parent class '" +
-                    parentClass.getName() + "'");
+            var errorMessage = String.format(METHOD_NOT_FOUND_ERROR, methodName.get(), parentClass.getName());
+            return context.createError(errorMessage, node.position());
         }
 
         List<BaseObject> arguments = context.evaluateExpressions(node.getArguments(), env);
@@ -123,12 +133,12 @@ public class SuperExpressionEvaluator implements NodeEvaluator<SuperExpression> 
         FunctionObject parentMethod = method.get();
         int requiredArgs = parentMethod.getParameters().size();
         if (arguments.size() != requiredArgs) {
-            String message = String.format("Constructor argument mismatchs: %s requires %d got %d",
-                    parentClass.getName(), requiredArgs, arguments.size());
-            return context.createError(message, node.position());
+            var errorMessage = String.format(ARGUMENT_MISMATCH_ERROR, parentClass.getName(), requiredArgs,
+                    arguments.size());
+            return context.createError(errorMessage, node.position());
         }
 
-        return callParentMethod(parentMethod, instance, arguments, env, context);
+        return callParentMethod(parentMethod, instance, arguments, parentClass, env, context);
     }
 
     /**
@@ -150,7 +160,7 @@ public class SuperExpressionEvaluator implements NodeEvaluator<SuperExpression> 
             EvaluationContext context) {
         Environment constructorEnv = new Environment(constructor.getEnvironment(), false);
         constructorEnv.defineVariable(CLASS_CONTEXT_VAR, new ClassContextObject(parentClass));
-        constructorEnv.defineVariable("this", instance);
+        constructorEnv.defineVariable(THIS_VARIABLE, instance);
 
         for (int i = 0; i < constructor.getParameters().size(); i++) {
             String paramName = constructor.getParameters().get(i).getValue();
@@ -163,25 +173,26 @@ public class SuperExpressionEvaluator implements NodeEvaluator<SuperExpression> 
     /**
      * 🔧 Calls parent method with proper this binding
      */
-    private BaseObject callParentMethod(FunctionObject method, InstanceObject instance,
-            List<BaseObject> arguments, Environment env,
+    private BaseObject callParentMethod(
+            FunctionObject method,
+            InstanceObject instance,
+            List<BaseObject> arguments,
+            ClassObject parentClass,
+            Environment env,
             EvaluationContext context) {
-        // Create method environment
+
         Environment methodEnv = new Environment(method.getEnvironment(), false);
+        methodEnv.defineVariable(THIS_VARIABLE, instance);
 
-        // Bind 'this' to current instance
-        methodEnv.defineVariable("this", instance);
+        methodEnv.defineVariable(CLASS_CONTEXT_VAR, new ClassContextObject(parentClass));
 
-        // Bind parameters
-        for (int i = 0; i < method.getParameters().size(); i++) {
-            String paramName = method.getParameters().get(i).getValue();
-            methodEnv.defineVariable(paramName, arguments.get(i));
+        List<String> paramNames = method.getParameters().stream().map(p -> p.getValue()).toList();
+        for (int i = 0; i < paramNames.size(); i++) {
+            methodEnv.defineVariable(paramNames.get(i), arguments.get(i));
         }
 
-        // Execute method
         BaseObject result = context.evaluate(method.getBody(), methodEnv);
 
-        // Handle return values
         if (ObjectValidator.isReturnValue(result)) {
             return ObjectValidator.asReturnValue(result).getValue();
         }
@@ -192,10 +203,9 @@ public class SuperExpressionEvaluator implements NodeEvaluator<SuperExpression> 
     /**
      * 🏷️ Extracts method name from method expression
      */
-    private Optional<String> extractMethodName(Expression methodExpr, Environment env,
-            EvaluationContext context) {
-        if (methodExpr instanceof lang.ast.base.Identifier) {
-            return Optional.of(((lang.ast.base.Identifier) methodExpr).getValue());
+    private Optional<String> extractMethodName(Expression methodExpr) {
+        if (AstValidator.isIdentifier(methodExpr)) {
+            return Optional.of(AstCaster.asIdentifier(methodExpr).getValue());
         }
         return Optional.empty();
     }

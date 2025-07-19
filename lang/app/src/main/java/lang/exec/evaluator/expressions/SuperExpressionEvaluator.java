@@ -10,6 +10,7 @@ import lang.exec.evaluator.base.NodeEvaluator;
 import lang.exec.objects.*;
 import lang.exec.validator.ObjectValidator;
 import lang.ast.base.Expression;
+import lang.exec.base.ObjectType;
 
 /**
  * ⬆️ SuperExpressionEvaluator - Parent Class Access Evaluator ⬆️
@@ -24,9 +25,11 @@ import lang.ast.base.Expression;
  */
 public class SuperExpressionEvaluator implements NodeEvaluator<SuperExpression> {
 
+    // 🔑 Reserved environment variable to track current class context
+    private static final String CLASS_CONTEXT_VAR = "__class_context__";
+
     @Override
     public BaseObject evaluate(SuperExpression node, Environment env, EvaluationContext context) {
-        // Get current instance ('this' must be bound in environment)
         Optional<BaseObject> thisObj = env.resolveVariable("this");
         if (thisObj.isEmpty()) {
             return context.createError("'this' is not available in this context", node.position());
@@ -37,10 +40,12 @@ public class SuperExpressionEvaluator implements NodeEvaluator<SuperExpression> 
         }
 
         InstanceObject instance = ObjectValidator.asInstance(thisObj.get());
-        ClassObject currentClass = instance.getClassObject();
+        ClassObject currentClass = getCurrentClassContext(env, instance);
 
         if (!currentClass.hasParentClass()) {
-            return context.createError("No parent class found for class: " + currentClass.getName(), node.position());
+            return context.createError("No parent class found for class: "
+                    + currentClass.getName(),
+                    node.position());
         }
 
         ClassObject parentClass = currentClass.getParentClass().get();
@@ -55,18 +60,25 @@ public class SuperExpressionEvaluator implements NodeEvaluator<SuperExpression> 
     /**
      * 🏗️ Evaluates super constructor call: super(args)
      */
-    private BaseObject evaluateSuperConstructorCall(SuperExpression node, ClassObject parentClass,
-            InstanceObject instance, Environment env,
+    private BaseObject evaluateSuperConstructorCall(
+            SuperExpression node,
+            ClassObject parentClass,
+            InstanceObject instance,
+            Environment env,
             EvaluationContext context) {
+        // check if the constructir even exists
         if (!parentClass.hasConstructor()) {
-            if (node.getArguments().size() > 0) {
-                return context.createError("No constructor found for class: " + parentClass.getName(), node.position());
+            int argCount = node.getArguments().size();
+            if (argCount == 0) {
+                return instance;
             }
-            return instance;
+
+            var errorMessage = String.format("No constructor found for class: %s and %d arguments are provided",
+                    parentClass.getName(), argCount);
+            return context.createError(errorMessage, node.position());
         }
 
         FunctionObject parentConstructor = parentClass.getConstructor().get();
-
         List<BaseObject> arguments = context.evaluateExpressions(node.getArguments(), env);
         for (BaseObject arg : arguments) {
             if (ObjectValidator.isError(arg)) {
@@ -81,7 +93,7 @@ public class SuperExpressionEvaluator implements NodeEvaluator<SuperExpression> 
             return context.createError(message, node.position());
         }
 
-        return callParentConstructor(parentConstructor, instance, arguments, env, context);
+        return callParentConstructor(parentConstructor, instance, arguments, parentClass, env, context);
     }
 
     /**
@@ -120,24 +132,31 @@ public class SuperExpressionEvaluator implements NodeEvaluator<SuperExpression> 
     }
 
     /**
-     * 🏗️ Calls parent constructor with proper this binding
+     * 🏗️ Calls parent constructor with proper this binding AND class context
+     * 
+     * From first principles:
+     * 1. Create a new environment for the constructor
+     * 2. Bind 'this' to the current instance
+     * 3. Bind parameters
+     * 4. Execute the constructor
+     * 5. Return the result
      */
-    private BaseObject callParentConstructor(FunctionObject constructor, InstanceObject instance,
-            List<BaseObject> arguments, Environment env,
+    private BaseObject callParentConstructor(
+            FunctionObject constructor,
+            InstanceObject instance,
+            List<BaseObject> arguments,
+            ClassObject parentClass,
+            Environment env,
             EvaluationContext context) {
-        // Create constructor environment
         Environment constructorEnv = new Environment(constructor.getEnvironment(), false);
-
-        // Bind 'this' to current instance
+        constructorEnv.defineVariable(CLASS_CONTEXT_VAR, new ClassContextObject(parentClass));
         constructorEnv.defineVariable("this", instance);
 
-        // Bind parameters
         for (int i = 0; i < constructor.getParameters().size(); i++) {
             String paramName = constructor.getParameters().get(i).getValue();
             constructorEnv.defineVariable(paramName, arguments.get(i));
         }
 
-        // Execute constructor
         return context.evaluate(constructor.getBody(), constructorEnv);
     }
 
@@ -179,5 +198,54 @@ public class SuperExpressionEvaluator implements NodeEvaluator<SuperExpression> 
             return Optional.of(((lang.ast.base.Identifier) methodExpr).getValue());
         }
         return Optional.empty();
+    }
+
+    /**
+     * 🎯 Gets the current class execution context
+     * 
+     * From first principles:
+     * 1. Check if environment has explicit class context (set during
+     * method/constructor calls)
+     * 2. If not, fall back to instance's actual class (for top-level calls)
+     */
+    private ClassObject getCurrentClassContext(Environment env, InstanceObject instance) {
+        Optional<BaseObject> classContext = env.resolveVariable(CLASS_CONTEXT_VAR);
+        if (classContext.isPresent() && classContext.get().type() == ObjectType.CLASS_CONTEXT) {
+            return ((ClassContextObject) classContext.get()).getClassObject();
+        }
+        return instance.getClassObject();
+    }
+
+    /**
+     * 🎯 Class Context Object - Wraps a ClassObject for environment storage
+     * 
+     * This is a helper object that allows us to store class context information
+     * in the environment variables.
+     */
+    private static class ClassContextObject implements BaseObject {
+        private final ClassObject classObject;
+
+        public ClassContextObject(ClassObject classObject) {
+            this.classObject = classObject;
+        }
+
+        public ClassObject getClassObject() {
+            return classObject;
+        }
+
+        @Override
+        public ObjectType type() {
+            return ObjectType.CLASS_CONTEXT;
+        }
+
+        @Override
+        public String toString() {
+            return "ClassContext(" + classObject.getName() + ")";
+        }
+
+        @Override
+        public String inspect() {
+            return "ClassContext(" + classObject.getName() + ")";
+        }
     }
 }

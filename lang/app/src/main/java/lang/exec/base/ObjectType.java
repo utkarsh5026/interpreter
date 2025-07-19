@@ -22,5 +22,6 @@ public enum ObjectType {
     CLASS,
     INSTANCE,
     BREAK,
-    CONTINUE
+    CONTINUE,
+    CLASS_CONTEXT,
 }

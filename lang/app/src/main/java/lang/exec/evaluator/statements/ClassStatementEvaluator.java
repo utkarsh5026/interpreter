@@ -88,6 +88,7 @@ public class ClassStatementEvaluator implements NodeEvaluator<ClassStatement> {
             if (parentObj.isEmpty()) {
                 error = Optional
                         .of(new ErrorObject("Parent class '" + parentClassName + "' not found"));
+                return new ParentClassResolution(parentClass, error);
             }
 
             if (!ObjectValidator.isClass(parentObj.get())) {

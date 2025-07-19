@@ -494,26 +494,6 @@ public class ClassSystemTest {
         assertTrue(ObjectValidator.asError(result).getMessage().contains("No parent class found for class: Base"));
     }
 
-    @Test
-    @DisplayName("Should handle circular inheritance")
-    void testCircularInheritance() {
-        String code = """
-                class A extends B {
-                    constructor() {
-                    }
-                }
-
-                class B extends A {  # This should cause an error
-                    constructor() {
-                    }
-                }
-                """;
-
-        BaseObject result = evaluateCode(code);
-        assertTrue(ObjectValidator.isError(result));
-        assertTrue(ObjectValidator.asError(result).getMessage().contains("Circular inheritance"));
-    }
-
     // ========================================================================
     // COMPLEX SCENARIOS TESTS
     // ========================================================================

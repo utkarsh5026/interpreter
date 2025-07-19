@@ -446,12 +446,12 @@ public class ClassSystemTest {
                     }
                 }
 
-                new Point(1);  // Missing argument
+                new Point(1);  # missing argument
                 """;
 
         BaseObject result = evaluateCode(code);
         assertTrue(ObjectValidator.isError(result));
-        assertTrue(ObjectValidator.asError(result).getMessage().contains("expects 2 arguments, got 1"));
+        assertTrue(ObjectValidator.asError(result).getMessage().contains("Point requires 2 got 1"));
     }
 
     @Test
@@ -481,7 +481,7 @@ public class ClassSystemTest {
                     }
 
                     method() {
-                        super.someMethod();  // Error: no parent class
+                        super.someMethod();  # Error: no parent class
                     }
                 }
 
@@ -491,7 +491,7 @@ public class ClassSystemTest {
 
         BaseObject result = evaluateCode(code);
         assertTrue(ObjectValidator.isError(result));
-        assertTrue(ObjectValidator.asError(result).getMessage().contains("has no parent class"));
+        assertTrue(ObjectValidator.asError(result).getMessage().contains("No parent class found for class: Base"));
     }
 
     @Test
@@ -503,7 +503,7 @@ public class ClassSystemTest {
                     }
                 }
 
-                class B extends A {  // This should cause an error
+                class B extends A {  # This should cause an error
                     constructor() {
                     }
                 }
@@ -605,8 +605,7 @@ public class ClassSystemTest {
 
                 let dog = new Dog("Rex", "Labrador");
 
-                // We can test the class name through the instance
-                dog.name;  // Should be "Rex"
+                dog.name;  # Should be "Rex"
                 """;
 
         BaseObject result = evaluateCode(code);
@@ -660,7 +659,7 @@ public class ClassSystemTest {
                 }
 
                 let obj = new Empty();
-                "created";  // Just return a success indicator
+                "created";  # Just return a success indicator
                 """;
 
         BaseObject result = evaluateCode(code);

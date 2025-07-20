@@ -237,7 +237,11 @@ public final class Lexer {
                 break;
 
             case '"':
-                token = this.createToken(TokenType.STRING, readString());
+                token = this.createToken(TokenType.STRING, readString('"'));
+                break;
+
+            case '\'':
+                token = this.createToken(TokenType.STRING, readString('\''));
                 break;
 
             case EOF:
@@ -396,7 +400,7 @@ public final class Lexer {
      * @return The string content (without the surrounding quotes) 📜
      * @throws RuntimeException if string is not properly closed 🚫
      */
-    private String readString() {
+    private String readString(char quoteChar) {
         StringBuilder sb = new StringBuilder();
 
         while (true) {
@@ -405,7 +409,7 @@ public final class Lexer {
             if (this.currentCharacter == '\0')
                 throw new RuntimeException("Unterminated string");
 
-            if (this.currentCharacter == '"')
+            if (this.currentCharacter == quoteChar)
                 break;
 
             if (this.currentCharacter == '\\') {

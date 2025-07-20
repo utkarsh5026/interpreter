@@ -1,121 +1,466 @@
-# Lang - A Custom Programming Language Implementation
+# 🚀 Modern Programming Language Implementation
 
-A complete interpreter for a dynamic programming language built from scratch in Java, featuring lexical analysis, parsing, and evaluation with comprehensive built-in functions and debugging tools.
+A comprehensive, object-oriented programming language built from scratch in Java, featuring a complete lexer, parser, evaluator, and interactive REPL environment.
 
-## Table of Contents
+## 📋 Table of Contents
 
-- [Overview](#overview)
-- [Language Features](#language-features)
-- [Architecture](#architecture)
-- [Quick Start](#quick-start)
-- [Language Syntax](#language-syntax)
-- [Built-in Functions](#built-in-functions)
-- [Development Tools](#development-tools)
-- [Project Structure](#project-structure)
-- [Building and Running](#building-and-running)
-- [Examples](#examples)
-- [Contributing](#contributing)
+- [🌟 Overview](#-overview)
+- [🏗️ Architecture](#️-architecture)
+- [🎯 Language Features](#-language-features)
+- [🔧 Getting Started](#-getting-started)
+- [📖 Language Reference](#-language-reference)
+- [🎮 Interactive REPL](#-interactive-repl)
+- [🏛️ Object-Oriented Programming](#️-object-oriented-programming)
+- [🔍 Advanced Features](#-advanced-features)
+- [🛠️ Development](#️-development)
+- [📚 Examples](#-examples)
 
-## Overview
+## 🌟 Overview
 
-This project implements a complete programming language interpreter from first principles, showcasing fundamental computer science concepts:
+This project implements a complete programming language from first principles, demonstrating fundamental computer science concepts including:
 
-- **Lexical Analysis**: Converting source code text into meaningful tokens
-- **Parsing**: Building an Abstract Syntax Tree (AST) using Pratt parsing
-- **Evaluation**: Executing the AST using a tree-walking interpreter
-- **Environment Management**: Lexical scoping and variable resolution
-- **Type System**: Dynamic typing with runtime type checking
+- **Lexical Analysis**: Converting source code into meaningful tokens
+- **Syntax Parsing**: Building Abstract Syntax Trees (AST) using Pratt parsing
+- **Semantic Analysis**: Type checking and scope resolution
+- **Code Evaluation**: Tree-walking interpreter with environment-based scoping
+- **Object-Oriented Programming**: Classes, inheritance, polymorphism
+- **Interactive Development**: Feature-rich REPL with debugging capabilities
 
-### Why Build a Language from Scratch?
+### Why From First Principles?
 
-Understanding how programming languages work requires building one. This project demonstrates:
+Understanding how programming languages work requires building one yourself. This implementation covers:
 
-1. **Tokenization**: How raw text becomes structured tokens
-2. **Grammar Processing**: How syntax rules create meaningful structures
-3. **Semantic Analysis**: How meaning is extracted from syntax
-4. **Runtime Execution**: How code actually runs and produces results
-5. **Memory Management**: How variables and scopes are managed
+1. **Tokenization**: How source code becomes structured data
+2. **Parsing**: How syntax rules create tree structures
+3. **Evaluation**: How abstract trees become executable programs
+4. **Type Systems**: How different data types interact
+5. **Scoping**: How variables are resolved in different contexts
+6. **Object Models**: How classes and inheritance work under the hood
 
-## Language Features
+## 🏗️ Architecture
 
-### Core Programming Constructs
-
-- **Variables**: Mutable (`let`) and immutable (`const`) bindings
-- **Functions**: First-class functions with closures
-- **Control Flow**: Conditional statements and loops
-- **Data Structures**: Arrays and hash maps
-- **Expressions**: Mathematical, logical, and comparison operations
-- **String Processing**: Comprehensive string manipulation
-
-### Advanced Features
-
-- **Lexical Scoping**: Variables resolved based on definition location
-- **Closures**: Functions that capture their surrounding environment
-- **Error Handling**: Comprehensive error reporting with positions
-- **Built-in Library**: 40+ pre-defined functions for common operations
-- **Interactive Debugging**: Tools for analyzing lexer and parser behavior
-
-## Architecture
-
-The interpreter follows a traditional three-phase design:
+### Core Components
 
 ```
-Source Code → [Lexer] → Tokens → [Parser] → AST → [Evaluator] → Result
+┌─────────────────────────────────────────────────────────────┐
+│                    Source Code                              │
+└─────────────────────┬───────────────────────────────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    LEXER                                    │
+│  • Tokenization    • Comments      • String/Number Parsing  │
+│  • Keywords        • Operators     • Position Tracking      │
+└─────────────────────┬───────────────────────────────────────┘
+                      │ Token Stream
+                      ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    PARSER                                   │
+│  • Pratt Parsing   • Precedence    • AST Construction       │
+│  • Error Recovery  • Expressions   • Statement Parsing      │
+└─────────────────────┬───────────────────────────────────────┘
+                      │ Abstract Syntax Tree
+                      ▼
+┌─────────────────────────────────────────────────────────────┐
+│                   EVALUATOR                                 │
+│  • Tree Walking    • Environments  • Type System            │
+│  • Built-ins       • Error Handling• Stack Traces           │
+└─────────────────────┬───────────────────────────────────────┘
+                      │ Program Result
+                      ▼
+┌─────────────────────────────────────────────────────────────┐
+│                     REPL                                    │
+│  • Interactive     • Debugging     • Command History        │
+│  • Syntax Colors   • Help System   • Error Display          │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### 1. Lexical Analysis (Tokenization)
+### Design Patterns Used
 
-The **Lexer** converts raw source code into a stream of tokens:
+- **Visitor Pattern**: AST traversal and operations
+- **Registry Pattern**: Modular parser and evaluator components
+- **Strategy Pattern**: Different parsing strategies for expressions/statements
+- **Factory Pattern**: Object creation and type conversion
+- **Observer Pattern**: Debug event system
 
-```java
-// Input: "let x = 42;"
-// Output: [LET, IDENTIFIER("x"), ASSIGN, INT("42"), SEMICOLON]
+## 🎯 Language Features
+
+### Data Types
+
+```javascript
+// Numbers (integers and floats)
+let age = 25;           // Integer
+let price = 19.99;      // Float
+let scientific = 1e6;   // Scientific notation
+
+// Strings with escape sequences
+let name = "Alice";
+let message = "Hello\nWorld";
+
+// Booleans
+let isActive = true;
+let isComplete = false;
+
+// Arrays (heterogeneous)
+let numbers = [1, 2, 3, 4, 5];
+let mixed = [1, "hello", true, [1, 2]];
+
+// Hash maps (objects)
+let person = {
+    "name": "Bob",
+    "age": 30,
+    "active": true
+};
+
+// Null values
+let empty = null;
 ```
 
-**Key Components:**
-- `Lexer.java`: Main tokenization engine
-- `Token.java`: Token representation with type and position
-- `Keywords.java`: Reserved word management
-- Debug tools for token analysis
+### Variables and Constants
 
-### 2. Syntax Analysis (Parsing)
+```javascript
+// Mutable variables
+let counter = 0;
+counter = counter + 1;  // ✅ Allowed
 
-The **Parser** builds an Abstract Syntax Tree using Pratt parsing for proper operator precedence:
+// Immutable constants
+const PI = 3.14159;
+PI = 3.14;              // ❌ Error: Cannot reassign constant
 
-```java
-// Tokens: [IDENTIFIER("x"), PLUS, INT("5"), MULTIPLY, INT("3")]
-// AST: InfixExpression(x, "+", InfixExpression(5, "*", 3))
+// Block scoping
+{
+    let local = "inside block";
+    const BLOCK_CONST = 42;
+}
+// local is not accessible here
 ```
 
-**Key Features:**
-- **Modular Design**: Separate parsers for each construct type
-- **Pratt Parsing**: Elegant handling of operator precedence
-- **Error Recovery**: Continues parsing after syntax errors
-- **Registry Pattern**: Extensible parser architecture
+### Functions
 
-### 3. Semantic Analysis & Execution
+```javascript
+// Function definition
+fn greet(name) {
+    return "Hello, " + name + "!";
+}
 
-The **Evaluator** walks the AST and executes code:
+// Function calls
+let message = greet("World");
 
-```java
-// AST: LetStatement("x", IntegerLiteral(42))
-// Action: Create variable "x" with value 42 in current environment
+// Functions are first-class values
+let operation = fn(x, y) { return x + y; };
+let result = operation(5, 3);
+
+// Closures and lexical scoping
+fn createCounter() {
+    let count = 0;
+    return fn() {
+        count = count + 1;
+        return count;
+    };
+}
+
+let counter = createCounter();
+counter(); // Returns 1
+counter(); // Returns 2
 ```
 
-**Key Components:**
-- **Environment**: Scope-based variable storage
-- **Object System**: Runtime type representation
-- **Builtin Registry**: Pre-defined function library
-- **Error Handling**: Runtime error management
+### Control Flow
 
-## Quick Start
+```javascript
+// Conditional statements
+if (age >= 18) {
+    print("Adult");
+} elif (age >= 13) {
+    print("Teenager");
+} else {
+    print("Child");
+}
+
+// While loops
+let i = 0;
+while (i < 5) {
+    print("Count:", i);
+    i = i + 1;
+}
+
+// For loops
+for (let j = 0; j < 10; j = j + 1) {
+    if (j == 5) {
+        break;
+    }
+    if (j % 2 == 0) {
+        continue;
+    }
+    print("Odd number:", j);
+}
+```
+
+### String Interpolation (F-Strings)
+
+```javascript
+let name = "Alice";
+let age = 25;
+
+// F-string with embedded expressions
+let intro = f"My name is {name} and I'm {age} years old";
+let calculation = f"2 + 3 = {2 + 3}";
+let nested = f"Hello {getUser().name}!";
+```
+
+## 🏛️ Object-Oriented Programming
+
+### Classes and Inheritance
+
+```javascript
+// Base class definition
+class Animal {
+    constructor(name, species) {
+        this.name = name;
+        this.species = species;
+        this.energy = 100;
+    }
+    
+    speak() {
+        return f"{this.name} makes a sound";
+    }
+    
+    move(distance) {
+        this.energy = this.energy - distance;
+        return f"{this.name} moved {distance} units";
+    }
+}
+
+// Inheritance with method overriding
+class Dog extends Animal {
+    constructor(name, breed) {
+        super(name, "Canine");  // Call parent constructor
+        this.breed = breed;
+    }
+    
+    speak() {
+        return f"{this.name} barks loudly!";
+    }
+    
+    fetch() {
+        return f"{this.name} fetches the ball";
+    }
+}
+
+// Creating instances
+let buddy = new Dog("Buddy", "Golden Retriever");
+print(buddy.speak());    // "Buddy barks loudly!"
+print(buddy.move(10));   // "Buddy moved 10 units"
+print(buddy.fetch());    // "Buddy fetches the ball"
+```
+
+### Advanced OOP Features
+
+```javascript
+class Vehicle {
+    constructor(brand, model) {
+        this.brand = brand;
+        this.model = model;
+        this.speed = 0;
+    }
+    
+    accelerate(amount) {
+        this.speed = this.speed + amount;
+        return this.getStatus();
+    }
+    
+    getStatus() {
+        return f"{this.brand} {this.model} traveling at {this.speed} mph";
+    }
+}
+
+class Car extends Vehicle {
+    constructor(brand, model, doors) {
+        super(brand, model);    // Initialize parent
+        this.doors = doors;
+    }
+    
+    // Override parent method
+    accelerate(amount) {
+        // Call parent method and add car-specific behavior
+        super.accelerate(amount);
+        if (this.speed > 80) {
+            return this.getStatus() + " - Warning: High speed!";
+        }
+        return this.getStatus();
+    }
+    
+    honk() {
+        return f"{this.brand} {this.model} goes BEEP BEEP!";
+    }
+}
+
+// Method chaining and polymorphism
+let myCar = new Car("Toyota", "Camry", 4);
+print(myCar.accelerate(30));  // Uses overridden method
+print(myCar.honk());          // Car-specific method
+```
+
+### This and Super Keywords
+
+```javascript
+class Counter {
+    constructor(start) {
+        this.value = start;     // 'this' refers to current instance
+    }
+    
+    increment() {
+        this.value = this.value + 1;
+        return this;            // Return this for chaining
+    }
+    
+    getValue() {
+        return this.value;
+    }
+}
+
+class AdvancedCounter extends Counter {
+    constructor(start, step) {
+        super(start);           // Call parent constructor
+        this.step = step;
+    }
+    
+    increment() {
+        this.value = this.value + this.step;
+        return super.getValue(); // Call parent method
+    }
+}
+```
+
+## 🔍 Advanced Features
+
+### Built-in Functions
+
+```javascript
+// Array operations
+let arr = [1, 2, 3, 4, 5];
+print(len(arr));        // 5
+print(first(arr));      // 1
+print(last(arr));       // 5
+print(rest(arr));       // [2, 3, 4, 5]
+
+// Hash operations
+let person = {"name": "Alice", "age": 30};
+print(keys(person));    // ["name", "age"]
+print(values(person));  // ["Alice", 30]
+
+// String operations
+print(len("hello"));    // 5
+
+// Type checking
+print(type(42));        // "INTEGER"
+print(type(3.14));      // "FLOAT"
+print(type("hello"));   // "STRING"
+
+// I/O operations
+print("Hello", "World", 123);  // Multiple arguments
+```
+
+### Array and Hash Manipulation
+
+```javascript
+// Array indexing and assignment
+let numbers = [10, 20, 30];
+numbers[1] = 25;        // Modify element
+print(numbers[1]);      // 25
+
+// Hash key access and assignment
+let config = {"debug": true, "port": 8080};
+config["timeout"] = 30;  // Add new key
+config.debug = false;    // Property-style access
+print(config["port"]);   // 8080
+```
+
+### Compound Assignment Operators
+
+```javascript
+let x = 10;
+x += 5;     // Equivalent to: x = x + 5
+x -= 3;     // Equivalent to: x = x - 3
+x *= 2;     // Equivalent to: x = x * 2
+x /= 4;     // Equivalent to: x = x / 4
+x %= 3;     // Equivalent to: x = x % 3
+```
+
+### Comments
+
+```javascript
+# Single-line comment
+
+/*
+ * Multi-line comment
+ * Can span multiple lines
+ */
+
+let value = 42;  # End-of-line comment
+
+/*
+ * Nested comments are supported
+ * /* This is nested */
+ * Still inside the outer comment
+ */
+```
+
+## 🎮 Interactive REPL
+
+### Features
+
+- **🎨 Syntax Highlighting**: Color-coded output for different data types
+- **📜 Command History**: Navigate through previous commands
+- **🔍 Debug Information**: Stack traces and error context
+- **📚 Built-in Help**: Comprehensive help system
+- **⚡ Live Evaluation**: Immediate feedback on expressions
+
+### REPL Commands
+
+```bash
+:help           # Show all available commands
+:examples       # Display language examples
+:builtins       # List all built-in functions
+:env            # Show current variables
+:history        # Display command history
+:clear          # Clear the screen
+:reset          # Reset environment
+:exit           # Exit REPL
+```
+
+### REPL Session Example
+
+```
+🚀 Welcome to the Interactive Language REPL! 🚀
+
+[1] ❯ let greeting = "Hello, World!"
+⟹ "Hello, World!"
+
+[2] ❯ class Person {
+    constructor(name) {
+        this.name = name;
+    }
+    greet() {
+        return f"Hi, I'm {this.name}";
+    }
+}
+⟹ class Person { constructor, 1 methods }
+
+[3] ❯ let alice = new Person("Alice")
+⟹ instance of Person {"name": "Alice"}
+
+[4] ❯ alice.greet()
+⟹ "Hi, I'm Alice"
+```
+
+## 🔧 Getting Started
 
 ### Prerequisites
 
-- Java 24+ (uses preview features)
+- Java 24+ with preview features enabled
 - Gradle 8.8+
 
-### Installation
+### Building and Running
 
 ```bash
 # Clone the repository
@@ -125,290 +470,27 @@ cd lang
 # Build the project
 ./gradlew build
 
-# Run the interpreter
+# Run the REPL
 ./gradlew run
+
+# Run tests
+./gradlew test
 ```
 
-### Your First Program
-
-Create a file `hello.lang`:
-
-```javascript
-// Variables and basic operations
-let name = "World";
-let greeting = "Hello, " + name + "!";
-println(greeting);
-
-// Functions
-fn factorial(n) {
-    if (n <= 1) {
-        return 1;
-    } else {
-        return n * factorial(n - 1);
-    }
-}
-
-// Arrays and iteration
-let numbers = [1, 2, 3, 4, 5];
-for (let i = 0; i < len(numbers); i = i + 1) {
-    println("factorial(" + str(numbers[i]) + ") = " + str(factorial(numbers[i])));
-}
-```
-
-## Language Syntax
-
-### Variables
-
-```javascript
-// Mutable variables
-let x = 42;
-let name = "Alice";
-x = x + 10;  // x is now 52
-
-// Immutable constants
-const PI = 3.14159;
-const message = "Hello, World!";
-// PI = 3.14; // Error: cannot reassign constant
-```
-
-### Functions
-
-```javascript
-// Function declaration
-fn add(a, b) {
-    return a + b;
-}
-
-// Functions are first-class values
-let operation = add;
-let result = operation(5, 3);  // result = 8
-
-// Closures capture environment
-fn makeCounter() {
-    let count = 0;
-    return fn() {
-        count = count + 1;
-        return count;
-    };
-}
-
-let counter = makeCounter();
-println(counter());  // 1
-println(counter());  // 2
-```
-
-### Control Flow
-
-```javascript
-// Conditional statements
-if (x > 0) {
-    println("positive");
-} elif (x < 0) {
-    println("negative");
-} else {
-    println("zero");
-}
-
-// While loops
-let i = 0;
-while (i < 5) {
-    println(i);
-    i = i + 1;
-}
-
-// For loops
-for (let j = 0; j < 10; j = j + 2) {
-    println("Even number: " + str(j));
-}
-```
-
-### Data Structures
-
-```javascript
-// Arrays
-let fruits = ["apple", "banana", "orange"];
-fruits[1] = "grape";  // Arrays are mutable
-let length = len(fruits);
-
-// Hash maps (objects)
-let person = {
-    "name": "Alice",
-    "age": 30,
-    "city": "New York"
-};
-person["occupation"] = "Engineer";  // Add new key
-```
-
-### Expressions and Operators
-
-```javascript
-// Arithmetic
-let math = 2 + 3 * 4 - 1;  // Respects precedence: 2 + 12 - 1 = 13
-
-// Comparison
-let comparison = (5 > 3) && (2 < 4);  // true
-
-// String operations
-let text = "Hello" + " " + "World";
-let upper = upper(text);  // "HELLO WORLD"
-```
-
-## Built-in Functions
-
-The language includes 40+ built-in functions organized by category:
-
-### Core Data Operations
-- `len(obj)` - Get length of arrays, strings, or hashes
-- `type(obj)` - Get object type as string
-- `str(obj)` - Convert to string representation
-- `int(str)` - Convert string to integer
-- `bool(obj)` - Convert to boolean using truthiness
-
-### Array Operations
-- `first(array)` - Get first element
-- `last(array)` - Get last element
-- `push(array, element)` - Add element to end
-- `pop(array)` - Remove last element
-- `slice(array, start, end)` - Extract portion
-- `concat(array1, array2)` - Join arrays
-- `reverse(array)` - Reverse order
-- `join(array, separator)` - Join to string
-
-### String Operations
-- `split(string, delimiter)` - Split into array
-- `replace(string, search, replace)` - Replace text
-- `trim(string)` - Remove whitespace
-- `upper(string)` / `lower(string)` - Case conversion
-- `substr(string, start, length)` - Extract substring
-- `indexOf(string, substring)` - Find position
-- `contains(string, substring)` - Check existence
-
-### Mathematical Operations
-- `abs(number)` - Absolute value
-- `max(...numbers)` / `min(...numbers)` - Extremes
-- `pow(base, exponent)` - Power function
-- `sqrt(number)` - Square root
-- `random(max?)` - Random number generation
-
-### I/O Operations
-- `print(...args)` - Output without newline
-- `println(...args)` - Output with newline
-
-### Utility Functions
-- `range(start, end, step?)` - Generate number sequences
-- `keys(hash)` - Get hash keys
-- `values(hash)` - Get hash values
-
-## Development Tools
-
-### AST Visualization
-
-The project includes comprehensive AST visualization tools:
-
-```java
-// Generate visual AST representation
-VisualizationConfig config = VisualizationConfig.builder()
-    .style(AstTreeVisualizer.Style.UNICODE_TREE)
-    .colorScheme(AstTreeVisualizer.ColorScheme.TERMINAL)
-    .showTypes(true)
-    .showValues(true)
-    .build();
-
-AstTreeVisualizer visualizer = new AstTreeVisualizer(config);
-System.out.println(visualizer.visualize(program));
-```
-
-### Lexer Debugging
-
-Debug tokenization with detailed output:
-
-```java
-DebugConfig debugConfig = DebugConfig.builder()
-    .liveTokenOutput(true)
-    .sourceContext(true)
-    .useColors(true)
-    .statistics(true)
-    .build();
-
-Lexer lexer = new Lexer(sourceCode, new LexerDebugger(debugConfig));
-```
-
-### Error Reporting
-
-Comprehensive error messages with source context:
-
-```
-Parse Error at line 5, column 12: Expected SEMICOLON, got COMMA
-    let x = 5, y = 10;
-            ^
-🚨 Expected ';' after variable declaration
-```
-
-## Project Structure
-
-```
-lang/
-├── app/src/main/java/lang/
-│   ├── lexer/              # Tokenization
-│   │   ├── Lexer.java     # Main lexer implementation
-│   │   └── debug/         # Debugging tools
-│   ├── parser/            # Syntax analysis
-│   │   ├── LanguageParser.java
-│   │   ├── core/          # Core parsing utilities
-│   │   ├── interfaces/    # Parser contracts
-│   │   ├── parsers/       # Specific parsers
-│   │   └── registry/      # Parser management
-│   ├── ast/               # Abstract Syntax Tree
-│   │   ├── base/          # Base AST classes
-│   │   ├── expressions/   # Expression nodes
-│   │   ├── statements/    # Statement nodes
-│   │   ├── literals/      # Literal nodes
-│   │   └── visitor/       # Visitor pattern
-│   ├── exec/              # Execution engine
-│   │   ├── evaluator/     # AST evaluation
-│   │   ├── objects/       # Runtime objects
-│   │   └── builtins/      # Built-in functions
-│   ├── token/             # Token definitions
-│   └── examples/          # Usage examples
-├── build.gradle           # Build configuration
-└── settings.gradle        # Project settings
-```
-
-## Building and Running
-
-### Development Build
+### Usage Examples
 
 ```bash
-# Compile and run tests
-./gradlew build
+# Run a source file
+echo 'print("Hello from file!")' > hello.lang
+java -jar build/libs/lang.jar hello.lang
 
-# Run the main application
-./gradlew run
-
-# Run with debug output
-./gradlew run --args="--debug"
-
-# Run tests with detailed output
-./gradlew test --info
+# Interactive mode
+java -jar build/libs/lang.jar
 ```
 
-### IDE Setup
+## 📚 Examples
 
-The project uses Java 24 preview features. Configure your IDE:
-
-**IntelliJ IDEA:**
-1. Set Project SDK to Java 24
-2. Enable preview features in compiler settings
-3. Add `--enable-preview` to VM options
-
-**VS Code:**
-1. Install Java Extension Pack
-2. Configure `java.compile.nullAnalysis.mode` to "automatic"
-3. Set `java.configuration.runtimes` to Java 24
-
-## Examples
-
-### Example 1: Fibonacci Sequence
+### Fibonacci Calculator
 
 ```javascript
 fn fibonacci(n) {
@@ -418,119 +500,202 @@ fn fibonacci(n) {
     return fibonacci(n - 1) + fibonacci(n - 2);
 }
 
-let numbers = range(0, 10);
-for (let i = 0; i < len(numbers); i = i + 1) {
-    let fib = fibonacci(numbers[i]);
-    println("fibonacci(" + str(numbers[i]) + ") = " + str(fib));
+for (let i = 0; i < 10; i = i + 1) {
+    print(f"fib({i}) = {fibonacci(i)}");
 }
 ```
 
-### Example 2: Data Processing
+### Data Processing
 
 ```javascript
-// Process user data
-let users = [
-    {"name": "Alice", "age": 30, "city": "New York"},
-    {"name": "Bob", "age": 25, "city": "London"},
-    {"name": "Charlie", "age": 35, "city": "Tokyo"}
+let students = [
+    {"name": "Alice", "grade": 85},
+    {"name": "Bob", "grade": 92},
+    {"name": "Charlie", "grade": 78}
 ];
 
-fn processUsers(userList) {
-    println("Processing " + str(len(userList)) + " users:");
-    
-    for (let i = 0; i < len(userList); i = i + 1) {
-        let user = userList[i];
-        let name = user["name"];
-        let age = user["age"];
-        let city = user["city"];
-        
-        println("- " + name + " (" + str(age) + ") from " + city);
-    }
+let total = 0;
+let count = len(students);
+
+for (let i = 0; i < count; i = i + 1) {
+    let student = students[i];
+    total = total + student["grade"];
+    print(f"{student['name']}: {student['grade']}");
 }
 
-processUsers(users);
+let average = total / count;
+print(f"Class average: {average}");
 ```
 
-### Example 3: String Processing
+### Object-Oriented Banking System
 
 ```javascript
-fn analyzeText(text) {
-    let words = split(text, " ");
-    let wordCount = len(words);
-    let charCount = len(text);
+class BankAccount {
+    constructor(owner, initialBalance) {
+        this.owner = owner;
+        this.balance = initialBalance;
+        this.transactions = [];
+    }
     
-    println("Text analysis:");
-    println("- Characters: " + str(charCount));
-    println("- Words: " + str(wordCount));
-    println("- Average word length: " + str(charCount / wordCount));
+    deposit(amount) {
+        if (amount > 0) {
+            this.balance = this.balance + amount;
+            this.addTransaction("deposit", amount);
+            return f"Deposited ${amount}. New balance: ${this.balance}";
+        }
+        return "Invalid deposit amount";
+    }
     
-    // Find longest word
-    let longest = "";
-    for (let i = 0; i < len(words); i = i + 1) {
-        if (len(words[i]) > len(longest)) {
-            longest = words[i];
+    withdraw(amount) {
+        if (amount > 0 && amount <= this.balance) {
+            this.balance = this.balance - amount;
+            this.addTransaction("withdrawal", amount);
+            return f"Withdrew ${amount}. New balance: ${this.balance}";
+        }
+        return "Invalid withdrawal amount or insufficient funds";
+    }
+    
+    addTransaction(type, amount) {
+        let transaction = {
+            "type": type,
+            "amount": amount,
+            "balance": this.balance
+        };
+        this.transactions = this.transactions + [transaction];
+    }
+    
+    getStatement() {
+        print(f"Account Statement for {this.owner}");
+        print(f"Current Balance: ${this.balance}");
+        print("Recent Transactions:");
+        
+        let txCount = len(this.transactions);
+        for (let i = 0; i < txCount; i = i + 1) {
+            let tx = this.transactions[i];
+            print(f"  {tx['type']}: ${tx['amount']} (Balance: ${tx['balance']})");
         }
     }
-    println("- Longest word: " + longest);
 }
 
-analyzeText("The quick brown fox jumps over the lazy dog");
+class SavingsAccount extends BankAccount {
+    constructor(owner, initialBalance, interestRate) {
+        super(owner, initialBalance);
+        this.interestRate = interestRate;
+    }
+    
+    addInterest() {
+        let interest = this.balance * this.interestRate;
+        this.balance = this.balance + interest;
+        this.addTransaction("interest", interest);
+        return f"Added ${interest} in interest. New balance: ${this.balance}";
+    }
+}
+
+# Usage
+let checking = new BankAccount("Alice", 1000);
+print(checking.deposit(500));
+print(checking.withdraw(200));
+
+let savings = new SavingsAccount("Bob", 5000, 0.05);
+print(savings.addInterest());
+savings.getStatement();
 ```
 
-## Contributing
+## 🛠️ Development
 
-### Development Workflow
+### Architecture Deep Dive
 
-1. **Fork** the repository
-2. **Create** a feature branch: `git checkout -b feature/amazing-feature`
-3. **Write** tests for new functionality
-4. **Implement** your changes
-5. **Test** thoroughly: `./gradlew test`
-6. **Commit** with clear messages: `git commit -m 'Add amazing feature'`
-7. **Push** to your branch: `git push origin feature/amazing-feature`
-8. **Create** a Pull Request
+#### Lexer (Tokenization)
 
-### Code Style
+The lexer converts raw source code into a stream of tokens using finite state automata:
 
-- Follow Java naming conventions
-- Use meaningful variable and method names
-- Add comprehensive JavaDoc comments
-- Include unit tests for new features
-- Maintain consistent indentation (4 spaces)
+```java
+// Key components:
+- Character stream processing
+- Keyword recognition
+- Operator tokenization  
+- String/number parsing with escape sequences
+- Position tracking for error reporting
+- Comment handling (single and multi-line)
+```
 
-### Architecture Guidelines
+#### Parser (Syntax Analysis)
 
-- **Separation of Concerns**: Keep lexer, parser, and evaluator independent
-- **Visitor Pattern**: Use for AST operations
-- **Registry Pattern**: For extensible parser/evaluator components
-- **Immutable AST**: AST nodes should be immutable after creation
-- **Error Handling**: Provide clear, actionable error messages
+Uses Pratt parsing (Top-Down Operator Precedence) for expression parsing:
 
-### Testing
+```java
+// Parsing strategy:
+- Recursive descent for statements
+- Pratt parsing for expressions with precedence
+- Error recovery mechanisms
+- AST node construction
+- Registry pattern for extensible parsers
+```
+
+#### Evaluator (Execution)
+
+Tree-walking interpreter with environment-based scoping:
+
+```java
+// Evaluation features:
+- Visitor pattern for AST traversal
+- Lexical scoping with environment chains
+- Dynamic dispatch for method calls
+- Stack trace generation
+- Built-in function registry
+- Type system with automatic promotion
+```
+
+### Key Design Decisions
+
+1. **Immutable AST Nodes**: Thread-safe and easier to reason about
+2. **Environment Chains**: Efficient lexical scoping implementation
+3. **Type Promotion**: Automatic numeric type conversion (int → float)
+4. **Error Recovery**: Parser continues after errors to find multiple issues
+5. **Position Tracking**: Every token tracks source location for debugging
+
+### Testing Strategy
 
 ```bash
 # Run all tests
 ./gradlew test
 
-# Run specific test class
-./gradlew test --tests "LexerTest"
+# Run specific test categories
+./gradlew test --tests "*LexerTest*"
+./gradlew test --tests "*ParserTest*" 
+./gradlew test --tests "*EvaluatorTest*"
 
-# Run with coverage
-./gradlew test jacocoTestReport
+# Generate coverage report
+./gradlew jacocoTestReport
 ```
 
-## License
+### Debugging Features
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+- **Stack Traces**: Full call stack with source positions
+- **Error Context**: Source code snippets around errors
+- **REPL Debug Commands**: Environment inspection and debugging
+- **Lexer Debugging**: Token stream visualization
+- **Parser Debug Mode**: AST structure visualization
 
-## Acknowledgments
+## 🤝 Contributing
 
-- Inspired by "Writing An Interpreter In Go" by Thorsten Ball
-- Uses Pratt parsing techniques pioneered by Vaughan Pratt
-- Built with modern Java features and best practices
+This project demonstrates fundamental programming language implementation concepts. Areas for extension:
+
+1. **Standard Library**: More built-in functions and modules
+2. **Optimization**: Bytecode compilation, JIT compilation
+3. **Type System**: Static typing, type inference
+4. **Memory Management**: Garbage collection, reference counting
+5. **Concurrency**: Threads, async/await, actors
+6. **Package System**: Modules, imports, namespaces
+
+## 📖 References
+
+- **Dragon Book**: Compilers: Principles, Techniques, and Tools
+- **Crafting Interpreters**: Robert Nystrom's excellent guide
+- **Pratt Parsing**: Top-Down Operator Precedence parsing
+- **Tree Walking**: Simple interpretation technique
+- **Environment Chains**: Lexical scoping implementation
 
 ---
 
-**Happy coding!** 🚀
-
-For questions, issues, or contributions, please visit our [GitHub repository](https://github.com/utkarsh5026/interpreter).
+*This implementation serves as a comprehensive example of programming language design and implementation, covering everything from lexical analysis to object-oriented programming features.*

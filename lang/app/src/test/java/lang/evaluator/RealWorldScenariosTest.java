@@ -67,7 +67,7 @@ public class RealWorldScenariosTest {
         @DisplayName("Find maximum value in array with custom comparison")
         void testFindMaximumValue() {
             String code = """
-                    let findMax = fn(arr) { // funtion to check the max value in an array
+                    let findMax = fn(arr) { # funtion to check the max value in an array
                         if (len(arr) == 0) {
                             return null;
                         }
@@ -98,7 +98,7 @@ public class RealWorldScenariosTest {
                         for (let i = 0; i < n - 1; i = i + 1) {
                             for (let j = 0; j < n - i - 1; j = j + 1) {
                                 if (arr[j] > arr[j + 1]) {
-                                    // Swap elements
+                                    # Swap elements
                                     let temp = arr[j];
                                     arr[j] = arr[j + 1];
                                     arr[j + 1] = temp;
@@ -194,7 +194,7 @@ public class RealWorldScenariosTest {
 
                     let words = ["apple", "banana", "cherry", "apricot", "blueberry"];
                     let grouped = groupBy(words, getFirstLetter);
-                    len(grouped["a"]);  // Should be 2
+                    len(grouped["a"]);  # Should be 2
                     """;
 
             BaseObject result = evaluateCode(code);
@@ -209,14 +209,14 @@ public class RealWorldScenariosTest {
                         let sum = 0;
                         let count = len(numbers);
 
-                        // Calculate sum
+                        # Calculate sum
                         for (let j = 0; j < count; j = j + 1) {
                             sum = sum + numbers[j];
                         }
 
-                        let average = sum / count;
+                        let average = sum // count;
 
-                        // Find min and max
+                        # Find min and max
                         let min = numbers[0];
                         let max = numbers[0];
 
@@ -281,21 +281,21 @@ public class RealWorldScenariosTest {
                     };
 
                     let checkWin = fn(board, player) {
-                        // Check rows
+                        # Check rows
                         for (let i = 0; i < 3; i = i + 1) {
                             if (board[i][0] == player && board[i][1] == player && board[i][2] == player) {
                                 return true;
                             }
                         }
 
-                        // Check columns
+                        # Check columns
                         for (let j = 0; j < 3; j = j + 1) {
                             if (board[0][j] == player && board[1][j] == player && board[2][j] == player) {
                                 return true;
                             }
                         }
 
-                        // Check diagonals
+                        # Check diagonals
                         if (board[0][0] == player && board[1][1] == player && board[2][2] == player) {
                             return true;
                         }
@@ -390,10 +390,10 @@ public class RealWorldScenariosTest {
                     };
 
                     let shuffleDeck = fn(deck) {
-                        // Simple shuffle - swap each card with a random position
+                        # Simple shuffle - swap each card with a random position
                         for (let i = 0; i < len(deck); i = i + 1) {
-                            let j = i + (random() * (len(deck) - i));  // Assumes random() built-in
-                            // Swap cards at positions i and j
+                            let j = i + (random() * (len(deck) - i));  # Assumes random() built-in
+                            # Swap cards at positions i and j
                             let temp = deck[i];
                             deck[i] = deck[j];
                             deck[j] = temp;
@@ -406,14 +406,14 @@ public class RealWorldScenariosTest {
                         for (let i = 0; i < handSize; i = i + 1) {
                             if (len(deck) > 0) {
                                 hand = push(hand, deck[0]);
-                                deck = rest(deck);  // Assumes rest() built-in to remove first element
+                                deck = rest(deck);  # Assumes rest() built-in to remove first element
                             }
                         }
                         return hand;
                     };
 
                     let deck = createDeck();
-                    len(deck);  // Should be 52
+                    len(deck);  # Should be 52
                     """;
 
             BaseObject result = evaluateCode(code);
@@ -436,7 +436,7 @@ public class RealWorldScenariosTest {
                     let sieveOfEratosthenes = fn(limit) {
                         let isPrime = [];
 
-                        // Initialize array
+                        # Initialize array
                         for (let i = 0; i <= limit; i = i + 1) {
                             isPrime = push(isPrime, true);
                         }
@@ -463,7 +463,7 @@ public class RealWorldScenariosTest {
                     };
 
                     let primesUpTo20 = sieveOfEratosthenes(20);
-                    len(primesUpTo20);  // Should be 8 primes: [2,3,5,7,11,13,17,19]
+                    len(primesUpTo20);  # Should be 8 primes: [2,3,5,7,11,13,17,19]
                     """;
             BaseObject result = evaluateCode(code);
             assertEquals(8, ObjectValidator.asInteger(result).getValue());
@@ -486,9 +486,9 @@ public class RealWorldScenariosTest {
                         return (a * b) / gcd(a, b);
                     };
 
-                    // Test with 48 and 18
+                    # Test with 48 and 18
                     let result = gcd(48, 18);
-                    result;  // Should be 6
+                    result;  # Should be 6
                     """;
 
             BaseObject result = evaluateCode(code);
@@ -524,7 +524,7 @@ public class RealWorldScenariosTest {
                     let matrixA = [[1, 2], [3, 4]];
                     let matrixB = [[5, 6], [7, 8]];
                     let product = multiplyMatrices(matrixA, matrixB);
-                    product[0][0];  // Should be 19 (1*5 + 2*7)
+                    product[0][0];  # Should be 19 (1*5 + 2*7)
                     """;
 
             BaseObject result = evaluateCode(code);
@@ -558,8 +558,8 @@ public class RealWorldScenariosTest {
                     };
 
                     let factorial = createMemoizedFactorial();
-                    let result10 = factorial(10);  // Should be 3628800
-                    let result5 = factorial(5);    // Should use cached values
+                    let result10 = factorial(10);  # Should be 3628800
+                    let result5 = factorial(5);    # Should use cached values
                     result5;
                     """;
 
@@ -581,7 +581,7 @@ public class RealWorldScenariosTest {
         void testWordFrequencyCounter() {
             String code = """
                     let countWords = fn(text) {
-                        let words = split(text, " ");  // Assumes split() built-in
+                        let words = split(text, " ");  # Assumes split() built-in
                         let counts = {};
 
                         for (let i = 0; i < len(words); i = i + 1) {
@@ -598,7 +598,7 @@ public class RealWorldScenariosTest {
 
                     let text = "the quick brown fox jumps over the lazy dog the fox";
                     let wordCounts = countWords(text);
-                    wordCounts;  // Should be 3
+                    wordCounts;  # Should be 3
                     """;
 
             BaseObject result = evaluateCode(code);
@@ -622,7 +622,7 @@ public class RealWorldScenariosTest {
                         let length = len(cleaned);
 
                         for (let i = 0; i < length / 2; i = i + 1) {
-                            if (charAt(cleaned, i) != charAt(cleaned, length - 1 - i)) {  // Assumes charAt() built-in
+                            if (charAt(cleaned, i) != charAt(cleaned, length - 1 - i)) {  # Assumes charAt() built-in
                                 return false;
                             }
                         }
@@ -630,7 +630,7 @@ public class RealWorldScenariosTest {
                         return true;
                     };
 
-                    isPalindrome("racecar");  // Should be true
+                    isPalindrome("racecar");  # Should be true
                     """;
 
             BaseObject result = evaluateCode(code);
@@ -675,7 +675,7 @@ public class RealWorldScenariosTest {
                     let account = createBankAccount(100);
                     account["deposit"](50);
                     account["withdraw"](30);
-                    account["getBalance"]();  // Should be 120
+                    account["getBalance"]();  # Should be 120
                     """;
 
             BaseObject result = evaluateCode(code);
@@ -705,7 +705,7 @@ public class RealWorldScenariosTest {
                     };
 
                     let dog = createDog("Buddy", "Golden Retriever");
-                    dog["speak"]();  // Should be "Buddy barks"
+                    dog["speak"]();  # Should be "Buddy barks"
                     """;
 
             BaseObject result = evaluateCode(code);
@@ -748,7 +748,7 @@ public class RealWorldScenariosTest {
 
                     let door = createStateMachine("closed", doorTransitions);
                     door["transition"]("open");
-                    door["getState"]();  // Should be "open"
+                    door["getState"]();  # Should be "open"
                     """;
 
             BaseObject result = evaluateCode(code);
@@ -774,7 +774,7 @@ public class RealWorldScenariosTest {
                         let right = len(arr) - 1;
 
                         while (left <= right) {
-                            let mid = left + ((right - left) / 2);
+                            let mid = left + ((right - left) // 2);
 
                             if (arr[mid] == target) {
                                 return mid;
@@ -785,12 +785,12 @@ public class RealWorldScenariosTest {
                             }
                         }
 
-                        return -1;  // Not found
+                        return -1;  # Not found
                     };
 
                     let sortedArray = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19];
                     let index = binarySearch(sortedArray, 7);
-                    index;  // Should be 3
+                    index;  # Should be 3
                     """;
 
             BaseObject result = evaluateCode(code);
@@ -833,7 +833,7 @@ public class RealWorldScenariosTest {
                     let root = createNode(1, [branch, createNode(3, [])]);
 
                     let path = dfs(root, 5, []);
-                    path;  // Should include path to target
+                    path;  # Should include path to target
                     """;
 
             BaseObject result = evaluateCode(code);
@@ -855,14 +855,14 @@ public class RealWorldScenariosTest {
                         for (let j = low; j < high; j = j + 1) {
                             if (arr[j] < pivot) {
                                 i = i + 1;
-                                // Swap arr[i] and arr[j]
+                                # Swap arr[i] and arr[j]
                                 let temp = arr[i];
                                 arr[i] = arr[j];
                                 arr[j] = temp;
                             }
                         }
 
-                        // Swap arr[i+1] and arr[high]
+                        # Swap arr[i+1] and arr[high]
                         let temp = arr[i + 1];
                         arr[i + 1] = arr[high];
                         arr[high] = temp;
@@ -881,7 +881,7 @@ public class RealWorldScenariosTest {
 
                     let unsorted = [10, 7, 8, 9, 1, 5];
                     let sorted = quickSort(unsorted, 0, len(unsorted) - 1);
-                    sorted[0];  // Should be 1 (smallest element)
+                    sorted[0];  # Should be 1 (smallest element)
                     """;
 
             BaseObject result = evaluateCode(code);

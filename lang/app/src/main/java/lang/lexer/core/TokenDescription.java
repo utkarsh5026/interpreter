@@ -1,6 +1,6 @@
 package lang.lexer.core;
 
-public class TokenDescription {
+public final class TokenDescription {
     public static final char EOF = '\0';
     public static final char NEWLINE = '\n';
     public static final char TAB = '\t';
@@ -29,7 +29,7 @@ public class TokenDescription {
     public static final char LBRACE = '{';
     public static final char RBRACE = '}';
 
-    public static boolean isWhitespace(char ch) {
+    public static final boolean isWhitespace(char ch) {
         return ch == SPACE || ch == TAB || ch == NEWLINE || ch == '\r' || ch == '\f';
     }
 }

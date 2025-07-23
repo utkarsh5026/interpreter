@@ -62,17 +62,14 @@ public class Lexer {
         int preTokenPosition = stream.getCurrentPosition();
         char triggerChar = stream.currentCharacter();
 
-        // Skip whitespace and comments
         whitespaceHandler.skipNonTokens();
 
-        // Check for end of input
         if (stream.currentCharacter() == TokenDescription.EOF) {
             Token eofToken = tokenFactory.createToken(TokenType.EOF);
             logDebugEvent(eofToken, preTokenPosition, triggerChar);
             return eofToken;
         }
 
-        // Try each parser in order
         for (TokenParser parser : parsers) {
             if (parser.canParse(stream.currentCharacter())) {
                 Token token = parser.parse();

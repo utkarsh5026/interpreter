@@ -12,9 +12,10 @@ import lang.exec.evaluator.base.EvaluationContext;
 import lang.ast.expressions.AssignmentExpression;
 
 import lang.exec.base.BaseObject;
-import lang.exec.objects.*;
 import lang.exec.objects.classes.InstanceObject;
 import lang.exec.objects.env.Environment;
+import lang.exec.objects.structures.ArrayObject;
+import lang.exec.objects.structures.HashObject;
 import lang.ast.base.*;
 
 /**

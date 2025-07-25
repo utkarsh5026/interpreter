@@ -4,6 +4,7 @@ import lang.exec.base.BaseObject;
 import lang.exec.objects.*;
 import lang.exec.objects.classes.ClassObject;
 import lang.exec.objects.classes.InstanceObject;
+import lang.exec.objects.error.ErrorObject;
 import lang.exec.objects.functions.BuiltinObject;
 import lang.exec.objects.functions.FunctionObject;
 import lang.exec.objects.functions.ReturnObject;
@@ -14,6 +15,8 @@ import lang.exec.objects.literals.NullObject;
 import lang.exec.objects.literals.StringObject;
 import lang.exec.objects.loop.BreakObject;
 import lang.exec.objects.loop.ContinueObject;
+import lang.exec.objects.structures.ArrayObject;
+import lang.exec.objects.structures.HashObject;
 import lang.ast.base.Identifier;
 
 /**

@@ -1,4 +1,4 @@
-package lang.exec.objects;
+package lang.exec.objects.structures;
 
 import java.util.Collections;
 import java.util.List;

@@ -1,4 +1,4 @@
-package lang.exec.objects;
+package lang.exec.objects.error;
 
 import java.util.List;
 import java.util.Optional;

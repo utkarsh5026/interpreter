@@ -15,8 +15,8 @@ import lang.exec.base.*;
 import lang.exec.debug.*;
 import lang.token.TokenPosition;
 
-import lang.exec.objects.*;
 import lang.exec.objects.env.Environment;
+import lang.exec.objects.error.ErrorObject;
 import lang.exec.objects.functions.ReturnObject;
 import lang.exec.objects.literals.NullObject;
 

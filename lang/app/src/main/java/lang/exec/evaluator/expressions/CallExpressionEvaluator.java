@@ -8,6 +8,7 @@ import lang.exec.evaluator.base.NodeEvaluator;
 import lang.exec.base.BaseObject;
 import lang.exec.objects.*;
 import lang.exec.objects.env.Environment;
+import lang.exec.objects.error.ErrorObject;
 import lang.exec.objects.functions.BuiltinObject;
 import lang.exec.objects.functions.FunctionObject;
 import lang.exec.validator.ObjectValidator;

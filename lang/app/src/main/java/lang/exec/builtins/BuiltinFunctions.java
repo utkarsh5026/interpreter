@@ -6,8 +6,11 @@ import java.util.stream.Collectors;
 import lang.exec.base.BaseObject;
 import lang.exec.validator.ObjectValidator;
 import lang.exec.objects.*;
+import lang.exec.objects.error.ErrorObject;
 import lang.exec.objects.functions.BuiltinObject;
 import lang.exec.objects.literals.*;
+import lang.exec.objects.structures.ArrayObject;
+import lang.exec.objects.structures.HashObject;
 
 /**
  * 🏗️ BuiltinFunctions - Comprehensive Function Library 🏗️

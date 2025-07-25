@@ -6,6 +6,7 @@ import lang.ast.expressions.InfixExpression;
 import lang.exec.base.BaseObject;
 import lang.exec.objects.*;
 import lang.exec.objects.env.Environment;
+import lang.exec.objects.error.ErrorObject;
 import lang.exec.objects.literals.BooleanObject;
 import lang.exec.objects.literals.FloatObject;
 import lang.exec.objects.literals.IntegerObject;

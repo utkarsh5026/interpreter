@@ -3,9 +3,9 @@ package lang.exec.evaluator.expressions;
 import java.util.Optional;
 
 import lang.ast.expressions.ThisExpression;
-import lang.exec.base.BaseObject;
 import lang.exec.evaluator.base.EvaluationContext;
 import lang.exec.evaluator.base.NodeEvaluator;
+import lang.exec.objects.base.BaseObject;
 import lang.exec.objects.env.Environment;
 
 /**

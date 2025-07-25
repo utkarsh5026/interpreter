@@ -3,7 +3,8 @@ package lang.exec.validator;
 import java.util.Optional;
 
 import lang.exec.base.BaseObject;
-import lang.exec.objects.*;
+import lang.exec.objects.literals.FloatObject;
+import lang.exec.objects.literals.IntegerObject;
 
 /**
  * Utility class for numeric type conversions and arithmetic operations.

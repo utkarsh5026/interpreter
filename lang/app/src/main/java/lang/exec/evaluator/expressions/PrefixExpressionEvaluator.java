@@ -3,14 +3,13 @@ package lang.exec.evaluator.expressions;
 import lang.exec.evaluator.base.NodeEvaluator;
 import lang.exec.base.BaseObject;
 import lang.exec.evaluator.base.EvaluationContext;
-import lang.exec.objects.BooleanObject;
-import lang.exec.objects.FloatObject;
-
 import lang.ast.expressions.PrefixExpression;
 
 import lang.exec.objects.Environment;
 import lang.exec.validator.ObjectValidator;
-import lang.exec.objects.IntegerObject;
+import lang.exec.objects.literals.BooleanObject;
+import lang.exec.objects.literals.FloatObject;
+import lang.exec.objects.literals.IntegerObject;
 
 /**
  * 🔄 PrefixExpressionEvaluator - Unary Operation Specialist (Enhanced with

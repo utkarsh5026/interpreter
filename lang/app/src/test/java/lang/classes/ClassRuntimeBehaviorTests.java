@@ -17,6 +17,10 @@ import java.util.stream.Stream;
 
 import lang.exec.evaluator.LanguageEvaluator;
 import lang.exec.objects.*;
+import lang.exec.objects.literals.BooleanObject;
+import lang.exec.objects.literals.FloatObject;
+import lang.exec.objects.literals.IntegerObject;
+import lang.exec.objects.literals.StringObject;
 import lang.exec.base.BaseObject;
 import lang.parser.LanguageParser;
 import lang.lexer.Lexer;

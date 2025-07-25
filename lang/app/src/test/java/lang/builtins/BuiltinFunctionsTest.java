@@ -11,6 +11,9 @@ import java.util.*;
 import java.util.stream.IntStream;
 
 import lang.exec.objects.*;
+import lang.exec.objects.literals.BooleanObject;
+import lang.exec.objects.literals.IntegerObject;
+import lang.exec.objects.literals.StringObject;
 import lang.exec.base.BaseObject;
 import lang.exec.base.ObjectType;
 

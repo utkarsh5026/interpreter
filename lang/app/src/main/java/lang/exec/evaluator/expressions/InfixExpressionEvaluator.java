@@ -5,7 +5,10 @@ import lang.ast.expressions.InfixExpression;
 
 import lang.exec.base.BaseObject;
 import lang.exec.objects.*;
-
+import lang.exec.objects.literals.BooleanObject;
+import lang.exec.objects.literals.FloatObject;
+import lang.exec.objects.literals.IntegerObject;
+import lang.exec.objects.literals.StringObject;
 import lang.exec.evaluator.base.EvaluationContext;
 import lang.exec.evaluator.base.NodeEvaluator;
 import lang.token.TokenPosition;

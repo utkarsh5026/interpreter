@@ -4,9 +4,9 @@ import lang.exec.evaluator.base.NodeEvaluator;
 import lang.exec.base.BaseObject;
 
 import lang.exec.objects.Environment;
+import lang.exec.objects.literals.BooleanObject;
 import lang.exec.evaluator.base.EvaluationContext;
 import lang.ast.expressions.BooleanExpression;
-import lang.exec.objects.BooleanObject;
 
 public class BooleanLiteralEvaluator implements NodeEvaluator<BooleanExpression> {
 

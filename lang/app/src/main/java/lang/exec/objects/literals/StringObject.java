@@ -1,4 +1,4 @@
-package lang.exec.objects;
+package lang.exec.objects.literals;
 
 import lang.exec.base.BaseObject;
 import lang.exec.base.ObjectType;

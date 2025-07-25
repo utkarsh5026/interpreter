@@ -4,8 +4,7 @@ import lang.exec.evaluator.base.NodeEvaluator;
 import lang.exec.base.BaseObject;
 
 import lang.exec.objects.Environment;
-import lang.exec.objects.StringObject;
-
+import lang.exec.objects.literals.StringObject;
 import lang.exec.validator.ObjectValidator;
 import lang.exec.evaluator.base.EvaluationContext;
 import lang.ast.literals.FStringLiteral;

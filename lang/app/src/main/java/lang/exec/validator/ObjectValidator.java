@@ -2,6 +2,10 @@ package lang.exec.validator;
 
 import lang.exec.base.BaseObject;
 import lang.exec.objects.*;
+import lang.exec.objects.literals.BooleanObject;
+import lang.exec.objects.literals.FloatObject;
+import lang.exec.objects.literals.IntegerObject;
+import lang.exec.objects.literals.StringObject;
 import lang.exec.objects.loop.BreakObject;
 import lang.exec.objects.loop.ContinueObject;
 import lang.ast.base.Identifier;

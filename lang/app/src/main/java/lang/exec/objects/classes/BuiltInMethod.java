@@ -1,11 +1,12 @@
 package lang.exec.objects.classes;
 
 import java.util.List;
+import java.util.function.Function;
 
 import lang.exec.evaluator.base.EvaluationContext;
+import lang.exec.objects.error.ErrorObject;
 import lang.exec.objects.base.BaseObject;
 import lang.exec.objects.env.Environment;
-import lang.exec.objects.error.ErrorObject;
 
 /**
  * ⚡ BuiltInMethod - Methods Implemented in Java ⚡
@@ -36,12 +37,15 @@ public class BuiltInMethod extends MethodObject {
     }
 
     @Override
-    public BaseObject call(InstanceObject instance, BaseObject[] arguments, EvaluationContext context) {
+    public BaseObject call(InstanceObject instance, BaseObject[] arguments, EvaluationContext context,
+            Function<Environment, Environment> extendEnv) {
         var error = validateArgumentCount(arguments, parameterNames.size());
         if (error.isPresent())
             return context.createError(error.get().getMessage(), null);
 
         try {
+            // For built-in methods, we can still apply the environment extension if needed
+            // The extended environment can be passed to the implementation if it needs it
             return implementation.execute(instance, arguments);
         } catch (Exception e) {
             return new ErrorObject("Error in built-in method " + name + ": " + e.getMessage());

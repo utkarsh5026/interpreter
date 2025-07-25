@@ -1,9 +1,13 @@
 package lang.exec.objects.classes;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
 
 import lang.exec.evaluator.base.EvaluationContext;
+import lang.exec.objects.error.ErrorObject;
 import lang.exec.objects.base.BaseObject;
+import lang.exec.objects.base.ObjectType;
 import lang.exec.objects.env.Environment;
 import lang.exec.objects.env.EnvironmentFactory;
 import lang.ast.base.Identifier;
@@ -28,12 +32,14 @@ public class UserDefinedMethod extends MethodObject {
     }
 
     @Override
-    public BaseObject call(InstanceObject instance, BaseObject[] arguments, EvaluationContext context) {
+    public BaseObject call(InstanceObject instance, BaseObject[] arguments, EvaluationContext context,
+            Function<Environment, Environment> extendEnv) {
         var error = validateArgumentCount(arguments, parameters.size());
         if (error.isPresent())
             return context.createError(error.get().getMessage(), null);
 
         Environment methodEnv = EnvironmentFactory.createFunctionScope(environment);
+        methodEnv = extendEnv.apply(methodEnv); // Apply the environment extension function
         methodEnv.defineVariable("this", instance);
 
         for (int i = 0; i < parameters.size(); i++) {

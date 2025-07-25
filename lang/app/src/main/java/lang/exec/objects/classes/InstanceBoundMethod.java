@@ -1,8 +1,11 @@
 package lang.exec.objects.classes;
 
+import java.util.function.Function;
+
 import lang.exec.evaluator.base.EvaluationContext;
 import lang.exec.objects.base.BaseObject;
 import lang.exec.objects.base.ObjectType;
+import lang.exec.objects.env.Environment;
 
 public class InstanceBoundMethod implements BaseObject {
 
@@ -23,7 +26,12 @@ public class InstanceBoundMethod implements BaseObject {
     }
 
     public BaseObject call(BaseObject[] arguments, EvaluationContext context) {
-        return method.call(instance, arguments, context);
+        return method.call(instance, arguments, context, Function.identity()); // Use identity function as default
+    }
+
+    public BaseObject call(BaseObject[] arguments, EvaluationContext context,
+            Function<Environment, Environment> extendEnv) {
+        return method.call(instance, arguments, context, extendEnv);
     }
 
     @Override

@@ -2,6 +2,7 @@ package lang.exec.objects.classes;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 import lang.exec.evaluator.base.EvaluationContext;
 import lang.exec.objects.error.ErrorObject;
@@ -36,7 +37,8 @@ public abstract class MethodObject implements BaseObject {
     /**
      * 📞 Calls this method with the given instance and arguments
      */
-    public abstract BaseObject call(InstanceObject instance, BaseObject[] arguments, EvaluationContext context);
+    public abstract BaseObject call(InstanceObject instance, BaseObject[] arguments, EvaluationContext context,
+            Function<Environment, Environment> extendEnv);
 
     /**
      * ✅ Validates that the correct number of arguments were provided

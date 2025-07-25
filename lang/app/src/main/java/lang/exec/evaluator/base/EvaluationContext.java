@@ -4,7 +4,7 @@ import lang.exec.debug.StackFrame;
 import java.util.List;
 
 import lang.ast.base.Node;
-import lang.exec.base.BaseObject;
+import lang.exec.objects.base.BaseObject;
 import lang.exec.objects.env.Environment;
 import lang.exec.objects.error.ErrorObject;
 import lang.token.TokenPosition;

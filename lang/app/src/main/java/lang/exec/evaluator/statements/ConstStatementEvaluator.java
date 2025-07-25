@@ -1,12 +1,12 @@
 package lang.exec.evaluator.statements;
 
-import lang.exec.evaluator.base.NodeEvaluator;
+import lang.exec.objects.base.BaseObject;
 import lang.exec.objects.env.Environment;
-import lang.exec.base.BaseObject;
+import lang.exec.evaluator.base.EvaluationContext;
+import lang.exec.evaluator.base.NodeEvaluator;
 import lang.exec.validator.ObjectValidator;
 
 import lang.ast.statements.ConstStatement;
-import lang.exec.evaluator.base.EvaluationContext;
 
 public class ConstStatementEvaluator implements NodeEvaluator<ConstStatement> {
     @Override

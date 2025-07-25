@@ -4,14 +4,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import lang.exec.objects.classes.*;
 import lang.ast.literals.FunctionLiteral;
 import lang.ast.statements.ClassStatement;
 import lang.ast.statements.ClassStatement.MethodDefinition;
-import lang.exec.base.BaseObject;
 import lang.exec.evaluator.base.EvaluationContext;
 import lang.exec.evaluator.base.NodeEvaluator;
-import lang.exec.objects.*;
-import lang.exec.objects.classes.ClassObject;
+import lang.exec.objects.base.BaseObject;
 import lang.exec.objects.env.Environment;
 import lang.exec.objects.error.ErrorObject;
 import lang.exec.objects.functions.FunctionObject;
@@ -53,10 +52,14 @@ public class ClassStatementEvaluator implements NodeEvaluator<ClassStatement> {
 
         Optional<FunctionObject> constructor = Optional.empty();
         if (node.hasConstructor()) {
-            constructor = Optional.of(createFunctionObject(node.getConstructor().get(), classEnv));
+            FunctionLiteral constructorLiteral = node.getConstructor().get();
+            constructor = Optional.of(new FunctionObject(
+                    classEnv,
+                    constructorLiteral.getParameters(),
+                    constructorLiteral.getBody()));
         }
 
-        Map<String, FunctionObject> methods = createMethods(node, classEnv);
+        Map<String, Method> methods = createMethods(node, classEnv);
         ClassObject classObj = new ClassObject(className,
                 parentClassResolution.parentClass(),
                 constructor,
@@ -111,22 +114,21 @@ public class ClassStatementEvaluator implements NodeEvaluator<ClassStatement> {
     }
 
     /**
-     * 🔧 Creates a FunctionObject from a FunctionLiteral
-     */
-    private FunctionObject createFunctionObject(FunctionLiteral funcLiteral, Environment classEnv) {
-        return new FunctionObject(classEnv, funcLiteral.getParameters(), funcLiteral.getBody());
-    }
-
-    /**
      * 🔧 Creates a map of method function objects from a class definition
      */
-    private Map<String, FunctionObject> createMethods(ClassStatement node, Environment classEnv) {
-        Map<String, FunctionObject> methods = new HashMap<>();
+    private Map<String, Method> createMethods(ClassStatement node, Environment classEnv) {
+        Map<String, Method> methods = new HashMap<>();
         for (MethodDefinition methodDef : node.getMethods()) {
             String methodName = methodDef.name().getValue();
-            FunctionObject methodObj = createFunctionObject(methodDef.function(), classEnv);
-            methods.put(methodName, methodObj);
+
+            var funcLiteral = methodDef.function();
+            Method method = new UserDefinedMethod(methodName,
+                    funcLiteral.getParameters(),
+                    funcLiteral.getBody(),
+                    classEnv);
+            methods.put(methodName, method);
         }
         return methods;
     }
+
 }

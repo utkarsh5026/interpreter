@@ -3,13 +3,12 @@ package lang.exec.evaluator.statements;
 import java.util.List;
 
 import lang.ast.base.Statement;
+import lang.exec.evaluator.base.EvaluationContext;
 import lang.exec.evaluator.base.NodeEvaluator;
-import lang.exec.base.BaseObject;
+import lang.exec.objects.base.BaseObject;
 import lang.exec.objects.env.Environment;
 import lang.exec.objects.literals.NullObject;
 import lang.ast.statements.BlockStatement;
-import lang.exec.evaluator.base.EvaluationContext;
-
 import lang.exec.validator.ObjectValidator;
 
 public class BlockStatementEvaluator implements NodeEvaluator<BlockStatement> {

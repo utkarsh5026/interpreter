@@ -1,12 +1,9 @@
 package lang.exec.evaluator.expressions;
 
 import java.util.List;
-import java.util.stream.IntStream;
 
 import lang.ast.base.Identifier;
-import lang.exec.evaluator.base.NodeEvaluator;
-import lang.exec.base.BaseObject;
-import lang.exec.objects.*;
+import lang.exec.objects.base.BaseObject;
 import lang.exec.objects.env.Environment;
 import lang.exec.objects.error.ErrorObject;
 import lang.exec.objects.functions.BuiltinObject;
@@ -15,8 +12,9 @@ import lang.exec.validator.ObjectValidator;
 import lang.token.TokenPosition;
 import lang.ast.expressions.CallExpression;
 import lang.ast.utils.*;
-import lang.exec.evaluator.base.EvaluationContext;
 import lang.exec.debug.StackFrame;
+import lang.exec.evaluator.base.EvaluationContext;
+import lang.exec.evaluator.base.NodeEvaluator;
 
 public class CallExpressionEvaluator implements NodeEvaluator<CallExpression> {
 
@@ -29,34 +27,24 @@ public class CallExpressionEvaluator implements NodeEvaluator<CallExpression> {
         }
 
         List<BaseObject> args = context.evaluateExpressions(node.getArguments(), env);
-
-        boolean isFunction = ObjectValidator.isFunction(function);
-        boolean isBuiltin = ObjectValidator.isBuiltin(function);
-
-        if (isFunction || isBuiltin) {
-            if (isFunction && args.size() != ObjectValidator.asFunction(function).getParameters().size()) {
-                var functionObject = ObjectValidator.asFunction(function);
-                String message = String.format("Wrong number of arguments. Expected %d, got %d",
-                        functionObject.getParameters().size(), args.size());
-
-                return context.createError(message, node.getFunction().position());
-            }
-            return applyFunction(function, args, env, context, node);
-        }
-
-        return new ErrorObject("Not a function: " + function.type());
-
+        return applyFunction(function, args, context, node);
     }
 
-    private BaseObject applyFunction(BaseObject function, List<BaseObject> args, Environment env,
-            EvaluationContext context, CallExpression caller) {
-        TokenPosition functionPos = caller.getFunction().position();
+    /**
+     * Applies a function to the given arguments and returns the result.
+     */
+    private BaseObject applyFunction(BaseObject function,
+            List<BaseObject> args,
+            EvaluationContext context,
+            CallExpression caller) {
+        var functionPos = caller.getFunction().position();
+
         if (ObjectValidator.isBuiltin(function)) {
             return applyBuiltinFunction(function, args, context, functionPos);
         }
 
         if (ObjectValidator.isFunction(function)) {
-            return applyUserFunction(function, args, env, context, caller);
+            return applyUserFunction(function, args, context, caller);
         }
 
         return context.createError("Not a function: " + function.type(), functionPos);
@@ -94,22 +82,29 @@ public class CallExpressionEvaluator implements NodeEvaluator<CallExpression> {
     private BaseObject applyUserFunction(
             BaseObject function,
             List<BaseObject> args,
-            Environment env,
             EvaluationContext context,
             CallExpression caller) {
         FunctionObject functionObject = ObjectValidator.asFunction(function);
+        List<Identifier> parameters = functionObject.getParameters();
+
+        if (args.size() != parameters.size()) {
+            String message = String.format(
+                    "Wrong number of arguments. Expected %d, got %d",
+                    functionObject.getParameters().size(), args.size());
+
+            return context.createError(message, caller.getFunction().position());
+        }
 
         String functionName = determineFunctionName(caller);
         context.enterFunction(functionName, caller.getFunction().position(), StackFrame.FrameType.USER_FUNCTION);
 
         try {
             Environment extendedEnv = new Environment(functionObject.getEnvironment(), false);
-            List<Identifier> parameters = functionObject.getParameters();
 
-            IntStream.range(0, parameters.size())
-                    .forEach(i -> extendedEnv.defineVariable(
-                            parameters.get(i).getValue(),
-                            args.get(i)));
+            for (int i = 0; i < parameters.size(); i++) {
+                String paramName = parameters.get(i).getValue();
+                extendedEnv.defineVariable(paramName, args.get(i));
+            }
 
             BaseObject result = context.evaluate(functionObject.getBody(), extendedEnv);
             if (ObjectValidator.isError(result)) {

@@ -4,8 +4,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import lang.exec.base.BaseObject;
-import lang.exec.base.ObjectType;
+import lang.exec.objects.base.*;
 
 /**
  * HashObject represents a hash map in the language.

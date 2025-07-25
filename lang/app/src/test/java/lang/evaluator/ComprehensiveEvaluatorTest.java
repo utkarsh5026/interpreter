@@ -11,6 +11,7 @@ import lang.parser.LanguageParser;
 import lang.ast.statements.Program;
 import lang.exec.evaluator.LanguageEvaluator;
 import lang.exec.objects.*;
+import lang.exec.objects.env.Environment;
 import lang.exec.base.BaseObject;
 import lang.exec.validator.ObjectValidator;
 

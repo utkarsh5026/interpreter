@@ -12,6 +12,7 @@ import lang.exec.evaluator.base.NodeEvaluator;
 import lang.exec.objects.*;
 import lang.exec.objects.classes.ClassObject;
 import lang.exec.objects.classes.InstanceObject;
+import lang.exec.objects.env.Environment;
 import lang.exec.objects.functions.FunctionObject;
 import lang.exec.validator.ObjectValidator;
 import lang.ast.base.Expression;

@@ -6,11 +6,10 @@ import lang.exec.evaluator.base.NodeEvaluator;
 import lang.exec.base.BaseObject;
 
 import lang.exec.validator.ObjectValidator;
-
-import lang.exec.objects.Environment;
 import lang.exec.evaluator.base.EvaluationContext;
 import lang.ast.literals.ArrayLiteral;
 import lang.exec.objects.ArrayObject;
+import lang.exec.objects.env.Environment;
 
 public class ArrayLiteralEvaluator implements NodeEvaluator<ArrayLiteral> {
 

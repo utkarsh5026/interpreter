@@ -3,8 +3,8 @@ package lang.exec.evaluator.statements;
 import lang.ast.statements.LetStatement;
 import lang.exec.evaluator.base.EvaluationContext;
 import lang.exec.evaluator.base.NodeEvaluator;
+import lang.exec.objects.env.Environment;
 import lang.exec.base.BaseObject;
-import lang.exec.objects.Environment;
 import lang.exec.validator.ObjectValidator;
 
 public class LetStatementEvaluator implements NodeEvaluator<LetStatement> {

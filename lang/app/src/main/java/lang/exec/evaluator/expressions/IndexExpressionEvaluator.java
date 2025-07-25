@@ -1,7 +1,6 @@
 package lang.exec.evaluator.expressions;
 
 import lang.exec.evaluator.base.NodeEvaluator;
-import lang.exec.objects.Environment;
 import lang.exec.evaluator.base.EvaluationContext;
 import lang.ast.expressions.IndexExpression;
 import lang.exec.base.BaseObject;
@@ -9,6 +8,7 @@ import lang.exec.base.BaseObject;
 import lang.exec.objects.ArrayObject;
 import lang.exec.validator.ObjectValidator;
 import lang.exec.objects.HashObject;
+import lang.exec.objects.env.Environment;
 import lang.exec.objects.literals.NullObject;
 import lang.ast.base.Expression;
 

@@ -3,8 +3,7 @@ package lang.exec.evaluator.statements;
 import lang.exec.evaluator.base.NodeEvaluator;
 import lang.exec.base.BaseObject;
 import lang.exec.validator.ObjectValidator;
-
-import lang.exec.objects.Environment;
+import lang.exec.objects.env.Environment;
 import lang.exec.objects.literals.NullObject;
 import lang.exec.evaluator.base.EvaluationContext;
 import lang.ast.statements.WhileStatement;

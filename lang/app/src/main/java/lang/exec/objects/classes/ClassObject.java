@@ -8,7 +8,7 @@ import java.util.ArrayList;
 
 import lang.exec.base.BaseObject;
 import lang.exec.base.ObjectType;
-import lang.exec.objects.Environment;
+import lang.exec.objects.env.Environment;
 import lang.exec.objects.functions.FunctionObject;
 
 /**

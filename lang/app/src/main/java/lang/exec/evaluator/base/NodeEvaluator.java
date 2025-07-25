@@ -2,7 +2,7 @@ package lang.exec.evaluator.base;
 
 import lang.ast.base.Node;
 import lang.exec.base.BaseObject;
-import lang.exec.objects.Environment;
+import lang.exec.objects.env.Environment;
 
 /**
  * 🎯 NodeEvaluator - The Universal Evaluation Contract 🎯

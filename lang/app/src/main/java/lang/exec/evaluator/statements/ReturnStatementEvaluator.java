@@ -2,8 +2,7 @@ package lang.exec.evaluator.statements;
 
 import lang.exec.evaluator.base.NodeEvaluator;
 import lang.exec.base.BaseObject;
-
-import lang.exec.objects.Environment;
+import lang.exec.objects.env.Environment;
 import lang.exec.objects.functions.ReturnObject;
 import lang.exec.validator.ObjectValidator;
 

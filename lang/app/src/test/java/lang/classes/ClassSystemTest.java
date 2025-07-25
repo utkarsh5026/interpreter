@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 
 import lang.exec.evaluator.LanguageEvaluator;
-import lang.exec.objects.Environment;
+import lang.exec.objects.env.Environment;
 import lang.lexer.Lexer;
 import lang.parser.LanguageParser;
 import lang.ast.statements.Program;

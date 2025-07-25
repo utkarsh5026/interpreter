@@ -5,8 +5,8 @@ import java.util.List;
 
 import lang.ast.base.Node;
 import lang.exec.base.BaseObject;
-import lang.exec.objects.Environment;
 import lang.exec.objects.ErrorObject;
+import lang.exec.objects.env.Environment;
 import lang.token.TokenPosition;
 
 /**

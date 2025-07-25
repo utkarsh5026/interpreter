@@ -1,9 +1,8 @@
 package lang.exec.evaluator.statements;
 
 import lang.exec.evaluator.base.NodeEvaluator;
+import lang.exec.objects.env.Environment;
 import lang.exec.base.BaseObject;
-
-import lang.exec.objects.Environment;
 import lang.exec.validator.ObjectValidator;
 
 import lang.ast.statements.ConstStatement;

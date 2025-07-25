@@ -6,10 +6,9 @@ import java.util.HashMap;
 import lang.ast.base.Expression;
 import lang.exec.validator.ObjectValidator;
 import lang.exec.objects.HashObject;
+import lang.exec.objects.env.Environment;
 import lang.exec.evaluator.base.NodeEvaluator;
 import lang.exec.base.BaseObject;
-
-import lang.exec.objects.Environment;
 import lang.exec.evaluator.base.EvaluationContext;
 import lang.ast.literals.HashLiteral;
 

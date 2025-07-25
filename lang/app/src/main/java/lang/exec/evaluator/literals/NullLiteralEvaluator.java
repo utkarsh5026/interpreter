@@ -1,7 +1,7 @@
 package lang.exec.evaluator.literals;
 
 import lang.exec.evaluator.base.NodeEvaluator;
-import lang.exec.objects.Environment;
+import lang.exec.objects.env.Environment;
 import lang.exec.objects.literals.NullObject;
 import lang.exec.evaluator.base.EvaluationContext;
 import lang.ast.expressions.NullExpression;

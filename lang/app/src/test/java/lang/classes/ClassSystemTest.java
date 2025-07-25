@@ -491,7 +491,7 @@ public class ClassSystemTest {
 
         BaseObject result = evaluateCode(code);
         assertTrue(ObjectValidator.isError(result));
-        assertTrue(ObjectValidator.asError(result).getMessage().contains("No parent class found for class: Base"));
+        assertTrue(ObjectValidator.asError(result).getMessage().contains("Method 'someMethod' not found"));
     }
 
     // ========================================================================

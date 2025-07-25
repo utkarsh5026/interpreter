@@ -16,7 +16,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.util.stream.Stream;
 
 import lang.exec.evaluator.LanguageEvaluator;
-import lang.exec.objects.*;
 import lang.exec.objects.base.BaseObject;
 import lang.exec.objects.env.Environment;
 import lang.exec.objects.error.ErrorObject;

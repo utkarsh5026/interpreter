@@ -10,7 +10,6 @@ import lang.lexer.Lexer;
 import lang.parser.LanguageParser;
 import lang.ast.statements.Program;
 import lang.exec.evaluator.LanguageEvaluator;
-import lang.exec.objects.*;
 import lang.exec.objects.base.BaseObject;
 import lang.exec.objects.env.Environment;
 import lang.exec.objects.structures.ArrayObject;

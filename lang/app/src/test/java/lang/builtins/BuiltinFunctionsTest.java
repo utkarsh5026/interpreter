@@ -10,17 +10,12 @@ import lang.exec.builtins.BuiltinFunctions;
 import java.util.*;
 import java.util.stream.IntStream;
 
-import lang.exec.objects.*;
 import lang.exec.objects.base.BaseObject;
 import lang.exec.objects.base.ObjectType;
 import lang.exec.objects.error.ErrorObject;
 import lang.exec.objects.functions.BuiltinObject;
-import lang.exec.objects.literals.BooleanObject;
-import lang.exec.objects.literals.IntegerObject;
-import lang.exec.objects.literals.NullObject;
-import lang.exec.objects.literals.StringObject;
-import lang.exec.objects.structures.ArrayObject;
-import lang.exec.objects.structures.HashObject;
+import lang.exec.objects.literals.*;
+import lang.exec.objects.structures.*;
 
 /**
  * 🧪 Comprehensive Test Suite for Builtin Functions 🧪

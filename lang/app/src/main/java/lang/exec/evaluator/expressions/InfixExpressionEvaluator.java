@@ -2,17 +2,12 @@ package lang.exec.evaluator.expressions;
 
 import java.util.Optional;
 import lang.ast.expressions.InfixExpression;
-
-import lang.exec.base.BaseObject;
-import lang.exec.objects.*;
-import lang.exec.objects.env.Environment;
-import lang.exec.objects.error.ErrorObject;
-import lang.exec.objects.literals.BooleanObject;
-import lang.exec.objects.literals.FloatObject;
-import lang.exec.objects.literals.IntegerObject;
-import lang.exec.objects.literals.StringObject;
 import lang.exec.evaluator.base.EvaluationContext;
 import lang.exec.evaluator.base.NodeEvaluator;
+import lang.exec.objects.base.BaseObject;
+import lang.exec.objects.env.Environment;
+import lang.exec.objects.error.ErrorObject;
+import lang.exec.objects.literals.*;
 import lang.token.TokenPosition;
 
 import lang.exec.validator.*;
@@ -344,28 +339,68 @@ public class InfixExpressionEvaluator implements NodeEvaluator<InfixExpression> 
             EvaluationContext context, InfixExpression node) {
         TokenPosition position = node.position();
 
-        if (ObjectValidator.isNull(left) || ObjectValidator.isNull(right)) {
+        if (hasNullOperand(left, right)) {
             return evalNullInfixExpression(operator, left, right, position, context);
         }
 
-        if (ObjectValidator.isString(left) && ObjectValidator.isString(right))
+        if (areBothStrings(left, right)) {
             return evalStringInfixExpression(operator, left, right, position, context);
+        }
 
-        if ((ObjectValidator.isString(left) && ObjectValidator.isInteger(right)) ||
-                (ObjectValidator.isInteger(left) && ObjectValidator.isString(right))) {
+        if (isStringIntegerMix(left, right)) {
             return evalStringIntegerConcatenation(operator, left, right, position, context);
         }
 
-        if (ObjectValidator.isNumeric(left) && ObjectValidator.isNumeric(right)) {
+        if (areBothNumeric(left, right)) {
             return evalNumericInfixExpression(operator, left, right, position, context);
         }
 
-        if (ObjectValidator.isBoolean(left) && ObjectValidator.isBoolean(right))
+        if (areBothBooleans(left, right)) {
             return evalBooleanInfixExpression(operator, left, right, position, context);
+        }
 
         return createInvalidOperatorError(operator, left, right);
     }
 
+    /**
+     * 🔍 Checks if either operand is null
+     */
+    private boolean hasNullOperand(BaseObject left, BaseObject right) {
+        return ObjectValidator.isNull(left) || ObjectValidator.isNull(right);
+    }
+
+    /**
+     * 🔍 Checks if both operands are strings
+     */
+    private boolean areBothStrings(BaseObject left, BaseObject right) {
+        return ObjectValidator.isString(left) && ObjectValidator.isString(right);
+    }
+
+    /**
+     * 🔍 Checks if one operand is a string and the other is an integer
+     */
+    private boolean isStringIntegerMix(BaseObject left, BaseObject right) {
+        return (ObjectValidator.isString(left) && ObjectValidator.isInteger(right)) ||
+                (ObjectValidator.isInteger(left) && ObjectValidator.isString(right));
+    }
+
+    /**
+     * 🔍 Checks if both operands are numeric
+     */
+    private boolean areBothNumeric(BaseObject left, BaseObject right) {
+        return ObjectValidator.isNumeric(left) && ObjectValidator.isNumeric(right);
+    }
+
+    /**
+     * 🔍 Checks if both operands are booleans
+     */
+    private boolean areBothBooleans(BaseObject left, BaseObject right) {
+        return ObjectValidator.isBoolean(left) && ObjectValidator.isBoolean(right);
+    }
+
+    /**
+     * 🔍 Evaluates null infix expressions
+     */
     private BaseObject evalNullInfixExpression(String operator, BaseObject left, BaseObject right,
             TokenPosition position, EvaluationContext context) {
         switch (operator) {
@@ -378,17 +413,22 @@ public class InfixExpressionEvaluator implements NodeEvaluator<InfixExpression> 
                 return new BooleanObject(!(ObjectValidator.isNull(left) && ObjectValidator.isNull(right)));
 
             default:
-                // All other operations with null are errors
                 return context.createError("Cannot perform '" + operator + "' operation with null values. " +
                         "Only equality (==) and inequality (!=) operations are supported with null.", position);
         }
     }
 
+    /**
+     * 🔍 Creates an invalid operator error
+     */
     private ErrorObject createInvalidOperatorError(String operator, BaseObject left, BaseObject right) {
         return new ErrorObject("Invalid operator '" + operator + "' for types " + left.type() + " and " + right.type()
                 + ". This operation is not supported.");
     }
 
+    /**
+     * 🔍 Creates a type mismatch error
+     */
     private ErrorObject createTypeMismatchError(String operator, BaseObject left, BaseObject right,
             TokenPosition position, EvaluationContext context) {
         return context.createError("Type mismatch: " + left.type() + " " + operator + " " + right.type()

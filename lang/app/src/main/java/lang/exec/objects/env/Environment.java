@@ -5,7 +5,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import lang.exec.base.BaseObject;
+
+import lang.exec.objects.base.BaseObject;
 
 /**
  * Environment represents a lexical scope for variable storage and retrieval.

@@ -11,7 +11,7 @@ import lang.ast.statements.Program;
 import lang.lexer.Lexer;
 import lang.parser.LanguageParser;
 import lang.parser.error.ParseError;
-import lang.exec.base.BaseObject;
+import lang.exec.objects.base.BaseObject;
 import lang.exec.objects.env.Environment;
 import lang.exec.objects.error.ErrorObject;
 import lang.exec.validator.ObjectValidator;

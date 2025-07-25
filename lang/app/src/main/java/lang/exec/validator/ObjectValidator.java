@@ -2,6 +2,7 @@ package lang.exec.validator;
 
 import lang.exec.base.BaseObject;
 import lang.exec.objects.*;
+import lang.exec.objects.classes.ClassObject;
 import lang.exec.objects.functions.BuiltinObject;
 import lang.exec.objects.functions.FunctionObject;
 import lang.exec.objects.functions.ReturnObject;

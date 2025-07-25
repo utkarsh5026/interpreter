@@ -3,19 +3,15 @@ package lang.exec.evaluator.expressions;
 import java.util.Optional;
 import lang.ast.expressions.PropertyExpression;
 import lang.ast.expressions.IndexExpression;
-import lang.exec.evaluator.base.NodeEvaluator;
-
 import lang.exec.validator.ObjectValidator;
 import lang.token.TokenPosition;
 import lang.ast.utils.*;
-import lang.exec.evaluator.base.EvaluationContext;
 import lang.ast.expressions.AssignmentExpression;
-
-import lang.exec.base.BaseObject;
+import lang.exec.evaluator.base.*;
+import lang.exec.objects.base.BaseObject;
 import lang.exec.objects.classes.InstanceObject;
 import lang.exec.objects.env.Environment;
-import lang.exec.objects.structures.ArrayObject;
-import lang.exec.objects.structures.HashObject;
+import lang.exec.objects.structures.*;
 import lang.ast.base.*;
 
 /**
@@ -31,10 +27,19 @@ public class AssignmentExpressionEvaluator implements NodeEvaluator<AssignmentEx
     @Override
     public BaseObject evaluate(AssignmentExpression node, Environment env, EvaluationContext context) {
         BaseObject assignedValue = context.evaluate(node.getValue(), env);
+
         if (ObjectValidator.isError(assignedValue)) {
             return assignedValue;
         }
 
+        return assignToTarget(node, assignedValue, env, context);
+    }
+
+    /**
+     * 🎯 Assigns the assigned value to the target
+     */
+    private BaseObject assignToTarget(AssignmentExpression node, BaseObject assignedValue, Environment env,
+            EvaluationContext context) {
         if (node.isIdentifierAssignment()) {
             return assignToVariable(node, assignedValue, env, context);
         }
@@ -47,9 +52,8 @@ public class AssignmentExpressionEvaluator implements NodeEvaluator<AssignmentEx
             return assignToProperty(node, assignedValue, env, context);
         }
 
-        return context.createError("Invalid assignment target: " + node.getTarget().getClass().getSimpleName(),
-                node.position());
-
+        var errorMessage = String.format("Invalid assignment target: %s", node.getTarget().getClass().getSimpleName());
+        return context.createError(errorMessage, node.position());
     }
 
     /**

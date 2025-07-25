@@ -4,7 +4,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import lang.exec.validator.ObjectValidator;
-import lang.exec.objects.*;
 import lang.exec.objects.base.BaseObject;
 import lang.exec.objects.error.ErrorObject;
 import lang.exec.objects.functions.BuiltinObject;

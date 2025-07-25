@@ -12,6 +12,7 @@ import lang.exec.evaluator.base.EvaluationContext;
 import lang.exec.evaluator.base.NodeEvaluator;
 import lang.exec.objects.base.BaseObject;
 import lang.exec.objects.env.Environment;
+import lang.exec.objects.env.EnvironmentFactory;
 import lang.exec.objects.error.ErrorObject;
 import lang.exec.objects.functions.FunctionObject;
 import lang.exec.validator.ObjectValidator;
@@ -48,8 +49,7 @@ public class ClassStatementEvaluator implements NodeEvaluator<ClassStatement> {
             return context.createError(errorMessage, node.position());
         }
 
-        Environment classEnv = new Environment(env, false);
-
+        Environment classEnv = EnvironmentFactory.createFunctionScope(env);
         Optional<FunctionObject> constructor = Optional.empty();
         if (node.hasConstructor()) {
             FunctionLiteral constructorLiteral = node.getConstructor().get();
@@ -59,17 +59,14 @@ public class ClassStatementEvaluator implements NodeEvaluator<ClassStatement> {
                     constructorLiteral.getBody()));
         }
 
-        Map<String, Method> methods = createMethods(node, classEnv);
+        Map<String, MethodObject> methods = createMethods(node, classEnv);
         ClassObject classObj = new ClassObject(className,
                 parentClassResolution.parentClass(),
                 constructor,
                 methods,
                 classEnv);
 
-        System.out.println("classObj: " + classObj.inspect());
-
         env.defineVariable(className, classObj);
-
         return classObj;
     }
 
@@ -108,6 +105,12 @@ public class ClassStatementEvaluator implements NodeEvaluator<ClassStatement> {
                 error = Optional.of(new ErrorObject("Circular inheritance detected: " + className +
                         " cannot extend " + parentClassName));
             }
+        } else {
+            if (!className.equals(BaseObjectClass.BASE_OBJECT_CLASS_NAME)) {
+                // All classes except Object itself should inherit from Object
+                BaseObjectClass baseObjectClass = BaseObjectClass.getInstance();
+                parentClass = Optional.of(baseObjectClass);
+            }
         }
 
         return new ParentClassResolution(parentClass, error);
@@ -116,13 +119,13 @@ public class ClassStatementEvaluator implements NodeEvaluator<ClassStatement> {
     /**
      * 🔧 Creates a map of method function objects from a class definition
      */
-    private Map<String, Method> createMethods(ClassStatement node, Environment classEnv) {
-        Map<String, Method> methods = new HashMap<>();
+    private Map<String, MethodObject> createMethods(ClassStatement node, Environment classEnv) {
+        Map<String, MethodObject> methods = new HashMap<>();
         for (MethodDefinition methodDef : node.getMethods()) {
             String methodName = methodDef.name().getValue();
 
             var funcLiteral = methodDef.function();
-            Method method = new UserDefinedMethod(methodName,
+            MethodObject method = new UserDefinedMethod(methodName,
                     funcLiteral.getParameters(),
                     funcLiteral.getBody(),
                     classEnv);

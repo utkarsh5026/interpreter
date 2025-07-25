@@ -4,9 +4,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Collections;
 
-import lang.exec.base.BaseObject;
-import lang.exec.base.ObjectType;
 import lang.exec.debug.StackFrame;
+import lang.exec.objects.base.*;
 import lang.exec.debug.CallStack;
 import lang.token.TokenPosition;
 import lang.lexer.debug.DebugColors;

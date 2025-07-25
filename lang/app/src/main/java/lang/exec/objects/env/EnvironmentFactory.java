@@ -1,8 +1,7 @@
-package lang.exec.utils;
+package lang.exec.objects.env;
 
 import java.util.Map;
 
-import lang.exec.objects.env.Environment;
 import lang.exec.objects.functions.BuiltinObject;
 import lang.exec.builtins.BuiltinRegistry;
 
@@ -17,7 +16,7 @@ public class EnvironmentFactory {
     /**
      * Creates a global environment with builtin functions
      */
-    public Environment createGlobalEnvironment(BuiltinRegistry builtinRegistry) {
+    public static final Environment createGlobalEnvironment(BuiltinRegistry builtinRegistry) {
         Environment global = new Environment();
 
         Map<String, BuiltinObject> builtins = BuiltinRegistry.getAllBuiltins();
@@ -31,21 +30,21 @@ public class EnvironmentFactory {
     /**
      * Creates a function scope for function calls
      */
-    public Environment createFunctionScope(Environment parent) {
+    public static final Environment createFunctionScope(Environment parent) {
         return new Environment(parent, false);
     }
 
     /**
      * Creates a block scope for { } blocks
      */
-    public Environment createBlockScope(Environment parent) {
+    public static final Environment createBlockScope(Environment parent) {
         return new Environment(parent, true);
     }
 
     /**
      * Creates a loop scope (for break/continue handling)
      */
-    public Environment createLoopScope(Environment parent) {
+    public static final Environment createLoopScope(Environment parent) {
         return new Environment(parent, true);
     }
 }

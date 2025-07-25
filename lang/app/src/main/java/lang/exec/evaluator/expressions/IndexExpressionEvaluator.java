@@ -1,14 +1,13 @@
 package lang.exec.evaluator.expressions;
 
-import lang.exec.evaluator.base.NodeEvaluator;
-import lang.exec.evaluator.base.EvaluationContext;
 import lang.ast.expressions.IndexExpression;
-import lang.exec.base.BaseObject;
+import lang.exec.evaluator.base.EvaluationContext;
+import lang.exec.evaluator.base.NodeEvaluator;
 import lang.exec.validator.ObjectValidator;
+import lang.exec.objects.base.BaseObject;
 import lang.exec.objects.env.Environment;
 import lang.exec.objects.literals.NullObject;
-import lang.exec.objects.structures.ArrayObject;
-import lang.exec.objects.structures.HashObject;
+import lang.exec.objects.structures.*;
 import lang.ast.base.Expression;
 
 public class IndexExpressionEvaluator implements NodeEvaluator<IndexExpression> {
@@ -41,10 +40,10 @@ public class IndexExpressionEvaluator implements NodeEvaluator<IndexExpression> 
         }
 
         int arrIndex = (int) ObjectValidator.asInteger(indexObject).getValue();
-
-        if (arrIndex < 0 || arrIndex >= arrayObject.getElements().size()) {
-            return context.createError("Index out of bounds: " + arrIndex + " is not in the range [0, "
-                    + arrayObject.getElements().size() + ")", index.position());
+        int arrSize = arrayObject.getElements().size();
+        if (arrIndex < 0 || arrIndex >= arrSize) {
+            var errorMessage = String.format("Index out of bounds: %d is not in the range [0, %d]", arrIndex, arrSize);
+            return context.createError(errorMessage, index.position());
         }
 
         return arrayObject.getElements().get(arrIndex);

@@ -1,7 +1,7 @@
 package lang.exec.objects.loop;
 
-import lang.exec.base.BaseObject;
-import lang.exec.base.ObjectType;
+import lang.exec.objects.base.BaseObject;
+import lang.exec.objects.base.ObjectType;
 
 public class ContinueObject implements BaseObject {
     public static final ContinueObject INSTANCE = new ContinueObject();

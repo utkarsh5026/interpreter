@@ -37,4 +37,11 @@ public final class NullObject implements BaseObject {
     public int hashCode() {
         return 0;
     }
+
+    /**
+     * Returns the singleton instance of NullObject.
+     */
+    public static BaseObject getInstance() {
+        return INSTANCE;
+    }
 }

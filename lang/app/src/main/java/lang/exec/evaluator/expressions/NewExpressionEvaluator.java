@@ -1,17 +1,17 @@
 package lang.exec.evaluator.expressions;
 
 import java.util.List;
+import java.util.Optional;
 
 import lang.ast.expressions.NewExpression;
-import lang.exec.base.BaseObject;
 import lang.exec.evaluator.base.EvaluationContext;
 import lang.exec.evaluator.base.NodeEvaluator;
-import lang.exec.objects.*;
-import lang.exec.objects.classes.ClassObject;
-import lang.exec.objects.classes.InstanceObject;
+import lang.exec.objects.base.BaseObject;
+import lang.exec.objects.classes.*;
 import lang.exec.objects.env.Environment;
 import lang.exec.objects.functions.FunctionObject;
 import lang.exec.objects.literals.NullObject;
+import lang.exec.objects.error.ErrorObject;
 import lang.exec.validator.ObjectValidator;
 
 /**
@@ -29,6 +29,34 @@ public class NewExpressionEvaluator implements NodeEvaluator<NewExpression> {
 
     @Override
     public BaseObject evaluate(NewExpression node, Environment env, EvaluationContext context) {
+        BaseObject clazz = getClassObject(node, env, context);
+        if (ObjectValidator.isError(clazz)) {
+            return clazz;
+        }
+
+        ClassObject classObject = ObjectValidator.asClass(clazz);
+        List<BaseObject> arguments = context.evaluateExpressions(node.getArguments(), env);
+        for (BaseObject arg : arguments) {
+            if (ObjectValidator.isError(arg)) {
+                return arg;
+            }
+        }
+
+        InstanceObject instance = classObject.createInstance();
+        Optional<ErrorObject> constructorResult = createConstructor(classObject, arguments, env, context, instance,
+                node);
+
+        if (constructorResult.isPresent()) {
+            return constructorResult.get();
+        }
+
+        return instance;
+    }
+
+    /**
+     * 🔍 Evaluates the class object from the new expression
+     */
+    private BaseObject getClassObject(NewExpression node, Environment env, EvaluationContext context) {
         BaseObject classObj = context.evaluate(node.getClassName(), env);
         if (ObjectValidator.isError(classObj)) {
             return classObj;
@@ -38,41 +66,49 @@ public class NewExpressionEvaluator implements NodeEvaluator<NewExpression> {
             return context.createError("Cannot instantiate non-class object: " + classObj.type(), node.position());
         }
 
-        ClassObject clazz = (ClassObject) classObj;
-        List<BaseObject> arguments = context.evaluateExpressions(node.getArguments(), env);
-        for (BaseObject arg : arguments) {
-            if (ObjectValidator.isError(arg)) {
-                return arg;
-            }
-        }
+        return classObj;
+    }
 
-        InstanceObject instance = clazz.createInstance();
-        if (clazz.hasConstructor()) {
-            FunctionObject constructor = clazz.getConstructor().get();
+    /**
+     * 🔍 Creates a constructor for the class object
+     */
+    private Optional<ErrorObject> createConstructor(
+            ClassObject classObject,
+            List<BaseObject> arguments,
+            Environment env,
+            EvaluationContext context,
+            InstanceObject instance,
+            NewExpression node) {
+        if (classObject.hasConstructor()) {
+            FunctionObject constructor = classObject.getConstructor().get();
 
             int requiredArgs = constructor.getParameters().size();
             if (arguments.size() != requiredArgs) {
                 String message = String.format("Constructor argument mismatchs: %s requires %d got %d",
-                        clazz.getName(), requiredArgs, arguments.size());
-                return context.createError(message, node.position());
+                        classObject.getName(), requiredArgs, arguments.size());
+                return Optional.of(context.createError(message, node.position()));
             }
 
             BaseObject constructorResult = callConstructor(constructor, instance, arguments, env, context);
             if (ObjectValidator.isError(constructorResult)) {
-                return constructorResult;
+                return Optional.of(ObjectValidator.asError(constructorResult));
             }
         } else if (node.hasArguments()) {
-            return context.createError("No constructor found for class: " + clazz.getName(), node.position());
+            return Optional.of(context.createError("No constructor found for class: " + classObject.getName(),
+                    node.position()));
         }
 
-        return instance;
+        return Optional.empty();
     }
 
     /**
      * 🏗️ Calls a constructor function with proper this binding
      */
-    private BaseObject callConstructor(FunctionObject constructor, InstanceObject instance,
-            List<BaseObject> arguments, Environment env,
+    private BaseObject callConstructor(
+            FunctionObject constructor,
+            InstanceObject instance,
+            List<BaseObject> arguments,
+            Environment env,
             EvaluationContext context) {
         Environment constructorEnv = new Environment(constructor.getEnvironment(), false);
         constructorEnv.defineVariable("this", instance);

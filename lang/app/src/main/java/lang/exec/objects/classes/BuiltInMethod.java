@@ -13,7 +13,7 @@ import lang.exec.objects.error.ErrorObject;
  * These methods are implemented directly in Java code, not parsed from source.
  * No need for dummy AST nodes - they're pure Java functions.
  */
-public class BuiltInMethod extends Method {
+public class BuiltInMethod extends MethodObject {
 
     /**
      * 🔧 Function interface for built-in method implementations
@@ -36,7 +36,7 @@ public class BuiltInMethod extends Method {
     }
 
     @Override
-    public BaseObject call(BaseObject instance, BaseObject[] arguments, EvaluationContext context) {
+    public BaseObject call(InstanceObject instance, BaseObject[] arguments, EvaluationContext context) {
         var error = validateArgumentCount(arguments, parameterNames.size());
         if (error.isPresent())
             return context.createError(error.get().getMessage(), null);

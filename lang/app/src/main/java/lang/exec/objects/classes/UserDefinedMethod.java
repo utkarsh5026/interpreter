@@ -17,7 +17,7 @@ import lang.ast.statements.BlockStatement;
  * This is what we had before with FunctionObject, but now it's specifically for
  * user code.
  */
-public class UserDefinedMethod extends Method {
+public class UserDefinedMethod extends MethodObject {
     private final List<Identifier> parameters;
     private final BlockStatement body;
 
@@ -28,7 +28,7 @@ public class UserDefinedMethod extends Method {
     }
 
     @Override
-    public BaseObject call(BaseObject instance, BaseObject[] arguments, EvaluationContext context) {
+    public BaseObject call(InstanceObject instance, BaseObject[] arguments, EvaluationContext context) {
         var error = validateArgumentCount(arguments, parameters.size());
         if (error.isPresent())
             return context.createError(error.get().getMessage(), null);

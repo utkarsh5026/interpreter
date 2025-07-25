@@ -22,12 +22,12 @@ import lang.exec.objects.env.Environment;
  * This abstraction handles both types without forcing one into the shape of the
  * other.
  */
-public abstract class Method implements BaseObject {
+public abstract class MethodObject implements BaseObject {
     protected final String name;
     protected final String description;
     protected final Environment environment;
 
-    protected Method(String name, String description, Environment environment) {
+    protected MethodObject(String name, String description, Environment environment) {
         this.name = name;
         this.description = description;
         this.environment = environment;
@@ -36,7 +36,7 @@ public abstract class Method implements BaseObject {
     /**
      * 📞 Calls this method with the given instance and arguments
      */
-    public abstract BaseObject call(BaseObject instance, BaseObject[] arguments, EvaluationContext context);
+    public abstract BaseObject call(InstanceObject instance, BaseObject[] arguments, EvaluationContext context);
 
     /**
      * ✅ Validates that the correct number of arguments were provided

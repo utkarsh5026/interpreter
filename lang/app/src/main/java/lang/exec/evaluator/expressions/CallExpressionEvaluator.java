@@ -2,7 +2,6 @@ package lang.exec.evaluator.expressions;
 
 import java.util.List;
 
-import lang.ast.base.Identifier;
 import lang.exec.objects.base.BaseObject;
 import lang.exec.objects.classes.InstanceBoundMethod;
 import lang.exec.objects.env.Environment;
@@ -93,38 +92,11 @@ public class CallExpressionEvaluator implements NodeEvaluator<CallExpression> {
             EvaluationContext context,
             CallExpression caller) {
         FunctionObject functionObject = ObjectValidator.asFunction(function);
-        List<Identifier> parameters = functionObject.getParameters();
-
-        if (args.size() != parameters.size()) {
-            String message = String.format(
-                    "Wrong number of arguments. Expected %d, got %d",
-                    functionObject.getParameters().size(), args.size());
-
-            return context.createError(message, caller.getFunction().position());
-        }
-
         String functionName = determineFunctionName(caller);
         context.enterFunction(functionName, caller.getFunction().position(), StackFrame.FrameType.USER_FUNCTION);
 
         try {
-            Environment extendedEnv = new Environment(functionObject.getEnvironment(), false);
-
-            for (int i = 0; i < parameters.size(); i++) {
-                String paramName = parameters.get(i).getValue();
-                extendedEnv.defineVariable(paramName, args.get(i));
-            }
-
-            BaseObject result = context.evaluate(functionObject.getBody(), extendedEnv);
-            if (ObjectValidator.isError(result)) {
-                return result;
-            }
-
-            if (ObjectValidator.isReturnValue(result)) {
-                return ObjectValidator.asReturnValue(result).getValue();
-            }
-
-            return result;
-
+            return functionObject.execute(args.toArray(new BaseObject[0]), context);
         } finally {
             context.exitFunction();
         }
@@ -146,8 +118,13 @@ public class CallExpressionEvaluator implements NodeEvaluator<CallExpression> {
     private BaseObject applyClassMethod(InstanceBoundMethod method, List<BaseObject> args, EvaluationContext context,
             CallExpression caller) {
         BaseObject result = method.call(args.toArray(new BaseObject[0]), context);
+
         if (ObjectValidator.isError(result)) {
             return context.createError(ObjectValidator.asError(result).getMessage(), caller.getFunction().position());
+        }
+
+        if (ObjectValidator.isReturnValue(result)) {
+            return ObjectValidator.asReturnValue(result).getValue();
         }
         return result;
     }

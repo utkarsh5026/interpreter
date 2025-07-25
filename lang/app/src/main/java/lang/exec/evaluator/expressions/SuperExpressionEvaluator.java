@@ -132,14 +132,17 @@ public class SuperExpressionEvaluator implements NodeEvaluator<SuperExpression> 
         }
 
         MethodObject parentMethod = method.get();
-        int requiredArgs = parentMethod.getParameterCount();
-        if (arguments.size() != requiredArgs) {
-            var errorMessage = String.format(ARGUMENT_MISMATCH_ERROR, parentClass.getName(), requiredArgs,
-                    arguments.size());
-            return context.createError(errorMessage, node.position());
+        BaseObject result = parentMethod.call(instance, arguments.toArray(new BaseObject[0]), context,
+                methodEnv -> {
+                    methodEnv.defineVariable(CLASS_CONTEXT_VAR, new ClassContextObject(parentClass));
+                    return methodEnv;
+                });
+
+        if (ObjectValidator.isReturnValue(result)) {
+            return ObjectValidator.asReturnValue(result).getValue();
         }
 
-        return callParentMethod(parentMethod, instance, arguments, parentClass, env, context);
+        return result;
     }
 
     /**
@@ -169,35 +172,6 @@ public class SuperExpressionEvaluator implements NodeEvaluator<SuperExpression> 
         }
 
         return context.evaluate(constructor.getBody(), constructorEnv);
-    }
-
-    /**
-     * 🔧 Calls parent method with proper this binding
-     */
-    private BaseObject callParentMethod(
-            MethodObject method,
-            InstanceObject instance,
-            List<BaseObject> arguments,
-            ClassObject parentClass,
-            Environment env,
-            EvaluationContext context) {
-
-        Environment methodEnv = new Environment(method.getEnvironment(), false);
-        methodEnv.defineVariable(THIS_VARIABLE, instance);
-        methodEnv.defineVariable(CLASS_CONTEXT_VAR, new ClassContextObject(parentClass));
-
-        List<String> paramNames = method.getParameterNames();
-        for (int i = 0; i < paramNames.size(); i++) {
-            methodEnv.defineVariable(paramNames.get(i), arguments.get(i));
-        }
-
-        BaseObject result = method.call(instance, arguments.toArray(new BaseObject[0]), context);
-
-        if (ObjectValidator.isReturnValue(result)) {
-            return ObjectValidator.asReturnValue(result).getValue();
-        }
-
-        return result;
     }
 
     /**

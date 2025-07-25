@@ -1,8 +1,7 @@
 package lang.exec.validator;
 
 import lang.exec.objects.base.BaseObject;
-import lang.exec.objects.classes.ClassObject;
-import lang.exec.objects.classes.InstanceObject;
+import lang.exec.objects.classes.*;
 import lang.exec.objects.error.ErrorObject;
 import lang.exec.objects.functions.*;
 import lang.exec.objects.literals.*;
@@ -11,6 +10,7 @@ import lang.exec.objects.loop.ContinueObject;
 import lang.exec.objects.structures.ArrayObject;
 import lang.exec.objects.structures.HashObject;
 import lang.ast.base.Identifier;
+import lang.exec.objects.classes.MethodObject;
 
 /**
  * Utility class for type checking objects without casting.
@@ -93,6 +93,14 @@ public final class ObjectValidator {
         return obj instanceof Identifier;
     }
 
+    public static boolean isMethod(BaseObject obj) {
+        return obj instanceof MethodObject;
+    }
+
+    public static boolean isInstanceBoundMethod(BaseObject obj) {
+        return obj instanceof InstanceBoundMethod;
+    }
+
     /**
      * Safe casting methods that return Optional or null.
      * These provide type-safe access to specific object types.
@@ -155,5 +163,13 @@ public final class ObjectValidator {
 
     public static Identifier asIdentifier(BaseObject obj) {
         return obj instanceof Identifier ? (Identifier) obj : null;
+    }
+
+    public static final ClassObject asClass(BaseObject obj) {
+        return obj instanceof ClassObject ? (ClassObject) obj : null;
+    }
+
+    public static InstanceBoundMethod asInstanceBoundMethod(BaseObject obj) {
+        return obj instanceof InstanceBoundMethod ? (InstanceBoundMethod) obj : null;
     }
 }

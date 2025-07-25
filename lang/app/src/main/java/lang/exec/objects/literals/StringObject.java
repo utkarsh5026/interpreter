@@ -1,7 +1,6 @@
 package lang.exec.objects.literals;
 
-import lang.exec.base.BaseObject;
-import lang.exec.base.ObjectType;
+import lang.exec.objects.base.*;
 
 /**
  * String object for text values.

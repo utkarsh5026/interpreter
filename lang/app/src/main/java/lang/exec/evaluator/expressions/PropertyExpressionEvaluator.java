@@ -6,14 +6,14 @@ import lang.ast.base.Expression;
 import lang.ast.expressions.PropertyExpression;
 import lang.ast.utils.AstCaster;
 import lang.ast.utils.AstValidator;
-import lang.exec.base.BaseObject;
 import lang.exec.evaluator.base.EvaluationContext;
 import lang.exec.evaluator.base.NodeEvaluator;
-import lang.exec.objects.*;
+import lang.exec.objects.base.BaseObject;
 import lang.exec.objects.classes.InstanceObject;
 import lang.exec.objects.env.Environment;
-import lang.exec.objects.functions.FunctionObject;
 import lang.exec.validator.ObjectValidator;
+import lang.exec.objects.classes.MethodObject;
+import lang.exec.objects.classes.InstanceBoundMethod;
 
 /**
  * 🔗 PropertyExpressionEvaluator - Property Access Evaluator 🔗
@@ -64,24 +64,14 @@ public class PropertyExpressionEvaluator implements NodeEvaluator<PropertyExpres
             return property.get();
         }
 
-        Optional<FunctionObject> method = instance.findMethod(propertyName);
+        Optional<MethodObject> method = instance.findMethod(propertyName);
         if (method.isPresent()) {
-            return createBoundMethod(method.get(), instance);
+            return new InstanceBoundMethod(method.get(), instance);
         }
 
         String message = String.format("Property '%s' not found on instance of %s",
                 propertyName, instance.getClassObject().getName());
         return context.createError(message, node.position());
-    }
-
-    /**
-     * 🔗 Creates a bound method (method with 'this' pre-bound to instance)
-     */
-    private BaseObject createBoundMethod(FunctionObject method, InstanceObject instance) {
-        Environment boundEnv = new Environment(method.getEnvironment(), false);
-        boundEnv.defineVariable("this", instance);
-
-        return new FunctionObject(boundEnv, method.getParameters(), method.getBody());
     }
 
     /**

@@ -1,4 +1,4 @@
-package lang.exec.base;
+package lang.exec.objects.base;
 
 /**
  * Base interface for all object types in the interpreter.

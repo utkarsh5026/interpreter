@@ -1,4 +1,4 @@
-package lang.exec.base;
+package lang.exec.objects.base;
 
 /**
  * Enumeration of all object types in the interpreter.

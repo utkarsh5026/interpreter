@@ -13,6 +13,7 @@ import lang.ast.expressions.AssignmentExpression;
 
 import lang.exec.base.BaseObject;
 import lang.exec.objects.*;
+import lang.exec.objects.classes.InstanceObject;
 import lang.ast.base.*;
 
 /**

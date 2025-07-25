@@ -17,6 +17,7 @@ import java.util.stream.Stream;
 
 import lang.exec.evaluator.LanguageEvaluator;
 import lang.exec.objects.*;
+import lang.exec.objects.base.BaseObject;
 import lang.exec.objects.env.Environment;
 import lang.exec.objects.error.ErrorObject;
 import lang.exec.objects.literals.BooleanObject;
@@ -25,7 +26,6 @@ import lang.exec.objects.literals.IntegerObject;
 import lang.exec.objects.literals.NullObject;
 import lang.exec.objects.literals.StringObject;
 import lang.exec.objects.structures.ArrayObject;
-import lang.exec.base.BaseObject;
 import lang.parser.LanguageParser;
 import lang.lexer.Lexer;
 

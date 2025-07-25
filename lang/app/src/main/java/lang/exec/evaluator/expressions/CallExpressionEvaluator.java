@@ -4,10 +4,10 @@ import java.util.List;
 
 import lang.ast.base.Identifier;
 import lang.exec.objects.base.BaseObject;
+import lang.exec.objects.classes.InstanceBoundMethod;
 import lang.exec.objects.env.Environment;
 import lang.exec.objects.error.ErrorObject;
-import lang.exec.objects.functions.BuiltinObject;
-import lang.exec.objects.functions.FunctionObject;
+import lang.exec.objects.functions.*;
 import lang.exec.validator.ObjectValidator;
 import lang.token.TokenPosition;
 import lang.ast.expressions.CallExpression;
@@ -18,6 +18,9 @@ import lang.exec.evaluator.base.NodeEvaluator;
 
 public class CallExpressionEvaluator implements NodeEvaluator<CallExpression> {
 
+    /**
+     * Evaluates a call expression and returns the result.
+     */
     @Override
     public BaseObject evaluate(CallExpression node, Environment env, EvaluationContext context) {
 
@@ -45,6 +48,11 @@ public class CallExpressionEvaluator implements NodeEvaluator<CallExpression> {
 
         if (ObjectValidator.isFunction(function)) {
             return applyUserFunction(function, args, context, caller);
+        }
+
+        if (ObjectValidator.isInstanceBoundMethod(function)) {
+            InstanceBoundMethod instanceBoundMethod = ObjectValidator.asInstanceBoundMethod(function);
+            return applyClassMethod(instanceBoundMethod, args, context, caller);
         }
 
         return context.createError("Not a function: " + function.type(), functionPos);
@@ -130,5 +138,17 @@ public class CallExpressionEvaluator implements NodeEvaluator<CallExpression> {
             return AstCaster.asIdentifier(node.getFunction()).getValue();
         }
         return "<anonymous>";
+    }
+
+    /**
+     * Applies a class method to the given arguments and returns the result.
+     */
+    private BaseObject applyClassMethod(InstanceBoundMethod method, List<BaseObject> args, EvaluationContext context,
+            CallExpression caller) {
+        BaseObject result = method.call(args.toArray(new BaseObject[0]), context);
+        if (ObjectValidator.isError(result)) {
+            return context.createError(ObjectValidator.asError(result).getMessage(), caller.getFunction().position());
+        }
+        return result;
     }
 }

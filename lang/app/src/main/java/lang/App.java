@@ -3,11 +3,10 @@ package lang;
 import lang.lexer.Lexer;
 import lang.parser.LanguageParser;
 import lang.exec.evaluator.LanguageEvaluator;
+import lang.exec.objects.base.BaseObject;
 import lang.exec.objects.env.Environment;
-import lang.exec.base.BaseObject;
 import lang.ast.statements.Program;
 import lang.exec.validator.ObjectValidator;
-import lang.repl.LanguageREPL;
 
 public class App {
 
@@ -21,25 +20,9 @@ public class App {
      * Helper method to evaluate code and return the result
      */
     public static BaseObject evaluateCode() {
+
         String code = """
-                class A {
-                    method() { return "A"; }
-                }
-
-                class B extends A {
-                    method() { return "B"; }
-                }
-
-                class C extends B {
-                    # Inherits B's version of method
-                }
-
-                class D extends C {
-                    method() { return "D"; }
-                }
-
-                let d = new D();
-                d.method();
+                unknownVariable;
                 """;
 
         Environment globalEnvironment = new Environment();

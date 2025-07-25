@@ -1,6 +1,6 @@
 package lang.exec.validator;
 
-import lang.exec.base.BaseObject;
+import lang.exec.objects.base.BaseObject;
 import lang.exec.objects.classes.ClassObject;
 import lang.exec.objects.classes.InstanceObject;
 import lang.exec.objects.error.ErrorObject;

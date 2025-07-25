@@ -2,6 +2,8 @@ package lang.exec.validator;
 
 import lang.exec.base.BaseObject;
 import lang.exec.objects.*;
+import lang.exec.objects.loop.BreakObject;
+import lang.exec.objects.loop.ContinueObject;
 import lang.ast.base.Identifier;
 
 /**

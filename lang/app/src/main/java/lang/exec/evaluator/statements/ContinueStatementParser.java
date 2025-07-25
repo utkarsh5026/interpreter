@@ -2,10 +2,10 @@ package lang.exec.evaluator.statements;
 
 import lang.exec.evaluator.base.NodeEvaluator;
 import lang.exec.objects.Environment;
+import lang.exec.objects.loop.ContinueObject;
 import lang.exec.evaluator.base.EvaluationContext;
 import lang.ast.statements.ContinueStatement;
 import lang.exec.base.BaseObject;
-import lang.exec.objects.ContinueObject;
 
 public class ContinueStatementParser implements NodeEvaluator<ContinueStatement> {
 

@@ -4,7 +4,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import lang.exec.objects.BuiltinObject;
+import lang.exec.objects.functions.BuiltinObject;
 
 /**
  * 🗂️ BuiltinRegistry - The Function Library Manager 🗂️

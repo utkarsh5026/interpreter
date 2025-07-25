@@ -9,11 +9,11 @@ import lang.exec.evaluator.base.NodeEvaluator;
 import lang.exec.base.BaseObject;
 
 import lang.exec.objects.Environment;
+import lang.exec.objects.literals.NullObject;
 import lang.exec.validator.ObjectValidator;
 
 import lang.ast.expressions.IfExpression;
 import lang.exec.evaluator.base.EvaluationContext;
-import lang.exec.objects.NullObject;
 
 public class IfExpressionEvaluator implements NodeEvaluator<IfExpression> {
 

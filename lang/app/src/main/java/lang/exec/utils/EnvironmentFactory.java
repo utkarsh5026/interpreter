@@ -2,8 +2,8 @@ package lang.exec.utils;
 
 import java.util.Map;
 
-import lang.exec.objects.BuiltinObject;
 import lang.exec.objects.Environment;
+import lang.exec.objects.functions.BuiltinObject;
 import lang.exec.builtins.BuiltinRegistry;
 
 /**

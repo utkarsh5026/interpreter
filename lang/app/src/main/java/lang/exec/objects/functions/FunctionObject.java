@@ -1,4 +1,4 @@
-package lang.exec.objects;
+package lang.exec.objects.functions;
 
 import java.util.List;
 
@@ -6,6 +6,7 @@ import lang.ast.statements.BlockStatement;
 import lang.ast.base.Identifier;
 import lang.exec.base.BaseObject;
 import lang.exec.base.ObjectType;
+import lang.exec.objects.Environment;
 
 /**
  * FunctionObject represents a function in the language.

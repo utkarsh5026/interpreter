@@ -8,6 +8,7 @@ import java.util.ArrayList;
 
 import lang.exec.base.BaseObject;
 import lang.exec.base.ObjectType;
+import lang.exec.objects.functions.FunctionObject;
 
 /**
  * 🏛️ ClassObject - Runtime Class Representation 🏛️

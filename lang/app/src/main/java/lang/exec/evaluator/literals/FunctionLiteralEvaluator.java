@@ -4,9 +4,9 @@ import lang.exec.evaluator.base.NodeEvaluator;
 import lang.exec.base.BaseObject;
 
 import lang.exec.objects.Environment;
+import lang.exec.objects.functions.FunctionObject;
 import lang.exec.evaluator.base.EvaluationContext;
 import lang.ast.literals.FunctionLiteral;
-import lang.exec.objects.FunctionObject;
 
 public class FunctionLiteralEvaluator implements NodeEvaluator<FunctionLiteral> {
 

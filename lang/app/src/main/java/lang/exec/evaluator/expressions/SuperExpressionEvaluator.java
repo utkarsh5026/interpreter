@@ -10,6 +10,7 @@ import lang.exec.base.BaseObject;
 import lang.exec.evaluator.base.EvaluationContext;
 import lang.exec.evaluator.base.NodeEvaluator;
 import lang.exec.objects.*;
+import lang.exec.objects.functions.FunctionObject;
 import lang.exec.validator.ObjectValidator;
 import lang.ast.base.Expression;
 import lang.exec.base.ObjectType;

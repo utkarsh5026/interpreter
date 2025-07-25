@@ -7,6 +7,8 @@ import lang.ast.base.Identifier;
 import lang.exec.evaluator.base.NodeEvaluator;
 import lang.exec.base.BaseObject;
 import lang.exec.objects.*;
+import lang.exec.objects.functions.BuiltinObject;
+import lang.exec.objects.functions.FunctionObject;
 import lang.exec.validator.ObjectValidator;
 import lang.token.TokenPosition;
 import lang.ast.expressions.CallExpression;

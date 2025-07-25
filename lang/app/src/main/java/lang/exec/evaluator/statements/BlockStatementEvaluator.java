@@ -7,8 +7,7 @@ import lang.exec.evaluator.base.NodeEvaluator;
 import lang.exec.base.BaseObject;
 
 import lang.exec.objects.Environment;
-import lang.exec.objects.NullObject;
-
+import lang.exec.objects.literals.NullObject;
 import lang.ast.statements.BlockStatement;
 import lang.exec.evaluator.base.EvaluationContext;
 

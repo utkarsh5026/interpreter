@@ -7,6 +7,8 @@ import lang.exec.base.BaseObject;
 import lang.exec.evaluator.base.EvaluationContext;
 import lang.exec.evaluator.base.NodeEvaluator;
 import lang.exec.objects.*;
+import lang.exec.objects.functions.FunctionObject;
+import lang.exec.objects.literals.NullObject;
 import lang.exec.validator.ObjectValidator;
 
 /**

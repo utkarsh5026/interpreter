@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import lang.exec.base.BaseObject;
 import lang.exec.validator.ObjectValidator;
 import lang.exec.objects.*;
+import lang.exec.objects.functions.BuiltinObject;
 import lang.exec.objects.literals.*;
 
 /**

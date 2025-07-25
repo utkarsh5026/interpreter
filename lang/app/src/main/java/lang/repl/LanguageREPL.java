@@ -362,8 +362,8 @@ public class LanguageREPL {
             System.out.printf("\n%s📂 %s:%s\n", BRIGHT_MAGENTA, category, RESET);
             functions.forEach(func -> {
                 BaseObject builtin = BuiltinRegistry.getBuiltin(func);
-                if (builtin instanceof lang.exec.objects.BuiltinObject) {
-                    String desc = ((lang.exec.objects.BuiltinObject) builtin).getDescription();
+                if (builtin instanceof lang.exec.objects.functions.BuiltinObject) {
+                    String desc = ((lang.exec.objects.functions.BuiltinObject) builtin).getDescription();
                     System.out.printf("  %s%-15s%s %s%s\n", CYAN, func, RESET, DIM, desc, RESET);
                 }
             });

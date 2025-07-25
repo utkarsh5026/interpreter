@@ -1,4 +1,4 @@
-package lang.exec.objects;
+package lang.exec.objects.functions;
 
 import lang.exec.builtins.BuiltinFunction;
 import lang.exec.base.BaseObject;

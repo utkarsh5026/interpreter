@@ -2,7 +2,7 @@ package lang.exec.evaluator.literals;
 
 import lang.exec.evaluator.base.NodeEvaluator;
 import lang.exec.objects.Environment;
-import lang.exec.objects.NullObject;
+import lang.exec.objects.literals.NullObject;
 import lang.exec.evaluator.base.EvaluationContext;
 import lang.ast.expressions.NullExpression;
 import lang.exec.base.BaseObject;

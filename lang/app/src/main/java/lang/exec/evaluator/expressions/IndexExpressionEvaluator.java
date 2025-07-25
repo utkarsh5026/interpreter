@@ -9,7 +9,7 @@ import lang.exec.base.BaseObject;
 import lang.exec.objects.ArrayObject;
 import lang.exec.validator.ObjectValidator;
 import lang.exec.objects.HashObject;
-import lang.exec.objects.NullObject;
+import lang.exec.objects.literals.NullObject;
 import lang.ast.base.Expression;
 
 public class IndexExpressionEvaluator implements NodeEvaluator<IndexExpression> {

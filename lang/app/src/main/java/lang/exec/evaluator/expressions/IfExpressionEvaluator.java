@@ -4,15 +4,14 @@ import java.util.List;
 import java.util.Optional;
 import lang.ast.base.Expression;
 import lang.ast.statements.BlockStatement;
-
+import lang.exec.evaluator.base.EvaluationContext;
 import lang.exec.evaluator.base.NodeEvaluator;
-import lang.exec.base.BaseObject;
+import lang.exec.objects.base.BaseObject;
 import lang.exec.objects.env.Environment;
 import lang.exec.objects.literals.NullObject;
 import lang.exec.validator.ObjectValidator;
 
 import lang.ast.expressions.IfExpression;
-import lang.exec.evaluator.base.EvaluationContext;
 
 public class IfExpressionEvaluator implements NodeEvaluator<IfExpression> {
 
@@ -22,16 +21,10 @@ public class IfExpressionEvaluator implements NodeEvaluator<IfExpression> {
         List<BlockStatement> consequences = node.getConsequences();
         Optional<BlockStatement> alternative = node.getAlternative();
 
-        for (int i = 0; i < conditions.size(); i++) {
-            BaseObject condition = context.evaluate(conditions.get(i), env);
+        Optional<BaseObject> conditionResult = evaluateConditions(conditions, consequences, env, context);
 
-            if (ObjectValidator.isError(condition)) {
-                return condition;
-            }
-
-            if (condition.isTruthy()) {
-                return context.evaluate(consequences.get(i), env);
-            }
+        if (conditionResult.isPresent()) {
+            return conditionResult.get();
         }
 
         if (alternative.isPresent()) {
@@ -39,5 +32,23 @@ public class IfExpressionEvaluator implements NodeEvaluator<IfExpression> {
         }
 
         return NullObject.INSTANCE;
+    }
+
+    private Optional<BaseObject> evaluateConditions(List<Expression> conditions, List<BlockStatement> consequences,
+            Environment env, EvaluationContext context) {
+        for (int i = 0; i < conditions.size(); i++) {
+            BaseObject condition = context.evaluate(conditions.get(i), env);
+
+            if (ObjectValidator.isError(condition)) {
+                return Optional.of(condition);
+            }
+
+            if (condition.isTruthy()) {
+                var result = context.evaluate(consequences.get(i), env);
+                return Optional.of(result);
+            }
+        }
+
+        return Optional.empty();
     }
 }

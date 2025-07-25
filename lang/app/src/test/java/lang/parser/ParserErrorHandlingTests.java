@@ -505,10 +505,10 @@ public class ParserErrorHandlingTests {
     @DisplayName("🎭 Only comments input")
     void testOnlyCommentsInput() {
         String input = """
-                // This is a comment
+                # This is a comment
                 /* This is a
                    multi-line comment */
-                // Another comment
+                # Another comment
                 """;
         parser = new LanguageParser(new Lexer(input));
         Program program = parser.parseProgram();

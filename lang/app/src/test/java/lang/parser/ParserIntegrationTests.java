@@ -512,12 +512,12 @@ public class ParserIntegrationTests {
     @DisplayName("🌐 Parse program using all language features")
     void testComprehensiveLanguageFeatures() {
         String input = """
-                // Constants and variables
+                # Constants and variables
                 const VERSION = "1";
                 const MAX_RETRIES = 3;
                 let globalState = {"initialized": false};
 
-                // Function with all control structures
+                # Function with all control structures
                 let processData = fn(input, options) {
                     if (!input) {
                         return {"error": "No input provided"};
@@ -565,7 +565,7 @@ public class ParserIntegrationTests {
                     };
                 };
 
-                // Test data and execution
+                # Test data and execution
                 let testData = [
                     {"type": "process", "value": 10},
                     {"type": "skip", "value": 5},
@@ -575,7 +575,7 @@ public class ParserIntegrationTests {
                 let config = {"strict": true, "verbose": false};
                 let output = processData(testData, config);
 
-                // Final result processing
+                # Final result processing
                 if (output["success"]) {
                     globalState["initialized"] = true;
                     return "Processing completed successfully";

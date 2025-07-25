@@ -6,17 +6,14 @@ import java.util.Optional;
 import lang.ast.expressions.SuperExpression;
 import lang.ast.utils.AstCaster;
 import lang.ast.utils.AstValidator;
-import lang.exec.base.BaseObject;
-import lang.exec.evaluator.base.EvaluationContext;
-import lang.exec.evaluator.base.NodeEvaluator;
-import lang.exec.objects.*;
-import lang.exec.objects.classes.ClassObject;
-import lang.exec.objects.classes.InstanceObject;
+import lang.exec.objects.base.*;
+import lang.exec.objects.classes.*;
 import lang.exec.objects.env.Environment;
 import lang.exec.objects.functions.FunctionObject;
 import lang.exec.validator.ObjectValidator;
 import lang.ast.base.Expression;
-import lang.exec.base.ObjectType;
+import lang.exec.evaluator.base.EvaluationContext;
+import lang.exec.evaluator.base.NodeEvaluator;
 
 /**
  * ⬆️ SuperExpressionEvaluator - Parent Class Access Evaluator ⬆️
@@ -121,7 +118,7 @@ public class SuperExpressionEvaluator implements NodeEvaluator<SuperExpression> 
             return context.createError(METHOD_NOT_FOUND_ERROR, node.position());
         }
 
-        Optional<FunctionObject> method = parentClass.findMethod(methodName.get());
+        Optional<MethodObject> method = parentClass.findMethod(methodName.get());
         if (!method.isPresent()) {
             var errorMessage = String.format(METHOD_NOT_FOUND_ERROR, methodName.get(), parentClass.getName());
             return context.createError(errorMessage, node.position());
@@ -134,8 +131,8 @@ public class SuperExpressionEvaluator implements NodeEvaluator<SuperExpression> 
             }
         }
 
-        FunctionObject parentMethod = method.get();
-        int requiredArgs = parentMethod.getParameters().size();
+        MethodObject parentMethod = method.get();
+        int requiredArgs = parentMethod.getParameterCount();
         if (arguments.size() != requiredArgs) {
             var errorMessage = String.format(ARGUMENT_MISMATCH_ERROR, parentClass.getName(), requiredArgs,
                     arguments.size());
@@ -178,7 +175,7 @@ public class SuperExpressionEvaluator implements NodeEvaluator<SuperExpression> 
      * 🔧 Calls parent method with proper this binding
      */
     private BaseObject callParentMethod(
-            FunctionObject method,
+            MethodObject method,
             InstanceObject instance,
             List<BaseObject> arguments,
             ClassObject parentClass,
@@ -187,15 +184,14 @@ public class SuperExpressionEvaluator implements NodeEvaluator<SuperExpression> 
 
         Environment methodEnv = new Environment(method.getEnvironment(), false);
         methodEnv.defineVariable(THIS_VARIABLE, instance);
-
         methodEnv.defineVariable(CLASS_CONTEXT_VAR, new ClassContextObject(parentClass));
 
-        List<String> paramNames = method.getParameters().stream().map(p -> p.getValue()).toList();
+        List<String> paramNames = method.getParameterNames();
         for (int i = 0; i < paramNames.size(); i++) {
             methodEnv.defineVariable(paramNames.get(i), arguments.get(i));
         }
 
-        BaseObject result = context.evaluate(method.getBody(), methodEnv);
+        BaseObject result = method.call(instance, arguments.toArray(new BaseObject[0]), context);
 
         if (ObjectValidator.isReturnValue(result)) {
             return ObjectValidator.asReturnValue(result).getValue();

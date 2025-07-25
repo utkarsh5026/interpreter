@@ -1,6 +1,6 @@
 package lang.exec.builtins;
 
-import lang.exec.base.BaseObject;
+import lang.exec.objects.base.BaseObject;
 
 /**
  * Functional interface for built-in functions.

@@ -1,11 +1,11 @@
 package lang.exec.evaluator.literals;
 
+import lang.exec.evaluator.base.EvaluationContext;
 import lang.exec.evaluator.base.NodeEvaluator;
-import lang.exec.base.BaseObject;
+import lang.exec.objects.base.BaseObject;
 import lang.exec.objects.env.Environment;
 import lang.exec.objects.literals.StringObject;
 import lang.exec.validator.ObjectValidator;
-import lang.exec.evaluator.base.EvaluationContext;
 import lang.ast.literals.FStringLiteral;
 import lang.ast.base.Expression;
 

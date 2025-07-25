@@ -1,10 +1,10 @@
 package lang.exec.evaluator.literals;
 
+import lang.exec.evaluator.base.EvaluationContext;
 import lang.exec.evaluator.base.NodeEvaluator;
-import lang.exec.base.BaseObject;
+import lang.exec.objects.base.BaseObject;
 import lang.exec.objects.env.Environment;
 import lang.exec.objects.literals.FloatObject;
-import lang.exec.evaluator.base.EvaluationContext;
 import lang.ast.literals.FloatLiteral;
 
 public class FloatLiteralEvaluator implements NodeEvaluator<FloatLiteral> {

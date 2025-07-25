@@ -2,14 +2,19 @@ package lang.exec.evaluator.expressions;
 
 import java.util.Optional;
 
-import lang.exec.evaluator.base.NodeEvaluator;
+import lang.exec.objects.base.BaseObject;
 import lang.exec.objects.env.Environment;
-import lang.exec.base.BaseObject;
-import lang.exec.evaluator.base.EvaluationContext;
 import lang.exec.builtins.BuiltinRegistry;
-
+import lang.exec.evaluator.base.EvaluationContext;
+import lang.exec.evaluator.base.NodeEvaluator;
 import lang.ast.base.Identifier;
 
+/**
+ * 🔍 Evaluates identifier expressions
+ * 
+ * This class is responsible for evaluating identifier expressions.
+ * It checks if the identifier is a variable, a builtin function, or not found.
+ */
 public class IndentifierEvaluator implements NodeEvaluator<Identifier> {
 
     @Override

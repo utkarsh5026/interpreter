@@ -47,4 +47,11 @@ public class EnvironmentFactory {
     public static final Environment createLoopScope(Environment parent) {
         return new Environment(parent, true);
     }
+
+    /**
+     * Creates an empty environment
+     */
+    public static final Environment empty() {
+        return new Environment(null, false);
+    }
 }

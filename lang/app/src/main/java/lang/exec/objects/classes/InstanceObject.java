@@ -4,8 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import lang.exec.base.BaseObject;
-import lang.exec.base.ObjectType;
+import lang.exec.objects.base.BaseObject;
+import lang.exec.objects.base.ObjectType;
 import lang.exec.objects.env.Environment;
 import lang.exec.objects.functions.FunctionObject;
 
@@ -92,7 +92,7 @@ public class InstanceObject implements BaseObject {
      * Method lookup delegates to the class object, which handles
      * the inheritance chain traversal.
      */
-    public Optional<FunctionObject> findMethod(String methodName) {
+    public Optional<MethodObject> findMethod(String methodName) {
         return classObject.findMethod(methodName);
     }
 

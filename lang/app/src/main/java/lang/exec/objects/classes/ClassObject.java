@@ -6,8 +6,8 @@ import java.util.Optional;
 import java.util.List;
 import java.util.ArrayList;
 
-import lang.exec.base.BaseObject;
-import lang.exec.base.ObjectType;
+import lang.exec.objects.base.BaseObject;
+import lang.exec.objects.base.ObjectType;
 import lang.exec.objects.env.Environment;
 import lang.exec.objects.functions.FunctionObject;
 
@@ -30,13 +30,13 @@ public class ClassObject implements BaseObject {
     private final String name; // 🏷️ Class name
     private final Optional<ClassObject> parentClass; // 🔗 Parent class for inheritance
     private final Optional<FunctionObject> constructor; // 🏗️ Constructor function
-    private final Map<String, FunctionObject> methods; // 📋 Instance methods
+    private final Map<String, MethodObject> methods; // 📋 Instance methods
     private final Environment classEnvironment; // 🌍 Class-level environment
 
     public ClassObject(String name,
             Optional<ClassObject> parentClass,
             Optional<FunctionObject> constructor,
-            Map<String, FunctionObject> methods,
+            Map<String, MethodObject> methods,
             Environment classEnvironment) {
         this.name = name;
         this.parentClass = parentClass;
@@ -69,7 +69,7 @@ public class ClassObject implements BaseObject {
     /**
      * 📋 Gets all methods defined in this class
      */
-    public Map<String, FunctionObject> getMethods() {
+    public Map<String, MethodObject> getMethods() {
         return new HashMap<>(methods);
     }
 
@@ -90,8 +90,8 @@ public class ClassObject implements BaseObject {
      * 
      * This implements dynamic method dispatch for inheritance.
      */
-    public Optional<FunctionObject> findMethod(String methodName) {
-        FunctionObject method = methods.get(methodName);
+    public Optional<MethodObject> findMethod(String methodName) {
+        MethodObject method = methods.get(methodName);
         if (method != null) {
             return Optional.of(method);
         }

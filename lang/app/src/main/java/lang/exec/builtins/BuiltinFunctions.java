@@ -68,7 +68,7 @@ public final class BuiltinFunctions {
             return IntegerClass.createIntegerInstance(((ArrayObject) arg).getElements().size());
         }
 
-        if (arg instanceof StringObject) {
+        if (ObjectValidator.isString(arg)) {
             return IntegerClass.createIntegerInstance(ObjectValidator.asString(arg).getValue().length());
         }
 
@@ -145,7 +145,7 @@ public final class BuiltinFunctions {
             return arg; // Already an integer
         }
 
-        if (arg instanceof StringObject) {
+        if (ObjectValidator.isString(arg)) {
             try {
                 long parsed = Long.parseLong(ObjectValidator.asString(arg).getValue());
                 return IntegerClass.createIntegerInstance(parsed);
@@ -424,7 +424,7 @@ public final class BuiltinFunctions {
         String separator = ",";
         if (args.length == 2) {
             BaseObject sepArg = args[1];
-            if (!(sepArg instanceof StringObject)) {
+            if (!ObjectValidator.isString(sepArg)) {
                 return new ErrorObject(String.format(
                         "second argument to 'join' must be STRING, got %s", sepArg.type()));
             }
@@ -455,12 +455,12 @@ public final class BuiltinFunctions {
         BaseObject str = args[0];
         BaseObject delimiter = args[1];
 
-        if (!(str instanceof StringObject)) {
+        if (!ObjectValidator.isString(str)) {
             return new ErrorObject(String.format(
                     "first argument to 'split' must be STRING, got %s", str.type()));
         }
 
-        if (!(delimiter instanceof StringObject)) {
+        if (!ObjectValidator.isString(delimiter)) {
             return new ErrorObject(String.format(
                     "second argument to 'split' must be STRING, got %s", delimiter.type()));
         }
@@ -519,7 +519,7 @@ public final class BuiltinFunctions {
         }
 
         BaseObject str = args[0];
-        if (!(str instanceof StringObject)) {
+        if (!ObjectValidator.isString(str)) {
             return new ErrorObject(String.format(
                     "argument to 'trim' must be STRING, got %s", str.type()));
         }
@@ -537,7 +537,7 @@ public final class BuiltinFunctions {
         }
 
         BaseObject str = args[0];
-        if (!(str instanceof StringObject)) {
+        if (!ObjectValidator.isString(str)) {
             return new ErrorObject(String.format(
                     "argument to 'upper' must be STRING, got %s", str.type()));
         }
@@ -555,7 +555,7 @@ public final class BuiltinFunctions {
         }
 
         BaseObject str = args[0];
-        if (!(str instanceof StringObject)) {
+        if (!ObjectValidator.isString(str)) {
             return new ErrorObject(String.format(
                     "argument to 'lower' must be STRING, got %s", str.type()));
         }
@@ -619,12 +619,12 @@ public final class BuiltinFunctions {
         BaseObject str = args[0];
         BaseObject substring = args[1];
 
-        if (!(str instanceof StringObject)) {
+        if (!ObjectValidator.isString(str)) {
             return new ErrorObject(String.format(
                     "first argument to 'indexOf' must be STRING, got %s", str.type()));
         }
 
-        if (!(substring instanceof StringObject)) {
+        if (!ObjectValidator.isString(substring)) {
             return new ErrorObject(String.format(
                     "second argument to 'indexOf' must be STRING, got %s", substring.type()));
         }
@@ -647,12 +647,12 @@ public final class BuiltinFunctions {
         BaseObject str = args[0];
         BaseObject substring = args[1];
 
-        if (!(str instanceof StringObject)) {
+        if (!ObjectValidator.isString(str)) {
             return new ErrorObject(String.format(
                     "first argument to 'contains' must be STRING, got %s", str.type()));
         }
 
-        if (!(substring instanceof StringObject)) {
+        if (!ObjectValidator.isString(substring)) {
             return new ErrorObject(String.format(
                     "second argument to 'contains' must be STRING, got %s", substring.type()));
         }
@@ -1061,7 +1061,7 @@ public final class BuiltinFunctions {
         }
 
         BaseObject message = args[0];
-        if (!(message instanceof StringObject)) {
+        if (!ObjectValidator.isString(message)) {
             return new ErrorObject(String.format(
                     "argument to 'error' must be STRING, got %s", message.type()));
         }
@@ -1084,7 +1084,7 @@ public final class BuiltinFunctions {
             String message = "Assertion failed";
             if (args.length == 2) {
                 BaseObject messageArg = args[1];
-                if (messageArg instanceof StringObject) {
+                if (ObjectValidator.isString(messageArg)) {
                     message = ObjectValidator.asString(messageArg).getValue();
                 }
             }

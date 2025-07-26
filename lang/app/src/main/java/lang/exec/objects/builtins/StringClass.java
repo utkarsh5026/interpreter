@@ -70,10 +70,10 @@ public class StringClass extends ClassObject {
         methods.put("split", createSplitMethod(env));
 
         // Dunder methods
-        methods.put("__add__", createStringConcatMethod(env));
-        methods.put("__mul__", createStringRepeatMethod(env));
-        methods.put("__getitem__", createStringIndexMethod(env));
-        methods.put("__len__", createLengthMethod(env)); // Alias for length()
+        methods.put(BaseObjectClass.DUNDER_ADD, createStringConcatMethod(env));
+        methods.put(BaseObjectClass.DUNDER_MUL, createStringRepeatMethod(env));
+        methods.put(BaseObjectClass.DUNDER_GETITEM, createStringIndexMethod(env));
+        methods.put(BaseObjectClass.DUNDER_LEN, createLengthMethod(env)); // Alias for length()
 
         return methods;
     }
@@ -338,7 +338,7 @@ public class StringClass extends ClassObject {
     // Dunder methods
     private static MethodObject createStringConcatMethod(Environment env) {
         return new BuiltInMethod(
-                "__add__",
+                BaseObjectClass.DUNDER_ADD,
                 "String concatenation operator",
                 List.of("other"),
                 (instance, args) -> {
@@ -356,7 +356,7 @@ public class StringClass extends ClassObject {
 
     private static MethodObject createStringRepeatMethod(Environment env) {
         return new BuiltInMethod(
-                "__mul__",
+                BaseObjectClass.DUNDER_MUL,
                 "String repetition operator",
                 List.of("count"),
                 (instance, args) -> {
@@ -382,7 +382,7 @@ public class StringClass extends ClassObject {
 
     private static MethodObject createStringIndexMethod(Environment env) {
         return new BuiltInMethod(
-                "__getitem__",
+                BaseObjectClass.DUNDER_GETITEM,
                 "String character access by index",
                 List.of("index"),
                 (instance, args) -> {
@@ -408,26 +408,53 @@ public class StringClass extends ClassObject {
 
     // Helper methods
     private static String getStringValue(BaseObject obj) {
+        if (obj instanceof StringInstance) {
+            return ((StringInstance) obj).getValue().inspect();
+        }
+
         if (ObjectValidator.isInstance(obj)) {
             InstanceObject instance = ObjectValidator.asInstance(obj);
             Optional<BaseObject> valueProperty = instance.getProperty("value");
             if (valueProperty.isPresent() && ObjectValidator.isString(valueProperty.get())) {
-                return ObjectValidator.asString(valueProperty.get()).getValue();
+                return ObjectValidator.asString(valueProperty.get()).inspect();
             }
         }
-        // Fallback for old StringObject
+
         if (ObjectValidator.isString(obj)) {
-            return ObjectValidator.asString(obj).getValue();
+            return ObjectValidator.asString(obj).inspect();
         }
-        return obj.inspect(); // Last resort
+        return obj.inspect();
     }
 
     /**
      * 🏗️ Creates a String instance with the given value
      */
     public static InstanceObject createStringInstance(String value) {
-        InstanceObject instance = StringClass.getInstance().createInstance();
-        instance.setProperty("value", new StringObject(value));
-        return instance;
+        return new StringInstance(StringClass.getInstance(), new Environment(), value);
     }
+
+    /**
+     * 🔍 StringInstance - String instance class
+     */
+    private static class StringInstance extends InstanceObject {
+        public StringInstance(ClassObject classObject, Environment instanceEnvironment, String value) {
+            super(classObject, instanceEnvironment);
+            setProperty("value", new StringObject(value));
+        }
+
+        @Override
+        public boolean isTruthy() {
+            return !getStringValue(this).isEmpty();
+        }
+
+        @Override
+        public String inspect() {
+            return getValue().inspect();
+        }
+
+        public StringObject getValue() {
+            return getProperty("value").map(ObjectValidator::asString).orElse(null);
+        }
+    }
+
 }

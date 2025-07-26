@@ -47,6 +47,9 @@ public class BaseObjectClass extends ClassObject {
     public static final String DUNDER_SETITEM = "__setitem__"; // obj[key] = value
     public static final String DUNDER_NEG = "__neg__"; // -obj
     public static final String DUNDER_NOT = "__not__"; // !obj
+    public static final String DUNDER_AND = "__and__"; // and
+    public static final String DUNDER_OR = "__or__"; // or
+    public static final String DUNDER_LEN = "__len__"; // len(obj)
 
     private static BaseObjectClass instance;
 
@@ -85,6 +88,8 @@ public class BaseObjectClass extends ClassObject {
         methods.put(DUNDER_LE, createComparisonDunder(DUNDER_LE, "<=", env));
         methods.put(DUNDER_GT, createComparisonDunder(DUNDER_GT, ">", env));
         methods.put(DUNDER_GE, createComparisonDunder(DUNDER_GE, ">=", env));
+        methods.put(DUNDER_AND, createComparisonDunder(DUNDER_AND, "&&", env));
+        methods.put(DUNDER_OR, createComparisonDunder(DUNDER_OR, "||", env));
 
         // Dunder methods for unary operations
         methods.put(DUNDER_NEG, createUnaryDunder(DUNDER_NEG, "-", env));
@@ -143,11 +148,14 @@ public class BaseObjectClass extends ClassObject {
                     // Default behavior based on operator
                     switch (operator) {
                         case "==":
-                            // Default equality: reference equality
                             return new BooleanObject(instance == other);
                         case "!=":
-                            // Default inequality: not reference equal
                             return new BooleanObject(instance != other);
+                        case "&&":
+                            return new BooleanObject(instance.isTruthy() && other.isTruthy());
+                        case "||":
+                            return new BooleanObject(instance.isTruthy() || other.isTruthy());
+
                         default:
                             // Other comparisons not supported by default
                             return new ErrorObject(
@@ -311,32 +319,34 @@ public class BaseObjectClass extends ClassObject {
     /**
      * 🎯 Utility method to get dunder method name for an operator
      */
-    public static String getDunderMethodForOperator(String operator) {
+    public static Optional<String> getDunderMethodForOperator(String operator) {
         return switch (operator) {
-            case "+" -> DUNDER_ADD;
-            case "-" -> DUNDER_SUB;
-            case "*" -> DUNDER_MUL;
-            case "/" -> DUNDER_DIV;
-            case "//" -> DUNDER_FLOORDIV;
-            case "%" -> DUNDER_MOD;
-            case "==" -> DUNDER_EQ;
-            case "!=" -> DUNDER_NE;
-            case "<" -> DUNDER_LT;
-            case "<=" -> DUNDER_LE;
-            case ">" -> DUNDER_GT;
-            case ">=" -> DUNDER_GE;
-            default -> null;
+            case "+" -> Optional.of(DUNDER_ADD);
+            case "-" -> Optional.of(DUNDER_SUB);
+            case "*" -> Optional.of(DUNDER_MUL);
+            case "/" -> Optional.of(DUNDER_DIV);
+            case "//" -> Optional.of(DUNDER_FLOORDIV);
+            case "%" -> Optional.of(DUNDER_MOD);
+            case "==" -> Optional.of(DUNDER_EQ);
+            case "!=" -> Optional.of(DUNDER_NE);
+            case "<" -> Optional.of(DUNDER_LT);
+            case "<=" -> Optional.of(DUNDER_LE);
+            case ">" -> Optional.of(DUNDER_GT);
+            case ">=" -> Optional.of(DUNDER_GE);
+            case "&&" -> Optional.of(DUNDER_AND);
+            case "||" -> Optional.of(DUNDER_OR);
+            default -> Optional.empty();
         };
     }
 
     /**
      * 🎯 Utility method to get dunder method name for unary operators
      */
-    public static String getDunderMethodForUnaryOperator(String operator) {
+    public static Optional<String> getDunderMethodForUnaryOperator(String operator) {
         return switch (operator) {
-            case "-" -> DUNDER_NEG;
-            case "!" -> DUNDER_NOT;
-            default -> null;
+            case "-" -> Optional.of(DUNDER_NEG);
+            case "!" -> Optional.of(DUNDER_NOT);
+            default -> Optional.empty();
         };
     }
 }

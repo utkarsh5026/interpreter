@@ -10,6 +10,7 @@ import lang.exec.objects.functions.BuiltinObject;
 import lang.exec.objects.literals.*;
 import lang.exec.objects.structures.ArrayObject;
 import lang.exec.objects.structures.HashObject;
+import lang.exec.objects.builtins.*;
 
 /**
  * 🏗️ BuiltinFunctions - Comprehensive Function Library 🏗️
@@ -64,15 +65,15 @@ public final class BuiltinFunctions {
         BaseObject arg = args[0];
 
         if (arg instanceof ArrayObject) {
-            return new IntegerObject(((ArrayObject) arg).getElements().size());
+            return IntegerClass.createIntegerInstance(((ArrayObject) arg).getElements().size());
         }
 
         if (arg instanceof StringObject) {
-            return new IntegerObject(((StringObject) arg).getValue().length());
+            return IntegerClass.createIntegerInstance(((StringObject) arg).getValue().length());
         }
 
         if (arg instanceof HashObject) {
-            return new IntegerObject(((HashObject) arg).getPairs().size());
+            return IntegerClass.createIntegerInstance(((HashObject) arg).getPairs().size());
         }
 
         return new ErrorObject(String.format(
@@ -93,7 +94,7 @@ public final class BuiltinFunctions {
                     "wrong number of arguments. got=%d, want=1", args.length));
         }
 
-        return new StringObject(args[0].type().toString());
+        return StringClass.createStringInstance(args[0].type().toString());
     };
 
     /**
@@ -114,14 +115,14 @@ public final class BuiltinFunctions {
 
         // Handle special cases for better string conversion
         if (arg instanceof NullObject) {
-            return new StringObject("null");
+            return StringClass.createStringInstance("null");
         }
 
         if (arg instanceof BooleanObject) {
-            return new StringObject(((BooleanObject) arg).getValue() ? "true" : "false");
+            return StringClass.createStringInstance(((BooleanObject) arg).getValue() ? "true" : "false");
         }
 
-        return new StringObject(arg.inspect());
+        return StringClass.createStringInstance(arg.inspect());
     };
 
     /**
@@ -147,7 +148,7 @@ public final class BuiltinFunctions {
         if (arg instanceof StringObject) {
             try {
                 long parsed = Long.parseLong(((StringObject) arg).getValue());
-                return new IntegerObject(parsed);
+                return IntegerClass.createIntegerInstance(parsed);
             } catch (NumberFormatException e) {
                 return new ErrorObject(String.format(
                         "cannot convert \"%s\" to integer", ((StringObject) arg).getValue()));
@@ -172,7 +173,7 @@ public final class BuiltinFunctions {
                     "wrong number of arguments. got=%d, want=1", args.length));
         }
 
-        return new BooleanObject(args[0].isTruthy());
+        return BooleanClass.createBooleanInstance(args[0].isTruthy());
     };
 
     // ============================================================================
@@ -435,7 +436,7 @@ public final class BuiltinFunctions {
                 .map(BaseObject::inspect)
                 .collect(Collectors.joining(separator));
 
-        return new StringObject(result);
+        return StringClass.createStringInstance(result);
     };
 
     // ============================================================================
@@ -505,7 +506,7 @@ public final class BuiltinFunctions {
         String result = ((StringObject) str).getValue()
                 .replace(((StringObject) search).getValue(), ((StringObject) replace).getValue());
 
-        return new StringObject(result);
+        return StringClass.createStringInstance(result);
     };
 
     /**
@@ -523,7 +524,7 @@ public final class BuiltinFunctions {
                     "argument to 'trim' must be STRING, got %s", str.type()));
         }
 
-        return new StringObject(((StringObject) str).getValue().trim());
+        return StringClass.createStringInstance(((StringObject) str).getValue().trim());
     };
 
     /**
@@ -541,7 +542,7 @@ public final class BuiltinFunctions {
                     "argument to 'upper' must be STRING, got %s", str.type()));
         }
 
-        return new StringObject(((StringObject) str).getValue().toUpperCase());
+        return StringClass.createStringInstance(((StringObject) str).getValue().toUpperCase());
     };
 
     /**
@@ -559,7 +560,7 @@ public final class BuiltinFunctions {
                     "argument to 'lower' must be STRING, got %s", str.type()));
         }
 
-        return new StringObject(((StringObject) str).getValue().toLowerCase());
+        return StringClass.createStringInstance(((StringObject) str).getValue().toLowerCase());
     };
 
     /**
@@ -603,7 +604,7 @@ public final class BuiltinFunctions {
         int length = (int) Math.max(0, Math.min(lengthLong, string.length() - start));
 
         String result = string.substring(start, start + length);
-        return new StringObject(result);
+        return StringClass.createStringInstance(result);
     };
 
     /**
@@ -631,7 +632,7 @@ public final class BuiltinFunctions {
         int index = ((StringObject) str).getValue()
                 .indexOf(((StringObject) substring).getValue());
 
-        return new IntegerObject(index);
+        return IntegerClass.createIntegerInstance(index);
     };
 
     /**
@@ -659,7 +660,7 @@ public final class BuiltinFunctions {
         boolean contains = ((StringObject) str).getValue()
                 .contains(((StringObject) substring).getValue());
 
-        return new BooleanObject(contains);
+        return BooleanClass.createBooleanInstance(contains);
     };
 
     private static final BuiltinFunction CHAR_AT_FUNCTION = (args) -> {
@@ -684,7 +685,7 @@ public final class BuiltinFunctions {
                     String.format("index out of bounds: %d for string of length %d", indexInt, string.length()));
         }
 
-        return new StringObject(String.valueOf(string.charAt(indexInt)));
+        return StringClass.createStringInstance(String.valueOf(string.charAt(indexInt)));
     };
 
     // ============================================================================
@@ -707,7 +708,7 @@ public final class BuiltinFunctions {
         }
 
         long value = ((IntegerObject) arg).getValue();
-        return new IntegerObject(Math.abs(value));
+        return IntegerClass.createIntegerInstance(Math.abs(value));
     };
 
     /**
@@ -732,7 +733,7 @@ public final class BuiltinFunctions {
             }
         }
 
-        return new IntegerObject(maxVal);
+        return IntegerClass.createIntegerInstance(maxVal);
     };
 
     /**
@@ -757,7 +758,7 @@ public final class BuiltinFunctions {
             }
         }
 
-        return new IntegerObject(minVal);
+        return IntegerClass.createIntegerInstance(minVal);
     };
 
     /**
@@ -847,7 +848,7 @@ public final class BuiltinFunctions {
         }
 
         double result = Math.pow(baseVal, expVal);
-        return new IntegerObject((long) result);
+        return IntegerClass.createIntegerInstance((long) result);
     };
 
     /**
@@ -871,7 +872,7 @@ public final class BuiltinFunctions {
         }
 
         double result = Math.sqrt(value);
-        return new IntegerObject((long) result);
+        return IntegerClass.createIntegerInstance((long) result);
     };
 
     /**
@@ -885,7 +886,7 @@ public final class BuiltinFunctions {
 
         if (args.length == 0) {
             // Return random integer 0 or 1
-            return new IntegerObject(new Random().nextInt(2));
+            return IntegerClass.createIntegerInstance(new Random().nextInt(2));
         }
 
         BaseObject maxArg = args[0];
@@ -900,7 +901,7 @@ public final class BuiltinFunctions {
         }
 
         long randomValue = new Random().nextLong(maxVal);
-        return new IntegerObject(randomValue);
+        return IntegerClass.createIntegerInstance(randomValue);
     };
 
     // ============================================================================
@@ -992,11 +993,11 @@ public final class BuiltinFunctions {
 
         if (step > 0) {
             for (long i = start; i < end; i += step) {
-                elements.add(new IntegerObject(i));
+                elements.add(IntegerClass.createIntegerInstance(i));
             }
         } else {
             for (long i = start; i > end; i += step) {
-                elements.add(new IntegerObject(i));
+                elements.add(IntegerClass.createIntegerInstance(i));
             }
         }
 

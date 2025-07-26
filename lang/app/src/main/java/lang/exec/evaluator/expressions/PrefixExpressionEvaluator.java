@@ -1,12 +1,15 @@
 package lang.exec.evaluator.expressions;
 
+import java.util.Optional;
+import lang.exec.objects.classes.BaseObjectClass;
 import lang.exec.evaluator.base.EvaluationContext;
 import lang.exec.evaluator.base.NodeEvaluator;
 import lang.ast.expressions.PrefixExpression;
 import lang.exec.validator.ObjectValidator;
 import lang.exec.objects.base.BaseObject;
+import lang.exec.objects.classes.InstanceObject;
+import lang.exec.objects.classes.MethodObject;
 import lang.exec.objects.env.Environment;
-import lang.exec.objects.literals.*;
 
 /**
  * 🔄 PrefixExpressionEvaluator - Unary Operation Specialist (Enhanced with
@@ -32,47 +35,52 @@ public class PrefixExpressionEvaluator implements NodeEvaluator<PrefixExpression
             return right;
         }
 
-        return evalPrefixExpression(node.getOperator(), right, context, node);
-    }
-
-    private BaseObject evalPrefixExpression(String operator, BaseObject right, EvaluationContext context,
-            PrefixExpression node) {
-        if (operator.equals("!")) {
-            return evalLogicalNotOperator(right);
+        Optional<BaseObject> result = tryUnaryDunderMethod(node.getOperator(), right, context);
+        if (result.isPresent()) {
+            return result.get();
         }
 
-        if (operator.equals("-")) {
-            return evalNegationOperator(right, context, node);
-        }
-
-        return context.createError("Unknown operator: " + operator, node.position());
+        return context.createError("Unknown operator: " + node.getOperator(), node.position());
     }
 
     /**
-     * ❗ Logical NOT operation (enhanced for better type handling)
+     * 🎯 Attempts to call unary dunder method on operand
+     * 
+     * From first principles, unary dunder method resolution:
+     * 1. Check if operand is an instance object
+     * 2. Look up the appropriate dunder method name for the operator
+     * 3. Search for the method in the instance's class hierarchy
+     * 4. If found, call the method with no arguments (unary operation)
+     * 5. Return the result, or empty if no dunder method available
      */
-    private BooleanObject evalLogicalNotOperator(BaseObject value) {
-        return new BooleanObject(!value.isTruthy());
-    }
-
-    /**
-     * ➖ Negation operation (enhanced with float support)
-     */
-    private BaseObject evalNegationOperator(BaseObject value, EvaluationContext context, PrefixExpression node) {
-        if (ObjectValidator.isInteger(value)) {
-            long intValue = ObjectValidator.asInteger(value).getValue();
-            if (intValue == Long.MIN_VALUE) {
-                return new FloatObject(-(double) intValue);
-            }
-
-            return new IntegerObject(-intValue);
+    private Optional<BaseObject> tryUnaryDunderMethod(String operator, BaseObject operand,
+            EvaluationContext context) {
+        if (!ObjectValidator.isInstance(operand)) {
+            return Optional.empty();
         }
 
-        if (ObjectValidator.isFloat(value)) {
-            double floatValue = ObjectValidator.asFloat(value).getValue();
-            return new FloatObject(-floatValue);
+        Optional<String> dunderMethodName = BaseObjectClass.getDunderMethodForUnaryOperator(operator);
+        if (dunderMethodName.isEmpty()) {
+            return Optional.empty();
         }
 
-        return context.createError("Unknown operator: -", node.position());
+        InstanceObject instance = ObjectValidator.asInstance(operand);
+
+        Optional<MethodObject> dunderMethod = instance.findMethod(dunderMethodName.get());
+        if (dunderMethod.isEmpty()) {
+            return Optional.empty();
+        }
+
+        BaseObject result = dunderMethod.get().call(
+                instance,
+                new BaseObject[] {},
+                context,
+                env -> env);
+
+        if (ObjectValidator.isReturnValue(result)) {
+            return Optional.of(ObjectValidator.asReturnValue(result).getValue());
+        }
+
+        return Optional.of(result);
     }
 }

@@ -16,7 +16,7 @@ import lang.exec.validator.ObjectValidator;
 /**
  * ✅ BooleanClass - Built-in Boolean Type Class ✅
  */
-class BooleanClass extends ClassObject {
+public class BooleanClass extends ClassObject {
 
     public static final String BOOLEAN_CLASS_NAME = "Boolean";
     private static BooleanClass instance;
@@ -42,11 +42,11 @@ class BooleanClass extends ClassObject {
         Map<String, MethodObject> methods = new HashMap<>();
 
         methods.put("toString", createBooleanToStringMethod(env));
-        methods.put("__eq__", createBooleanEqMethod(env));
-        methods.put("__ne__", createBooleanNeMethod(env));
-        methods.put("__and__", createBooleanAndMethod(env));
-        methods.put("__or__", createBooleanOrMethod(env));
-        methods.put("__not__", createBooleanNotMethod(env));
+        methods.put(BaseObjectClass.DUNDER_EQ, createBooleanEqMethod(env));
+        methods.put(BaseObjectClass.DUNDER_NE, createBooleanNeMethod(env));
+        methods.put(BaseObjectClass.DUNDER_AND, createBooleanAndMethod(env));
+        methods.put(BaseObjectClass.DUNDER_OR, createBooleanOrMethod(env));
+        methods.put(BaseObjectClass.DUNDER_NOT, createBooleanNotMethod(env));
 
         return methods;
     }
@@ -69,7 +69,7 @@ class BooleanClass extends ClassObject {
 
     private static MethodObject createBooleanEqMethod(Environment env) {
         return new BuiltInMethod(
-                "__eq__",
+                BaseObjectClass.DUNDER_EQ,
                 "Equality operator for booleans",
                 List.of("other"),
                 (instance, args) -> {
@@ -79,7 +79,7 @@ class BooleanClass extends ClassObject {
 
                     boolean leftValue = getBooleanValue(instance);
 
-                    if (ObjectValidator.isBoolean(args[0])) {
+                    if (isBoolean(args[0])) {
                         boolean rightValue = getBooleanValue(args[0]);
                         return createBooleanInstance(leftValue == rightValue);
                     }
@@ -91,7 +91,7 @@ class BooleanClass extends ClassObject {
 
     private static MethodObject createBooleanNeMethod(Environment env) {
         return new BuiltInMethod(
-                "__ne__",
+                BaseObjectClass.DUNDER_NE,
                 "Inequality operator for booleans",
                 List.of("other"),
                 (instance, args) -> {
@@ -101,7 +101,7 @@ class BooleanClass extends ClassObject {
 
                     boolean leftValue = getBooleanValue(instance);
 
-                    if (ObjectValidator.isBoolean(args[0])) {
+                    if (isBoolean(args[0])) {
                         boolean rightValue = getBooleanValue(args[0]);
                         return createBooleanInstance(leftValue != rightValue);
                     }
@@ -113,7 +113,7 @@ class BooleanClass extends ClassObject {
 
     private static MethodObject createBooleanAndMethod(Environment env) {
         return new BuiltInMethod(
-                "__and__",
+                BaseObjectClass.DUNDER_AND,
                 "Logical AND operator for booleans",
                 List.of("other"),
                 (instance, args) -> {
@@ -123,7 +123,7 @@ class BooleanClass extends ClassObject {
 
                     boolean leftValue = getBooleanValue(instance);
 
-                    if (ObjectValidator.isBoolean(args[0])) {
+                    if (isBoolean(args[0])) {
                         boolean rightValue = getBooleanValue(args[0]);
                         return createBooleanInstance(leftValue && rightValue);
                     }
@@ -135,7 +135,7 @@ class BooleanClass extends ClassObject {
 
     private static MethodObject createBooleanOrMethod(Environment env) {
         return new BuiltInMethod(
-                "__or__",
+                BaseObjectClass.DUNDER_OR,
                 "Logical OR operator for booleans",
                 List.of("other"),
                 (instance, args) -> {
@@ -145,7 +145,7 @@ class BooleanClass extends ClassObject {
 
                     boolean leftValue = getBooleanValue(instance);
 
-                    if (ObjectValidator.isBoolean(args[0])) {
+                    if (isBoolean(args[0])) {
                         boolean rightValue = getBooleanValue(args[0]);
                         return createBooleanInstance(leftValue || rightValue);
                     }
@@ -171,7 +171,14 @@ class BooleanClass extends ClassObject {
                 env);
     }
 
+    /**
+     * 🔍 Gets the boolean value of the object
+     */
     private static boolean getBooleanValue(BaseObject obj) {
+        if (obj instanceof BooleanInstance) {
+            return ((BooleanInstance) obj).getValue().getValue();
+        }
+
         if (ObjectValidator.isInstance(obj)) {
             InstanceObject instance = ObjectValidator.asInstance(obj);
             Optional<BaseObject> valueProperty = instance.getProperty("value");
@@ -186,11 +193,50 @@ class BooleanClass extends ClassObject {
     }
 
     /**
+     * 🔍 Checks if the object is a boolean instance
+     */
+    private static boolean isBoolean(BaseObject obj) {
+        if (obj instanceof BooleanInstance) {
+            return true;
+        }
+
+        if (!ObjectValidator.isInstance(obj)) {
+            return false;
+        }
+        InstanceObject instance = ObjectValidator.asInstance(obj);
+        Optional<BaseObject> valueProperty = instance.getProperty("value");
+        return valueProperty.isPresent() && ObjectValidator.isBoolean(valueProperty.get());
+    }
+
+    /**
      * 🏗️ Creates a Boolean instance with the given value
      */
     public static InstanceObject createBooleanInstance(boolean value) {
-        InstanceObject instance = BooleanClass.getInstance().createInstance();
-        instance.setProperty("value", new BooleanObject(value));
-        return instance;
+        return new BooleanInstance(getInstance(), new Environment(), value);
     }
+
+    /**
+     * 🔍 BooleanInstance - Boolean instance class
+     */
+    private static class BooleanInstance extends InstanceObject {
+        public BooleanInstance(ClassObject classObject, Environment instanceEnvironment, boolean value) {
+            super(classObject, instanceEnvironment);
+            setProperty("value", new BooleanObject(value));
+        }
+
+        @Override
+        public boolean isTruthy() {
+            return getBooleanValue(this);
+        }
+
+        @Override
+        public String inspect() {
+            return getBooleanValue(this) ? "true" : "false";
+        }
+
+        public BooleanObject getValue() {
+            return getProperty("value").map(ObjectValidator::asBoolean).orElse(null);
+        }
+    }
+
 }

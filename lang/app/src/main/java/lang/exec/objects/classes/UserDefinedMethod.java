@@ -1,13 +1,10 @@
 package lang.exec.objects.classes;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Function;
 
 import lang.exec.evaluator.base.EvaluationContext;
-import lang.exec.objects.error.ErrorObject;
 import lang.exec.objects.base.BaseObject;
-import lang.exec.objects.base.ObjectType;
 import lang.exec.objects.env.Environment;
 import lang.exec.objects.env.EnvironmentFactory;
 import lang.ast.base.Identifier;

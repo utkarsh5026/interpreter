@@ -433,6 +433,20 @@ public class StringClass extends ClassObject {
         return new StringInstance(StringClass.getInstance(), new Environment(), value);
     }
 
+    public static boolean isStringInstance(BaseObject obj) {
+        return obj instanceof StringInstance;
+    }
+
+    /**
+     * 🔍 Gets the StringObject from the given BaseObject
+     */
+    public static Optional<StringObject> getStringObject(BaseObject obj) {
+        if (obj instanceof StringInstance) {
+            return Optional.of(((StringInstance) obj).getValue());
+        }
+        return Optional.empty();
+    }
+
     /**
      * 🔍 StringInstance - String instance class
      */

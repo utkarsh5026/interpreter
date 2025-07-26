@@ -5,6 +5,7 @@ import java.util.*;
 import lang.exec.objects.base.BaseObject;
 import lang.exec.objects.classes.*;
 import lang.exec.objects.env.Environment;
+import lang.exec.objects.env.EnvironmentFactory;
 import lang.exec.objects.error.ErrorObject;
 import lang.exec.objects.literals.*;
 import lang.exec.validator.ObjectValidator;
@@ -216,8 +217,11 @@ public class IntegerClass extends ClassObject {
                 env);
     }
 
-    // Helper methods
-    private static long getIntegerValue(BaseObject obj) {
+    public static long getIntegerValue(BaseObject obj) {
+        if (obj instanceof IntegerInstance) {
+            return ((IntegerInstance) obj).getValue().getValue();
+        }
+
         if (ObjectValidator.isInstance(obj)) {
             InstanceObject instance = ObjectValidator.asInstance(obj);
             Optional<BaseObject> valueProperty = instance.getProperty("value");
@@ -231,42 +235,49 @@ public class IntegerClass extends ClassObject {
         return 0;
     }
 
-    private static boolean isIntegerInstance(BaseObject obj) {
-        if (ObjectValidator.isInstance(obj)) {
-            InstanceObject instance = ObjectValidator.asInstance(obj);
-            return instance.getClassObject().getName().equals("Integer");
+    public static boolean isIntegerInstance(BaseObject obj) {
+        return obj instanceof IntegerInstance;
+    }
+
+    public static Optional<IntegerObject> getIntegerObject(BaseObject obj) {
+        if (isIntegerInstance(obj)) {
+            return Optional.of(((IntegerInstance) obj).getValue());
         }
-        return ObjectValidator.isInteger(obj);
+        return Optional.empty();
     }
 
     /**
      * 🏗️ Creates an Integer instance with the given value
      */
     public static InstanceObject createIntegerInstance(long value) {
-        return new IntegerInstance(IntegerClass.getInstance(), new Environment(), value);
+        return new IntegerInstance(IntegerClass.getInstance(), EnvironmentFactory.empty(), value);
     }
 
     /**
      * 🔍 IntegerInstance - Integer instance class
      */
     private static class IntegerInstance extends InstanceObject {
-        public IntegerInstance(ClassObject classObject, Environment instanceEnvironment, long value) {
+        private IntegerInstance(ClassObject classObject, Environment instanceEnvironment, long value) {
             super(classObject, instanceEnvironment);
             setProperty("value", new IntegerObject(value));
         }
 
         @Override
-        public boolean isTruthy() {
+        public final boolean isTruthy() {
             return getValue().getValue() != 0;
         }
 
         @Override
-        public String inspect() {
+        public final String inspect() {
             return getValue().inspect();
         }
 
-        public IntegerObject getValue() {
-            return getProperty("value").map(ObjectValidator::asInteger).orElse(null);
+        public final IntegerObject getValue() {
+            Optional<BaseObject> valueProperty = getProperty("value");
+            if (valueProperty.isPresent() && valueProperty.get() instanceof IntegerObject) {
+                return (IntegerObject) valueProperty.get();
+            }
+            return null;
         }
     }
 

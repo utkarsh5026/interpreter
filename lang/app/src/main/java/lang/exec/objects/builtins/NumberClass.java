@@ -7,6 +7,8 @@ import lang.exec.objects.classes.*;
 import lang.exec.objects.env.Environment;
 import lang.exec.objects.env.EnvironmentFactory;
 import lang.exec.objects.error.ErrorObject;
+import lang.exec.objects.literals.FloatObject;
+import lang.exec.objects.literals.IntegerObject;
 import lang.exec.validator.ObjectValidator;
 
 /**
@@ -722,29 +724,27 @@ public class NumberClass extends ClassObject {
                 env);
     }
 
-    // Helper methods
     private static double getNumericValue(BaseObject obj) {
-        if (ObjectValidator.isInstance(obj)) {
-            InstanceObject instance = ObjectValidator.asInstance(obj);
-            Optional<BaseObject> valueProperty = instance.getProperty("value");
-            if (valueProperty.isPresent()) {
-                BaseObject value = valueProperty.get();
-                if (ObjectValidator.isInteger(value)) {
-                    return (double) ObjectValidator.asInteger(value).getValue();
-                } else if (ObjectValidator.isFloat(value)) {
-                    return ObjectValidator.asFloat(value).getValue();
-                }
-            }
+        if (!ObjectValidator.isInstance(obj)) {
+            throw new RuntimeException("Unexpected type: " + obj.inspect());
         }
 
-        // Fallback for old primitive objects
-        if (ObjectValidator.isInteger(obj)) {
-            return (double) ObjectValidator.asInteger(obj).getValue();
-        } else if (ObjectValidator.isFloat(obj)) {
-            return ObjectValidator.asFloat(obj).getValue();
+        InstanceObject instance = ObjectValidator.asInstance(obj);
+        Optional<BaseObject> valueProperty = instance.getProperty("value");
+
+        if (!valueProperty.isPresent()) {
+            throw new RuntimeException("Expected numeric value");
         }
 
-        throw new RuntimeException("Expected numeric value");
+        if (valueProperty.get() instanceof IntegerObject) {
+            return ((IntegerObject) valueProperty.get()).getValue();
+        }
+
+        if (valueProperty.get() instanceof FloatObject) {
+            return ((FloatObject) valueProperty.get()).getValue();
+        }
+
+        throw new RuntimeException("Unexpected type: " + valueProperty.get().inspect());
     }
 
     private static boolean isNumericInstance(BaseObject obj) {
@@ -752,20 +752,10 @@ public class NumberClass extends ClassObject {
     }
 
     private static boolean isIntegerInstance(BaseObject obj) {
-        if (ObjectValidator.isInstance(obj)) {
-            InstanceObject instance = ObjectValidator.asInstance(obj);
-            String className = instance.getClassObject().getName();
-            return className.equals("Integer");
-        }
         return ObjectValidator.isInteger(obj);
     }
 
     private static boolean isFloatInstance(BaseObject obj) {
-        if (ObjectValidator.isInstance(obj)) {
-            InstanceObject instance = ObjectValidator.asInstance(obj);
-            String className = instance.getClassObject().getName();
-            return className.equals("Float");
-        }
         return ObjectValidator.isFloat(obj);
     }
 

@@ -467,7 +467,11 @@ public class StringClass extends ClassObject {
         }
 
         public StringObject getValue() {
-            return getProperty("value").map(ObjectValidator::asString).orElse(null);
+            Optional<BaseObject> valueProperty = getProperty("value");
+            if (valueProperty.isPresent() && valueProperty.get() instanceof StringObject) {
+                return (StringObject) valueProperty.get();
+            }
+            return null;
         }
     }
 

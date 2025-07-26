@@ -229,7 +229,7 @@ public class BooleanClass extends ClassObject {
      * 🔍 BooleanInstance - Boolean instance class
      */
     private static class BooleanInstance extends InstanceObject {
-        public BooleanInstance(ClassObject classObject, Environment instanceEnvironment, boolean value) {
+        private BooleanInstance(ClassObject classObject, Environment instanceEnvironment, boolean value) {
             super(classObject, instanceEnvironment);
             setProperty("value", new BooleanObject(value));
         }
@@ -244,8 +244,12 @@ public class BooleanClass extends ClassObject {
             return getBooleanValue(this) ? "true" : "false";
         }
 
-        public BooleanObject getValue() {
-            return getProperty("value").map(ObjectValidator::asBoolean).orElse(null);
+        public final BooleanObject getValue() {
+            Optional<BaseObject> valueProperty = getProperty("value");
+            if (valueProperty.isPresent() && valueProperty.get() instanceof BooleanObject) {
+                return (BooleanObject) valueProperty.get();
+            }
+            return null;
         }
     }
 

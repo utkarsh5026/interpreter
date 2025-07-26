@@ -22,7 +22,7 @@ import lang.exec.validator.ObjectValidator;
  * - Special value handling (NaN, Infinity)
  * - Type conversion
  */
-class FloatClass extends ClassObject {
+public class FloatClass extends ClassObject {
 
     public static final String FLOAT_CLASS_NAME = "Float";
     private static FloatClass instance;
@@ -176,8 +176,39 @@ class FloatClass extends ClassObject {
      * 🏗️ Creates a Float instance with the given value
      */
     public static InstanceObject createFloatInstance(double value) {
-        InstanceObject instance = FloatClass.getInstance().createInstance();
-        instance.setProperty("value", new FloatObject(value));
-        return instance;
+        return new FloatInstance(FloatClass.getInstance(), new Environment(), value);
     }
+
+    public static Optional<FloatObject> getFloatObject(BaseObject obj) {
+        if (obj instanceof FloatInstance) {
+            return Optional.of(((FloatInstance) obj).getValue());
+        }
+        return Optional.empty();
+    }
+
+    public static boolean isFloatInstance(BaseObject obj) {
+        return obj instanceof FloatInstance;
+    }
+
+    private static class FloatInstance extends InstanceObject {
+        public FloatInstance(ClassObject classObject, Environment instanceEnvironment, double value) {
+            super(classObject, instanceEnvironment);
+            setProperty("value", new FloatObject(value));
+        }
+
+        @Override
+        public boolean isTruthy() {
+            return getFloatValue(this) != 0.0;
+        }
+
+        @Override
+        public String inspect() {
+            return getValue().inspect();
+        }
+
+        public FloatObject getValue() {
+            return getProperty("value").map(ObjectValidator::asFloat).orElse(null);
+        }
+    }
+
 }

@@ -19,7 +19,7 @@ import lang.exec.validator.ObjectValidator;
  * - Bitwise operations
  * - Number theory functions (gcd, etc.)
  */
-class IntegerClass extends ClassObject {
+public class IntegerClass extends ClassObject {
 
     public static final String INTEGER_CLASS_NAME = "Integer";
     private static IntegerClass instance;
@@ -243,8 +243,31 @@ class IntegerClass extends ClassObject {
      * 🏗️ Creates an Integer instance with the given value
      */
     public static InstanceObject createIntegerInstance(long value) {
-        InstanceObject instance = IntegerClass.getInstance().createInstance();
-        instance.setProperty("value", new IntegerObject(value));
-        return instance;
+        return new IntegerInstance(IntegerClass.getInstance(), new Environment(), value);
     }
+
+    /**
+     * 🔍 IntegerInstance - Integer instance class
+     */
+    private static class IntegerInstance extends InstanceObject {
+        public IntegerInstance(ClassObject classObject, Environment instanceEnvironment, long value) {
+            super(classObject, instanceEnvironment);
+            setProperty("value", new IntegerObject(value));
+        }
+
+        @Override
+        public boolean isTruthy() {
+            return getValue().getValue() != 0;
+        }
+
+        @Override
+        public String inspect() {
+            return getValue().inspect();
+        }
+
+        public IntegerObject getValue() {
+            return getProperty("value").map(ObjectValidator::asInteger).orElse(null);
+        }
+    }
+
 }

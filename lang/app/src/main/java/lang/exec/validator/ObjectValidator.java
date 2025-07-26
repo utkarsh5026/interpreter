@@ -1,6 +1,7 @@
 package lang.exec.validator;
 
 import lang.exec.objects.base.BaseObject;
+import lang.exec.objects.builtins.*;
 import lang.exec.objects.classes.*;
 import lang.exec.objects.error.ErrorObject;
 import lang.exec.objects.functions.*;
@@ -22,15 +23,15 @@ public final class ObjectValidator {
     } // Utility class
 
     public static boolean isInteger(BaseObject obj) {
-        return obj instanceof IntegerObject;
+        return IntegerClass.isIntegerInstance(obj);
     }
 
     public static boolean isBoolean(BaseObject obj) {
-        return obj instanceof BooleanObject;
+        return BooleanClass.isBooleanInstance(obj);
     }
 
     public static boolean isString(BaseObject obj) {
-        return obj instanceof StringObject;
+        return StringClass.isStringInstance(obj);
     }
 
     public static boolean isNull(BaseObject obj) {
@@ -74,7 +75,7 @@ public final class ObjectValidator {
     }
 
     public static boolean isFloat(BaseObject obj) {
-        return obj instanceof FloatObject;
+        return FloatClass.isFloatInstance(obj);
     }
 
     public static boolean isNumeric(BaseObject obj) {
@@ -106,15 +107,15 @@ public final class ObjectValidator {
      * These provide type-safe access to specific object types.
      */
     public static IntegerObject asInteger(BaseObject obj) {
-        return obj instanceof IntegerObject ? (IntegerObject) obj : null;
+        return IntegerClass.getIntegerObject(obj).orElse(null);
     }
 
     public static StringObject asString(BaseObject obj) {
-        return obj instanceof StringObject ? (StringObject) obj : null;
+        return StringClass.getStringObject(obj).orElse(null);
     }
 
     public static BooleanObject asBoolean(BaseObject obj) {
-        return obj instanceof BooleanObject ? (BooleanObject) obj : null;
+        return BooleanClass.getBooleanObject(obj).orElse(null);
     }
 
     public static ErrorObject asError(BaseObject obj) {
@@ -154,7 +155,7 @@ public final class ObjectValidator {
     }
 
     public static FloatObject asFloat(BaseObject obj) {
-        return obj instanceof FloatObject ? (FloatObject) obj : null;
+        return FloatClass.getFloatObject(obj).orElse(null);
     }
 
     public static InstanceObject asInstance(BaseObject obj) {

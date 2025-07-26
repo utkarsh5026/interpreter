@@ -69,7 +69,7 @@ public final class BuiltinFunctions {
         }
 
         if (arg instanceof StringObject) {
-            return IntegerClass.createIntegerInstance(((StringObject) arg).getValue().length());
+            return IntegerClass.createIntegerInstance(ObjectValidator.asString(arg).getValue().length());
         }
 
         if (arg instanceof HashObject) {
@@ -119,7 +119,7 @@ public final class BuiltinFunctions {
         }
 
         if (arg instanceof BooleanObject) {
-            return StringClass.createStringInstance(((BooleanObject) arg).getValue() ? "true" : "false");
+            return StringClass.createStringInstance(ObjectValidator.asBoolean(arg).getValue() ? "true" : "false");
         }
 
         return StringClass.createStringInstance(arg.inspect());
@@ -147,11 +147,11 @@ public final class BuiltinFunctions {
 
         if (arg instanceof StringObject) {
             try {
-                long parsed = Long.parseLong(((StringObject) arg).getValue());
+                long parsed = Long.parseLong(ObjectValidator.asString(arg).getValue());
                 return IntegerClass.createIntegerInstance(parsed);
             } catch (NumberFormatException e) {
                 return new ErrorObject(String.format(
-                        "cannot convert \"%s\" to integer", ((StringObject) arg).getValue()));
+                        "cannot convert \"%s\" to integer", ObjectValidator.asString(arg).getValue()));
             }
         }
 
@@ -428,7 +428,7 @@ public final class BuiltinFunctions {
                 return new ErrorObject(String.format(
                         "second argument to 'join' must be STRING, got %s", sepArg.type()));
             }
-            separator = ((StringObject) sepArg).getValue();
+            separator = ObjectValidator.asString(sepArg).getValue();
         }
 
         ArrayObject array = (ArrayObject) arr;
@@ -465,8 +465,8 @@ public final class BuiltinFunctions {
                     "second argument to 'split' must be STRING, got %s", delimiter.type()));
         }
 
-        String[] parts = ((StringObject) str).getValue()
-                .split(((StringObject) delimiter).getValue(), -1);
+        String[] parts = ObjectValidator.asString(str).getValue()
+                .split(ObjectValidator.asString(delimiter).getValue(), -1);
 
         List<BaseObject> elements = Arrays.stream(parts)
                 .map(StringObject::new)
@@ -503,8 +503,8 @@ public final class BuiltinFunctions {
                     "third argument to 'replace' must be STRING, got %s", replace.type()));
         }
 
-        String result = ((StringObject) str).getValue()
-                .replace(((StringObject) search).getValue(), ((StringObject) replace).getValue());
+        String result = ObjectValidator.asString(str).getValue()
+                .replace(ObjectValidator.asString(search).getValue(), ObjectValidator.asString(replace).getValue());
 
         return StringClass.createStringInstance(result);
     };
@@ -524,7 +524,7 @@ public final class BuiltinFunctions {
                     "argument to 'trim' must be STRING, got %s", str.type()));
         }
 
-        return StringClass.createStringInstance(((StringObject) str).getValue().trim());
+        return StringClass.createStringInstance(ObjectValidator.asString(str).getValue().trim());
     };
 
     /**
@@ -542,7 +542,7 @@ public final class BuiltinFunctions {
                     "argument to 'upper' must be STRING, got %s", str.type()));
         }
 
-        return StringClass.createStringInstance(((StringObject) str).getValue().toUpperCase());
+        return StringClass.createStringInstance(ObjectValidator.asString(str).getValue().toUpperCase());
     };
 
     /**
@@ -560,7 +560,7 @@ public final class BuiltinFunctions {
                     "argument to 'lower' must be STRING, got %s", str.type()));
         }
 
-        return StringClass.createStringInstance(((StringObject) str).getValue().toLowerCase());
+        return StringClass.createStringInstance(ObjectValidator.asString(str).getValue().toLowerCase());
     };
 
     /**
@@ -629,8 +629,8 @@ public final class BuiltinFunctions {
                     "second argument to 'indexOf' must be STRING, got %s", substring.type()));
         }
 
-        int index = ((StringObject) str).getValue()
-                .indexOf(((StringObject) substring).getValue());
+        int index = ObjectValidator.asString(str).getValue()
+                .indexOf(ObjectValidator.asString(substring).getValue());
 
         return IntegerClass.createIntegerInstance(index);
     };
@@ -657,8 +657,8 @@ public final class BuiltinFunctions {
                     "second argument to 'contains' must be STRING, got %s", substring.type()));
         }
 
-        boolean contains = ((StringObject) str).getValue()
-                .contains(((StringObject) substring).getValue());
+        boolean contains = ObjectValidator.asString(str).getValue()
+                .contains(ObjectValidator.asString(substring).getValue());
 
         return BooleanClass.createBooleanInstance(contains);
     };
@@ -1066,7 +1066,7 @@ public final class BuiltinFunctions {
                     "argument to 'error' must be STRING, got %s", message.type()));
         }
 
-        return new ErrorObject(((StringObject) message).getValue());
+        return new ErrorObject(ObjectValidator.asString(message).getValue());
     };
 
     /**
@@ -1085,7 +1085,7 @@ public final class BuiltinFunctions {
             if (args.length == 2) {
                 BaseObject messageArg = args[1];
                 if (messageArg instanceof StringObject) {
-                    message = ((StringObject) messageArg).getValue();
+                    message = ObjectValidator.asString(messageArg).getValue();
                 }
             }
             return new ErrorObject(message);

@@ -79,7 +79,7 @@ public class BooleanClass extends ClassObject {
 
                     boolean leftValue = getBooleanValue(instance);
 
-                    if (isBoolean(args[0])) {
+                    if (isBooleanInstance(args[0])) {
                         boolean rightValue = getBooleanValue(args[0]);
                         return createBooleanInstance(leftValue == rightValue);
                     }
@@ -101,7 +101,7 @@ public class BooleanClass extends ClassObject {
 
                     boolean leftValue = getBooleanValue(instance);
 
-                    if (isBoolean(args[0])) {
+                    if (isBooleanInstance(args[0])) {
                         boolean rightValue = getBooleanValue(args[0]);
                         return createBooleanInstance(leftValue != rightValue);
                     }
@@ -123,7 +123,7 @@ public class BooleanClass extends ClassObject {
 
                     boolean leftValue = getBooleanValue(instance);
 
-                    if (isBoolean(args[0])) {
+                    if (isBooleanInstance(args[0])) {
                         boolean rightValue = getBooleanValue(args[0]);
                         return createBooleanInstance(leftValue && rightValue);
                     }
@@ -145,7 +145,7 @@ public class BooleanClass extends ClassObject {
 
                     boolean leftValue = getBooleanValue(instance);
 
-                    if (isBoolean(args[0])) {
+                    if (isBooleanInstance(args[0])) {
                         boolean rightValue = getBooleanValue(args[0]);
                         return createBooleanInstance(leftValue || rightValue);
                     }
@@ -195,7 +195,7 @@ public class BooleanClass extends ClassObject {
     /**
      * 🔍 Checks if the object is a boolean instance
      */
-    private static boolean isBoolean(BaseObject obj) {
+    public static final boolean isBooleanInstance(BaseObject obj) {
         if (obj instanceof BooleanInstance) {
             return true;
         }
@@ -206,6 +206,16 @@ public class BooleanClass extends ClassObject {
         InstanceObject instance = ObjectValidator.asInstance(obj);
         Optional<BaseObject> valueProperty = instance.getProperty("value");
         return valueProperty.isPresent() && ObjectValidator.isBoolean(valueProperty.get());
+    }
+
+    /**
+     * 🔍 Gets the BooleanObject from the given BaseObject
+     */
+    public static final Optional<BooleanObject> getBooleanObject(BaseObject obj) {
+        if (isBooleanInstance(obj)) {
+            return Optional.of(((BooleanInstance) obj).getValue());
+        }
+        return Optional.empty();
     }
 
     /**

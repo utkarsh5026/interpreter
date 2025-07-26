@@ -196,7 +196,7 @@ public class ComprehensiveEvaluatorTest {
         @DisplayName("Type mismatch in arithmetic should produce error")
         void testArithmeticTypeMismatch() {
             assertError(evaluateCode("\"hello\" - 5;"),
-                    "Invalid operator '-' for types STRING and INTEGER. This operation is not supported.");
+                    "Arithmetic operation '-' not supported for objects of type STRING");
             assertError(evaluateCode("true * 5;"),
                     "Invalid operator '*' for types BOOLEAN and INTEGER. This operation is not supported.");
         }

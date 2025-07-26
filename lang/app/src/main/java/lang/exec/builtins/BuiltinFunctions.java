@@ -333,15 +333,15 @@ public final class BuiltinFunctions {
         ArrayObject array = (ArrayObject) arr;
         List<BaseObject> elements = array.getElements();
 
-        long startLong = ((IntegerObject) startArg).getValue();
+        long startLong = ObjectValidator.asInteger(startArg).getValue();
         long endLong = elements.size();
 
         if (endArg != null) {
-            if (!(endArg instanceof IntegerObject)) {
+            if (!ObjectValidator.isInteger(endArg)) {
                 return new ErrorObject(String.format(
                         "third argument to 'slice' must be INTEGER, got %s", endArg.type()));
             }
-            endLong = ((IntegerObject) endArg).getValue();
+            endLong = ObjectValidator.asInteger(endArg).getValue();
         }
 
         // Handle negative indices
@@ -576,26 +576,26 @@ public final class BuiltinFunctions {
         BaseObject startArg = args[1];
         BaseObject lengthArg = args.length == 3 ? args[2] : null;
 
-        if (!(str instanceof StringObject)) {
+        if (!ObjectValidator.isString(str)) {
             return new ErrorObject(String.format(
                     "first argument to 'substr' must be STRING, got %s", str.type()));
         }
 
-        if (!(startArg instanceof IntegerObject)) {
+        if (!ObjectValidator.isInteger(startArg)) {
             return new ErrorObject(String.format(
                     "second argument to 'substr' must be INTEGER, got %s", startArg.type()));
         }
 
-        String string = ((StringObject) str).getValue();
-        long startLong = ((IntegerObject) startArg).getValue();
+        String string = ObjectValidator.asString(str).getValue();
+        long startLong = ObjectValidator.asInteger(startArg).getValue();
         long lengthLong = string.length() - startLong;
 
         if (lengthArg != null) {
-            if (!(lengthArg instanceof IntegerObject)) {
+            if (!ObjectValidator.isInteger(lengthArg)) {
                 return new ErrorObject(String.format(
                         "third argument to 'substr' must be INTEGER, got %s", lengthArg.type()));
             }
-            lengthLong = ((IntegerObject) lengthArg).getValue();
+            lengthLong = ObjectValidator.asInteger(lengthArg).getValue();
         }
 
         int start = (int) (startLong < 0 ? Math.max(0, string.length() + startLong) : startLong);
@@ -702,12 +702,12 @@ public final class BuiltinFunctions {
         }
 
         BaseObject arg = args[0];
-        if (!(arg instanceof IntegerObject)) {
+        if (!ObjectValidator.isInteger(arg)) {
             return new ErrorObject(String.format(
                     "argument to 'abs' must be INTEGER, got %s", arg.type()));
         }
 
-        long value = ((IntegerObject) arg).getValue();
+        long value = ObjectValidator.asInteger(arg).getValue();
         return IntegerClass.createIntegerInstance(Math.abs(value));
     };
 
@@ -722,12 +722,12 @@ public final class BuiltinFunctions {
         long maxVal = Long.MIN_VALUE;
 
         for (BaseObject arg : args) {
-            if (!(arg instanceof IntegerObject)) {
+            if (!ObjectValidator.isInteger(arg)) {
                 return new ErrorObject(String.format(
                         "all arguments to 'max' must be INTEGER, got %s", arg.type()));
             }
 
-            long value = ((IntegerObject) arg).getValue();
+            long value = ObjectValidator.asInteger(arg).getValue();
             if (value > maxVal) {
                 maxVal = value;
             }
@@ -747,12 +747,12 @@ public final class BuiltinFunctions {
         long minVal = Long.MAX_VALUE;
 
         for (BaseObject arg : args) {
-            if (!(arg instanceof IntegerObject)) {
+            if (!ObjectValidator.isInteger(arg)) {
                 return new ErrorObject(String.format(
                         "all arguments to 'min' must be INTEGER, got %s", arg.type()));
             }
 
-            long value = ((IntegerObject) arg).getValue();
+            long value = ObjectValidator.asInteger(arg).getValue();
             if (value < minVal) {
                 minVal = value;
             }
@@ -830,18 +830,18 @@ public final class BuiltinFunctions {
         BaseObject base = args[0];
         BaseObject exponent = args[1];
 
-        if (!(base instanceof IntegerObject)) {
+        if (!ObjectValidator.isInteger(base)) {
             return new ErrorObject(String.format(
                     "first argument to 'pow' must be INTEGER, got %s", base.type()));
         }
 
-        if (!(exponent instanceof IntegerObject)) {
+        if (!ObjectValidator.isInteger(exponent)) {
             return new ErrorObject(String.format(
                     "second argument to 'pow' must be INTEGER, got %s", exponent.type()));
         }
 
-        long baseVal = ((IntegerObject) base).getValue();
-        long expVal = ((IntegerObject) exponent).getValue();
+        long baseVal = ObjectValidator.asInteger(base).getValue();
+        long expVal = ObjectValidator.asInteger(exponent).getValue();
 
         if (expVal < 0) {
             return new ErrorObject("negative exponents not supported for integer power");
@@ -861,12 +861,12 @@ public final class BuiltinFunctions {
         }
 
         BaseObject arg = args[0];
-        if (!(arg instanceof IntegerObject)) {
+        if (!ObjectValidator.isInteger(arg)) {
             return new ErrorObject(String.format(
                     "argument to 'sqrt' must be INTEGER, got %s", arg.type()));
         }
 
-        long value = ((IntegerObject) arg).getValue();
+        long value = ObjectValidator.asInteger(arg).getValue();
         if (value < 0) {
             return new ErrorObject("cannot take square root of negative number");
         }
@@ -885,17 +885,16 @@ public final class BuiltinFunctions {
         }
 
         if (args.length == 0) {
-            // Return random integer 0 or 1
             return IntegerClass.createIntegerInstance(new Random().nextInt(2));
         }
 
         BaseObject maxArg = args[0];
-        if (!(maxArg instanceof IntegerObject)) {
+        if (!ObjectValidator.isInteger(maxArg)) {
             return new ErrorObject(String.format(
                     "argument to 'random' must be INTEGER, got %s", maxArg.type()));
         }
 
-        long maxVal = ((IntegerObject) maxArg).getValue();
+        long maxVal = ObjectValidator.asInteger(maxArg).getValue();
         if (maxVal <= 0) {
             return new ErrorObject("argument to 'random' must be positive");
         }
@@ -952,28 +951,28 @@ public final class BuiltinFunctions {
         if (args.length == 1) {
             // range(end)
             BaseObject endArg = args[0];
-            if (!(endArg instanceof IntegerObject)) {
+            if (!ObjectValidator.isInteger(endArg)) {
                 return new ErrorObject(String.format(
                         "argument to 'range' must be INTEGER, got %s", endArg.type()));
             }
-            end = ((IntegerObject) endArg).getValue();
+            end = ObjectValidator.asInteger(endArg).getValue();
         } else {
             // range(start, end, step?)
             BaseObject startArg = args[0];
             BaseObject endArg = args[1];
 
-            if (!(startArg instanceof IntegerObject)) {
+            if (!ObjectValidator.isInteger(startArg)) {
                 return new ErrorObject(String.format(
                         "first argument to 'range' must be INTEGER, got %s", startArg.type()));
             }
 
-            if (!(endArg instanceof IntegerObject)) {
+            if (!ObjectValidator.isInteger(endArg)) {
                 return new ErrorObject(String.format(
                         "second argument to 'range' must be INTEGER, got %s", endArg.type()));
             }
 
-            start = ((IntegerObject) startArg).getValue();
-            end = ((IntegerObject) endArg).getValue();
+            start = ObjectValidator.asInteger(startArg).getValue();
+            end = ObjectValidator.asInteger(endArg).getValue();
 
             if (args.length == 3) {
                 BaseObject stepArg = args[2];
@@ -981,7 +980,7 @@ public final class BuiltinFunctions {
                     return new ErrorObject(String.format(
                             "third argument to 'range' must be INTEGER, got %s", stepArg.type()));
                 }
-                step = ((IntegerObject) stepArg).getValue();
+                step = ObjectValidator.asInteger(stepArg).getValue();
 
                 if (step == 0) {
                     return new ErrorObject("step cannot be zero");

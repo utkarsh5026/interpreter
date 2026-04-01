@@ -1,0 +1,11 @@
+pre-commit:
+  parallel: false
+  commands:
+    fmt:
+      glob: "lib/**/*.rs"
+      run: cargo fmt --manifest-path lib/Cargo.toml -- {staged_files}
+      stage_fixed: true
+
+    clippy:
+      glob: "lib/**/*.rs"
+      run: cargo clippy --manifest-path lib/Cargo.toml --all-targets -- -D warnings

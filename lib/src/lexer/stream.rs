@@ -1,34 +1,113 @@
-use thiserror::Error;
+//! Character-level streaming primitives for the Mutant Lang lexer.
+//!
+//! This module provides [`CharacterStream`], a cursor over a Unicode character
+//! sequence, and a small set of sentinel constants that the lexer uses to
+//! identify structurally significant characters without scattering magic
+//! literals throughout the parsing logic.
+//!
+//! The stream works at the `char` level (not bytes), so multi-byte Unicode
+//! codepoints are handled transparently. It records `(line, column)` position
+//! history so that the lexer can attach accurate [`TokenPosition`](crate::token::TokenPosition)
+//! information to every token it emits, and can backtrack when a speculative
+//! parse fails.
 
+/// Sentinel character returned by [`CharacterStream::current_char`] after the
+/// input is exhausted.
+///
+/// Using the null character (`'\0'`) as EOF avoids wrapping every read in an
+/// `Option` while still giving the lexer a distinct, unmatchable value that
+/// cannot appear in valid source text.
 pub const EOF: char = '\0';
+
+/// The character that begins a single-line comment (`#`).
+///
+/// Everything from this character to the end of the current line is ignored by
+/// the lexer.
 pub const COMMENT_START: char = '#';
+
+/// The double-quote delimiter used for ordinary string literals (`"`).
 pub const DOUBLE_QUOTE: char = '"';
+
+/// The single-quote delimiter used for character or alternative string literals (`'`).
 pub const SINGLE_QUOTE: char = '\'';
+
+/// The prefix character that introduces an f-string literal (`f`).
+///
+/// The lexer checks for this character immediately before a [`DOUBLE_QUOTE`] or
+/// [`SINGLE_QUOTE`] to decide whether to enter f-string tokenisation mode.
 pub const FSTRING_PREFIX: char = 'f';
+
+/// The dot character (`.`), used as a member-access operator and decimal
+/// separator in numeric literals.
 pub const DOT: char = '.';
 
+/// A forward-only, backtrack-capable cursor over a Unicode character sequence.
+///
+/// `CharacterStream` owns the entire input as a `Vec<char>` and exposes a
+/// two-position window — `current_pos` (the character being inspected) and
+/// `next_pos` (the lookahead) — together with a full `(line, col)` history
+/// that makes single or multi-step backtracking cheap.
+///
+/// # Position tracking
+///
+/// Lines are 1-indexed; columns are 1-indexed within a line. After a `'\n'`
+/// (or a `'\r\n'` pair) the column resets to `0` so that the *next* advance
+/// lands at column `1` of the new line. The stream stores one
+/// `(line, col)` entry per position in `pos_history`, so backtracking always
+/// restores an exact snapshot rather than recomputing it.
+///
+/// # Panics
+///
+/// [`peek_char`](CharacterStream::peek_char) panics if called when
+/// `next_pos >= chars.len()` (i.e. when the stream is at or past EOF). Prefer
+/// [`peek`](CharacterStream::peek) (returns `Option<char>`) unless you have
+/// already verified that more input is available.
 pub(crate) struct CharacterStream {
-    input: String,
-    lines: Vec<String>,
+    /// The full input decomposed into Unicode scalar values.
     chars: Vec<char>,
 
+    /// Index of the character currently under inspection.
     current_pos: usize,
+
+    /// Index of the next character to be consumed by [`advance`](CharacterStream::advance).
     next_pos: usize,
 
+    /// The character at `current_pos`, or [`EOF`] when the input is exhausted.
     current_char: char,
+
+    /// `(line, column)` of `current_char`. Lines and columns are 1-indexed;
+    /// column resets to `0` immediately after a newline so the next character
+    /// opens at `(line + 1, 1)`.
     line_col: (usize, usize),
+
+    /// Snapshot of `(line, col)` for every stream position visited so far.
+    ///
+    /// Entry `i` holds the position that was current after `i` advances.
+    /// [`backtrack`](CharacterStream::backtrack) uses this to restore position
+    /// metadata without recomputing it from scratch.
     pos_history: Vec<(usize, usize)>, // (line, col) for each position
 }
 
 impl CharacterStream {
+    /// Construct a new `CharacterStream` from any value that can be converted
+    /// into a [`String`], then advance to the first character.
+    ///
+    /// After construction, [`current_char`](CharacterStream::current_char)
+    /// holds the first character of the input, or [`EOF`] if the input is
+    /// empty.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use mutant_lang::lexer::stream::{CharacterStream, EOF};
+    /// let mut stream = CharacterStream::new("hello");
+    /// assert_eq!(stream.current_char(), 'h');
+    /// ```
     pub(crate) fn new(input: impl Into<String>) -> Self {
         let input = input.into();
-        let lines = input.lines().map(ToString::to_string).collect();
         let chars = input.chars().collect();
 
         let mut stream = Self {
-            input,
-            lines,
             chars,
             current_pos: 0,
             next_pos: 0,
@@ -41,6 +120,22 @@ impl CharacterStream {
         stream
     }
 
+    /// Consume the current character and move the cursor forward by one position.
+    ///
+    /// After this call:
+    /// - [`current_char`](CharacterStream::current_char) holds the character
+    ///   that was previously at `next_pos`, or [`EOF`] if the end of input has
+    ///   been reached.
+    /// - [`token_pos`](CharacterStream::token_pos) reflects the updated
+    ///   `(line, col)`.
+    ///
+    /// Calling `advance` when the stream is already at [`EOF`] is safe — the
+    /// current character remains [`EOF`] and position tracking continues
+    /// without panicking.
+    ///
+    /// Windows-style `\r\n` line endings are handled: a `\r` followed by `\n`
+    /// increments the line counter only once (on the `\r`), matching the
+    /// behaviour users expect when editing on Windows.
     pub(crate) fn advance(&mut self) {
         self.current_pos = self.next_pos;
         self.next_pos += 1;
@@ -63,6 +158,10 @@ impl CharacterStream {
         self.pos_history.push(self.line_col);
     }
 
+    /// Return the character at `next_pos` without advancing the cursor.
+    ///
+    /// Returns `None` when the stream has no further input (i.e. the current
+    /// character is the last one, or the input is empty).
     fn peek(&self) -> Option<char> {
         if self.next_pos < self.chars.len() {
             Some(self.chars[self.next_pos])
@@ -71,14 +170,28 @@ impl CharacterStream {
         }
     }
 
-    pub(crate) fn reset(&mut self) {
-        self.current_pos = 0;
-        self.next_pos = 1;
-        self.current_char = EOF;
-        self.line_col = (1, 0);
-        self.pos_history = vec![(1, 0)];
-    }
-
+    /// Move the cursor backward by up to `steps` positions, restoring the
+    /// character and `(line, col)` state that existed at that earlier point.
+    ///
+    /// Backtracking is bounded: if `steps` exceeds `current_pos` (i.e. you
+    /// ask to go before the start of the input), the stream silently clamps to
+    /// position `0` and the call is effectively a no-op when already at the
+    /// start. This prevents underflow without requiring the caller to
+    /// bounds-check first.
+    ///
+    /// `pos_history` is truncated to the new position so that subsequent
+    /// [`advance`](CharacterStream::advance) calls rebuild history correctly.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use mutant_lang::lexer::stream::CharacterStream;
+    /// let mut stream = CharacterStream::new("abc");
+    /// stream.advance(); // 'b'
+    /// stream.advance(); // 'c'
+    /// stream.backtrack(2);
+    /// assert_eq!(stream.current_char(), 'a');
+    /// ```
     pub(crate) fn backtrack(&mut self, steps: usize) {
         let steps = steps.min(self.current_pos);
         if steps == 0 {
@@ -93,22 +206,62 @@ impl CharacterStream {
         self.pos_history.truncate(self.next_pos + 1);
     }
 
+    /// Return the byte index of the current character within the character
+    /// vector.
+    ///
+    /// This index is suitable for use with [`get_substring`](CharacterStream::get_substring)
+    /// to mark the start of a token before consuming its characters.
     pub(crate) const fn current_position(&self) -> usize {
         self.current_pos
     }
 
-    pub(crate) fn current_char(&self) -> char {
+    /// Return the character currently under the cursor.
+    ///
+    /// Returns [`EOF`] when the input is exhausted. Callers can match against
+    /// `EOF` to detect the end of input without unwrapping an `Option`.
+    pub(crate) const fn current_char(&self) -> char {
         self.current_char
     }
 
+    /// Extract the source text in the half-open range `[start, current_pos)`.
+    ///
+    /// Intended to be called after consuming a complete token: record
+    /// `current_position()` before the first [`advance`](CharacterStream::advance),
+    /// then call `get_substring(start)` once the token is fully consumed to
+    /// obtain its lexeme.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use mutant_lang::lexer::stream::CharacterStream;
+    /// let mut stream = CharacterStream::new("let");
+    /// let start = stream.current_position();
+    /// stream.advance();
+    /// stream.advance();
+    /// stream.advance();
+    /// assert_eq!(stream.get_substring(start), "let");
+    /// ```
     pub(crate) fn get_substring(&self, start: usize) -> String {
         self.chars[start..self.current_pos].iter().collect()
     }
 
-    pub(crate) fn token_pos(&self) -> (usize, usize) {
-        return self.line_col;
+    /// Return the `(line, column)` position of the current character.
+    ///
+    /// Both values are 1-indexed. Call this *before* advancing past a token's
+    /// first character to capture the token's start position for error
+    /// reporting and [`TokenPosition`](crate::token::TokenPosition) metadata.
+    pub(crate) const fn token_pos(&self) -> (usize, usize) {
+        self.line_col
     }
 
+    /// Return the character at `next_pos` without advancing the cursor.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `next_pos >= chars.len()`, i.e. when the stream is at or past
+    /// the last character. Use the private [`peek`](CharacterStream::peek)
+    /// method (returns `Option<char>`) in contexts where the stream may be
+    /// near the end of input.
     pub(crate) fn peek_char(&self) -> char {
         self.chars[self.next_pos]
     }

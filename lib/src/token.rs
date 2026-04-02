@@ -1,5 +1,7 @@
+#![allow(dead_code)]
 // TokenType enum, Token struct, TokenPosition, keywords
 
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum TokenType {
     // Literals / values
     Illegal,
@@ -152,4 +154,77 @@ impl std::fmt::Display for TokenType {
         };
         write!(f, "{s}")
     }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct TokenPosition {
+    line: usize,
+    column: usize,
+}
+
+impl TokenPosition {
+    /// Creates a new `TokenPosition`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `line` is 0 (line numbers are 1-based).
+    #[must_use]
+    pub fn new(line: usize, column: usize) -> Self {
+        assert!(line >= 1, "line number must be >= 1, got {line}");
+        Self { line, column }
+    }
+}
+
+impl std::fmt::Display for TokenPosition {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "line {}, column{}", self.line, self.column)
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Token {
+    pub(crate) kind: TokenType,
+    pub(crate) literal: String,
+    pub(crate) position: TokenPosition,
+}
+
+impl Token {
+    pub fn new(kind: TokenType, literal: impl Into<String>, position: TokenPosition) -> Self {
+        Self {
+            kind,
+            literal: literal.into(),
+            position,
+        }
+    }
+}
+
+#[must_use]
+pub fn lookup_identifier(ident: &str) -> TokenType {
+    match ident {
+        "fn" => TokenType::Function,
+        "let" => TokenType::Let,
+        "true" => TokenType::True,
+        "false" => TokenType::False,
+        "if" => TokenType::If,
+        "elif" => TokenType::Elif,
+        "else" => TokenType::Else,
+        "return" => TokenType::Return,
+        "while" => TokenType::While,
+        "break" => TokenType::Break,
+        "continue" => TokenType::Continue,
+        "for" => TokenType::For,
+        "const" => TokenType::Const,
+        "class" => TokenType::Class,
+        "extends" => TokenType::Extends,
+        "super" => TokenType::Super,
+        "this" => TokenType::This,
+        "new" => TokenType::New,
+        "null" => TokenType::Null,
+        _ => TokenType::Identifier,
+    }
+}
+
+#[must_use]
+pub fn is_keyword(ident: &str) -> bool {
+    lookup_identifier(ident) != TokenType::Identifier
 }

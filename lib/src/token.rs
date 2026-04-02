@@ -552,3 +552,206 @@ pub fn lookup_identifier(ident: &str) -> TokenType {
 pub fn is_keyword(ident: &str) -> bool {
     lookup_identifier(ident) != TokenType::Identifier
 }
+
+/// A typed wrapper around [`TokenType`] that classifies a token as an operator.
+///
+/// Each variant carries the original [`TokenType`] it was constructed from,
+/// so the underlying token kind is always recoverable via [`Operator::token_type`]
+/// or [`Display`](std::fmt::Display) without an extra allocation.
+///
+/// The enum is crate-private (`pub(crate)`) because it is an internal
+/// parsing/evaluation detail — callers outside the crate see operator
+/// semantics only through AST nodes.
+///
+/// Construct an `Operator` from a token kind via the [`TryFrom<TokenType>`]
+/// implementation. Any [`TokenType`] that does not correspond to an operator
+/// returns `Err(token_type)`.
+///
+/// # Examples
+///
+/// ```rust
+/// # use mutant_lang::token::{TokenType, Operator};
+/// let op = Operator::try_from(TokenType::Plus).unwrap();
+/// assert_eq!(op.to_string(), "+");
+///
+/// let err = Operator::try_from(TokenType::Identifier);
+/// assert!(err.is_err());
+/// ```
+pub(crate) enum Operator {
+    /// Addition operator (`+`).
+    Plus(TokenType),
+    /// Subtraction or unary negation (`-`).
+    Minus(TokenType),
+    /// Multiplication (`*`).
+    Asterisk(TokenType),
+    /// Floating-point division (`/`).
+    Slash(TokenType),
+    /// Integer (floor) division (`//`).
+    IntDivision(TokenType),
+    /// Modulus / remainder (`%`).
+    Modulus(TokenType),
+    /// Logical or bitwise NOT prefix (`!`).
+    Bang(TokenType),
+
+    /// Equality comparison (`==`).
+    Eq(TokenType),
+    /// Inequality comparison (`!=`).
+    NotEq(TokenType),
+    /// Less-than comparison (`<`).
+    LessThan(TokenType),
+    /// Greater-than comparison (`>`).
+    GreaterThan(TokenType),
+    /// Less-than-or-equal comparison (`<=`).
+    LessThanOrEqual(TokenType),
+    /// Greater-than-or-equal comparison (`>=`).
+    GreaterThanOrEqual(TokenType),
+
+    /// Short-circuit logical AND (`&&`).
+    And(TokenType),
+    /// Short-circuit logical OR (`||`).
+    Or(TokenType),
+
+    /// Simple assignment (`=`).
+    Assign(TokenType),
+    /// Addition-assignment (`+=`).
+    PlusAssign(TokenType),
+    /// Subtraction-assignment (`-=`).
+    MinusAssign(TokenType),
+    /// Multiplication-assignment (`*=`).
+    AsteriskAssign(TokenType),
+    /// Division-assignment (`/=`).
+    SlashAssign(TokenType),
+    /// Modulus-assignment (`%=`).
+    ModulusAssign(TokenType),
+
+    /// Bitwise AND (`&`).
+    BitwiseAnd(TokenType),
+    /// Bitwise OR (`|`).
+    BitwiseOr(TokenType),
+    /// Bitwise XOR (`^`).
+    BitwiseXor(TokenType),
+    /// Bitwise NOT / one's complement (`~`).
+    BitwiseNot(TokenType),
+    /// Left bit-shift (`<<`).
+    BitwiseLeftShift(TokenType),
+    /// Right bit-shift (`>>`).
+    BitwiseRightShift(TokenType),
+}
+
+/// Converts a [`TokenType`] into an [`Operator`], failing for non-operator kinds.
+///
+/// This is the canonical way to construct an `Operator`. The `TokenType` value
+/// is moved *into* the matching variant so the original kind is always
+/// recoverable without an extra field or allocation.
+///
+/// # Errors
+///
+/// Returns `Err(t)` — the original [`TokenType`] — if `t` does not correspond
+/// to any operator (e.g. [`TokenType::Identifier`], [`TokenType::Eof`],
+/// delimiters, or keywords). The caller can inspect or re-use the returned
+/// value to produce a meaningful error message.
+///
+/// # Examples
+///
+/// ```rust
+/// # use mutant_lang::token::{TokenType, Operator};
+/// assert!(Operator::try_from(TokenType::Asterisk).is_ok());
+/// assert_eq!(Operator::try_from(TokenType::Comma), Err(TokenType::Comma));
+/// ```
+impl TryFrom<TokenType> for Operator {
+    type Error = TokenType; // returns the offending type on failure
+
+    fn try_from(t: TokenType) -> Result<Self, Self::Error> {
+        match t {
+            TokenType::Plus => Ok(Self::Plus(t)),
+            TokenType::Minus => Ok(Self::Minus(t)),
+            TokenType::Asterisk => Ok(Self::Asterisk(t)),
+            TokenType::Slash => Ok(Self::Slash(t)),
+            TokenType::IntDivision => Ok(Self::IntDivision(t)),
+            TokenType::Modulus => Ok(Self::Modulus(t)),
+            TokenType::Bang => Ok(Self::Bang(t)),
+            TokenType::Eq => Ok(Self::Eq(t)),
+            TokenType::NotEq => Ok(Self::NotEq(t)),
+            TokenType::LessThan => Ok(Self::LessThan(t)),
+            TokenType::GreaterThan => Ok(Self::GreaterThan(t)),
+            TokenType::LessThanOrEqual => Ok(Self::LessThanOrEqual(t)),
+            TokenType::GreaterThanOrEqual => Ok(Self::GreaterThanOrEqual(t)),
+            TokenType::And => Ok(Self::And(t)),
+            TokenType::Or => Ok(Self::Or(t)),
+            TokenType::Assign => Ok(Self::Assign(t)),
+            TokenType::PlusAssign => Ok(Self::PlusAssign(t)),
+            TokenType::MinusAssign => Ok(Self::MinusAssign(t)),
+            TokenType::AsteriskAssign => Ok(Self::AsteriskAssign(t)),
+            TokenType::SlashAssign => Ok(Self::SlashAssign(t)),
+            TokenType::ModulusAssign => Ok(Self::ModulusAssign(t)),
+            TokenType::BitwiseAnd => Ok(Self::BitwiseAnd(t)),
+            TokenType::BitwiseOr => Ok(Self::BitwiseOr(t)),
+            TokenType::BitwiseXor => Ok(Self::BitwiseXor(t)),
+            TokenType::BitwiseNot => Ok(Self::BitwiseNot(t)),
+            TokenType::BitwiseLeftShift => Ok(Self::BitwiseLeftShift(t)),
+            TokenType::BitwiseRightShift => Ok(Self::BitwiseRightShift(t)),
+            other => Err(other),
+        }
+    }
+}
+
+impl Operator {
+    /// Returns the [`TokenType`] that this operator was constructed from.
+    ///
+    /// Because every variant stores exactly one `TokenType` field, this
+    /// operation is `const` and branch-free at runtime — the compiler
+    /// generates a single move. Use this when you need to delegate to
+    /// [`TokenType`]'s own [`Display`](std::fmt::Display) or comparisons
+    /// without pattern-matching on every variant.
+    #[must_use]
+    const fn token_type(&self) -> TokenType {
+        match self {
+            Self::Plus(t)
+            | Self::Minus(t)
+            | Self::Asterisk(t)
+            | Self::Slash(t)
+            | Self::IntDivision(t)
+            | Self::Modulus(t)
+            | Self::Bang(t)
+            | Self::Eq(t)
+            | Self::NotEq(t)
+            | Self::LessThan(t)
+            | Self::GreaterThan(t)
+            | Self::LessThanOrEqual(t)
+            | Self::GreaterThanOrEqual(t)
+            | Self::And(t)
+            | Self::Or(t)
+            | Self::Assign(t)
+            | Self::PlusAssign(t)
+            | Self::MinusAssign(t)
+            | Self::AsteriskAssign(t)
+            | Self::SlashAssign(t)
+            | Self::ModulusAssign(t)
+            | Self::BitwiseAnd(t)
+            | Self::BitwiseOr(t)
+            | Self::BitwiseXor(t)
+            | Self::BitwiseNot(t)
+            | Self::BitwiseLeftShift(t)
+            | Self::BitwiseRightShift(t) => *t,
+        }
+    }
+}
+
+/// Formats the operator as its canonical source-text symbol.
+///
+/// Delegates to [`TokenType`]'s [`Display`](std::fmt::Display) impl via
+/// [`Operator::token_type`], so the output is always consistent with what
+/// the lexer read from source (e.g. `"+"`, `"<="`, `"&&"`).
+///
+/// # Examples
+///
+/// ```rust
+/// # use mutant_lang::token::{TokenType, Operator};
+/// let op = Operator::try_from(TokenType::BitwiseLeftShift).unwrap();
+/// assert_eq!(op.to_string(), "<<");
+/// ```
+impl std::fmt::Display for Operator {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.token_type())
+    }
+}

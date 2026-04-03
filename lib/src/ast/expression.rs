@@ -1,8 +1,9 @@
-use crate::token::{Operator, Token};
+use crate::token::{Operator, TokenPosition};
 
 use std::fmt;
 
 use super::literal::Literal;
+use super::TokenSpan;
 
 pub enum Expression {
     Identifier(Indentifier),
@@ -22,15 +23,28 @@ impl fmt::Display for Expression {
     }
 }
 
-#[derive(Clone)]
+impl Expression {
+    pub(crate) const fn end_position(&self) -> &TokenPosition {
+        match self {
+            Self::Identifier(e) => &e.span.end,
+            Self::Infix(e) => &e.span.end,
+            Self::Assignment(e) => &e.span.end,
+            Self::Literal(e) => e.end_position(),
+        }
+    }
+}
+
 pub struct Indentifier {
-    token: Token,
+    span: TokenSpan,
     value: String,
 }
 
 impl Indentifier {
-    pub(crate) const fn new(token: Token, value: String) -> Self {
-        Self { token, value }
+    pub(crate) fn new(span: impl Into<TokenSpan>, value: String) -> Self {
+        Self {
+            span: span.into(),
+            value,
+        }
     }
 }
 
@@ -41,21 +55,21 @@ impl fmt::Display for Indentifier {
 }
 
 pub struct InfixExpression {
-    token: Token,
+    span: TokenSpan,
     left: Box<Expression>,
     right: Box<Expression>,
     operator: Operator,
 }
 
 impl InfixExpression {
-    pub(crate) const fn new(
-        token: Token,
+    pub(crate) fn new(
+        span: impl Into<TokenSpan>,
         left: Box<Expression>,
         right: Box<Expression>,
         operator: Operator,
     ) -> Self {
         Self {
-            token,
+            span: span.into(),
             left,
             right,
             operator,
@@ -82,14 +96,22 @@ impl fmt::Display for InfixExpression {
 }
 
 pub struct AssignmentExpression {
-    token: Token,
+    span: TokenSpan,
     name: Box<Expression>,
     value: Box<Expression>,
 }
 
 impl AssignmentExpression {
-    pub(crate) const fn new(token: Token, name: Box<Expression>, value: Box<Expression>) -> Self {
-        Self { token, name, value }
+    pub(crate) fn new(
+        span: impl Into<TokenSpan>,
+        name: Box<Expression>,
+        value: Box<Expression>,
+    ) -> Self {
+        Self {
+            span: span.into(),
+            name,
+            value,
+        }
     }
 
     pub(crate) const fn name(&self) -> &Expression {
@@ -103,6 +125,6 @@ impl AssignmentExpression {
 
 impl fmt::Display for AssignmentExpression {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}{}{}", self.name, self.token.literal, self.value)
+        write!(f, "{} = {}", self.name, self.value)
     }
 }

@@ -1,6 +1,6 @@
 // Statement enum, Expression enum, Program struct
 
-use crate::token::{Token, TokenPosition};
+use crate::token::{Operator, Token, TokenPosition};
 
 use self::expression::Expression;
 use self::literal::{
@@ -62,6 +62,32 @@ impl Expression {
 
     pub fn array(span: impl Into<TokenSpan>, elements: Vec<Expression>) -> Self {
         Self::Literal(Literal::Array(ArrayLiteral::new(span.into(), elements)))
+    }
+
+    pub fn identifier(span: impl Into<TokenSpan>, value: String) -> Self {
+        Self::Identifier(Indentifier::new(span.into(), value))
+    }
+
+    pub fn infix(
+        span: impl Into<TokenSpan>,
+        left: Expression,
+        right: Expression,
+        operator: Operator,
+    ) -> Self {
+        Self::Infix(expression::InfixExpression::new(
+            span.into(),
+            Box::new(left),
+            Box::new(right),
+            operator,
+        ))
+    }
+
+    pub fn assignment(span: impl Into<TokenSpan>, name: Expression, value: Expression) -> Self {
+        Self::Assignment(expression::AssignmentExpression::new(
+            span.into(),
+            Box::new(name),
+            Box::new(value),
+        ))
     }
 }
 

@@ -1,8 +1,9 @@
 use super::expression::{Expression, Indentifier};
 use super::statements::BlockStatement;
 use super::TokenSpan;
+use crate::token::TokenPosition;
 
-pub(crate) enum Literal {
+pub enum Literal {
     Func(FunctionLiteral),
     Array(ArrayLiteral),
     String(StringLiteral),
@@ -10,6 +11,20 @@ pub(crate) enum Literal {
     Hash(HashLiteral),
     Bool(BooleanLiteral),
     Null(NullLitreal),
+}
+
+impl Literal {
+    pub(crate) const fn end_position(&self) -> &TokenPosition {
+        match self {
+            Self::Func(l) => &l.span.end,
+            Self::Array(l) => &l.span.end,
+            Self::String(l) => &l.span.end,
+            Self::Integer(l) => &l.span.end,
+            Self::Hash(l) => &l.span.end,
+            Self::Bool(l) => &l.span.end,
+            Self::Null(l) => &l.span.end,
+        }
+    }
 }
 
 impl std::fmt::Display for Literal {

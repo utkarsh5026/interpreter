@@ -56,7 +56,8 @@ const fn is_digit(ch: char) -> bool {
 /// [`token_pos`](CharacterStream::token_pos) at the moment of the call, so
 /// callers should invoke this function while the stream is still positioned on
 /// the *last* character of the token being built — not after advancing past it.
-pub(crate) fn create_token(kind: TokenType, literal: String, stream: &CharacterStream) -> Token {
+#[must_use]
+pub fn create_token(kind: TokenType, literal: String, stream: &CharacterStream) -> Token {
     let (line, col) = stream.token_pos();
     Token::new(kind, literal, TokenPosition::new(line, col))
 }
@@ -142,7 +143,7 @@ pub enum LexError {
 ///   *first* character of the token. It must leave the stream on the *last*
 ///   character of the token (not one past it); the lexer calls `advance` once
 ///   more after every successful parse.
-pub(crate) trait TokenParser {
+pub trait TokenParser {
     /// Return `true` if this parser can handle a token starting with `ch`.
     ///
     /// `stream` is provided as a read-only reference so that parsers requiring
@@ -168,7 +169,7 @@ pub(crate) trait TokenParser {
 /// continues with letters, underscores, or digits. After collecting the
 /// lexeme, [`lookup_identifier`] classifies it as either a language keyword
 /// or a plain [`TokenType::Identifier`].
-pub(crate) struct IdentifierParser {}
+pub struct IdentifierParser {}
 
 impl TokenParser for IdentifierParser {
     /// Return `true` when `ch` is a valid identifier-start character.
@@ -211,7 +212,7 @@ impl TokenParser for IdentifierParser {
 ///
 /// A leading `.` is accepted only when the next character is a digit (e.g.
 /// `.5` → `0.5`), disambiguating it from the member-access dot operator.
-pub(crate) struct NumberParser {}
+pub struct NumberParser {}
 
 impl TokenParser for NumberParser {
     /// Return `true` when `ch` starts a numeric literal.
@@ -281,7 +282,7 @@ impl TokenParser for NumberParser {
 /// Returns [`TokenType::Illegal`] for any character that passes
 /// [`can_parse`](TokenParser::can_parse) but has no mapping in either table,
 /// which should be impossible given the `matches!` guard in `can_parse`.
-pub(crate) struct OperatorParser {}
+pub struct OperatorParser {}
 
 impl OperatorParser {
     /// Try to match the current and next character as a two-character operator.
@@ -421,7 +422,7 @@ impl TokenParser for OperatorParser {
 /// The produced token type is always [`TokenType::String`]. The token literal
 /// contains the *processed* string content — escape sequences are already
 /// expanded and the surrounding quotes are not included.
-pub(crate) struct StringParser {}
+pub struct StringParser {}
 
 impl TokenParser for StringParser {
     /// Return `true` when `ch` is a single or double quote.
@@ -486,7 +487,7 @@ impl TokenParser for StringParser {
 /// [`can_parse`](TokenParser::can_parse) but the [`parse`](TokenParser::parse)
 /// implementation closes only on `"`. Mixing quote styles will produce an
 /// [`LexError::UnterminatedFString`].
-pub(crate) struct FStringParser {}
+pub struct FStringParser {}
 
 impl TokenParser for FStringParser {
     /// Return `true` when `ch` is `f` and the next character is a quote.

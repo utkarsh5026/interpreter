@@ -62,7 +62,7 @@ pub const DOT: char = '.';
 /// `next_pos >= chars.len()` (i.e. when the stream is at or past EOF). Prefer
 /// [`peek`](CharacterStream::peek) (returns `Option<char>`) unless you have
 /// already verified that more input is available.
-pub(crate) struct CharacterStream {
+pub struct CharacterStream {
     /// The full input decomposed into Unicode scalar values.
     chars: Vec<char>,
 

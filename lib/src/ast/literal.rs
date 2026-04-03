@@ -1,7 +1,6 @@
-use crate::token::Token;
-
 use super::expression::{Expression, Indentifier};
 use super::statements::BlockStatement;
+use super::TokenSpan;
 
 pub(crate) enum Literal {
     Func(FunctionLiteral),
@@ -13,16 +12,30 @@ pub(crate) enum Literal {
     Null(NullLitreal),
 }
 
+impl std::fmt::Display for Literal {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Func(func) => write!(f, "{func}"),
+            Self::Array(array) => write!(f, "{array}"),
+            Self::String(string) => write!(f, "{string}"),
+            Self::Integer(integer) => write!(f, "{integer}"),
+            Self::Hash(hash) => write!(f, "{hash}"),
+            Self::Bool(boolean) => write!(f, "{boolean}"),
+            Self::Null(null) => write!(f, "{null}"),
+        }
+    }
+}
+
 pub(crate) struct FunctionLiteral {
-    token: Token,
+    span: TokenSpan,
     body: BlockStatement,
     parameters: Vec<Indentifier>,
 }
 
 impl FunctionLiteral {
-    const fn new(token: Token, parameters: Vec<Indentifier>, body: BlockStatement) -> Self {
+    const fn new(span: TokenSpan, parameters: Vec<Indentifier>, body: BlockStatement) -> Self {
         Self {
-            token,
+            span,
             body,
             parameters,
         }
@@ -44,19 +57,21 @@ impl std::fmt::Display for FunctionLiteral {
         write!(
             f,
             "{}({}) {{\n{}\n}}",
-            self.token.literal, params, self.body
+            self.span.literal(),
+            params,
+            self.body
         )
     }
 }
 
 pub(crate) struct ArrayLiteral {
-    token: Token,
+    span: TokenSpan,
     elements: Vec<Expression>,
 }
 
 impl ArrayLiteral {
-    pub(crate) const fn new(token: Token, elements: Vec<Expression>) -> Self {
-        Self { token, elements }
+    pub(crate) const fn new(span: TokenSpan, elements: Vec<Expression>) -> Self {
+        Self { span, elements }
     }
 
     pub(crate) const fn elements(&self) -> &[Expression] {
@@ -77,13 +92,13 @@ impl std::fmt::Display for ArrayLiteral {
 }
 
 pub(crate) struct StringLiteral {
-    token: Token,
+    span: TokenSpan,
     value: String,
 }
 
 impl StringLiteral {
-    pub(crate) const fn new(token: Token, value: String) -> Self {
-        Self { token, value }
+    pub(crate) const fn new(span: TokenSpan, value: String) -> Self {
+        Self { span, value }
     }
 
     pub(crate) const fn value(&self) -> &str {
@@ -98,13 +113,13 @@ impl std::fmt::Display for StringLiteral {
 }
 
 pub(crate) struct IntegerLiteral {
-    token: Token,
+    span: TokenSpan,
     value: i64,
 }
 
 impl IntegerLiteral {
-    pub(crate) const fn new(token: Token, value: i64) -> Self {
-        Self { token, value }
+    pub(crate) const fn new(span: TokenSpan, value: i64) -> Self {
+        Self { span, value }
     }
 
     pub(crate) const fn value(&self) -> i64 {
@@ -119,16 +134,16 @@ impl std::fmt::Display for IntegerLiteral {
 }
 
 pub(crate) struct HashLiteral {
-    token: Token,
+    span: TokenSpan,
     pairs: std::collections::HashMap<Expression, Expression>,
 }
 
 impl HashLiteral {
     pub(crate) const fn new(
-        token: Token,
+        span: TokenSpan,
         pairs: std::collections::HashMap<Expression, Expression>,
     ) -> Self {
-        Self { token, pairs }
+        Self { span, pairs }
     }
 
     pub(crate) const fn pairs(&self) -> &std::collections::HashMap<Expression, Expression> {
@@ -149,13 +164,13 @@ impl std::fmt::Display for HashLiteral {
 }
 
 pub(crate) struct BooleanLiteral {
-    token: Token,
+    span: TokenSpan,
     value: bool,
 }
 
 impl BooleanLiteral {
-    pub(crate) const fn new(token: Token, value: bool) -> Self {
-        Self { token, value }
+    pub(crate) const fn new(span: TokenSpan, value: bool) -> Self {
+        Self { span, value }
     }
 
     pub(crate) const fn value(&self) -> bool {
@@ -163,13 +178,19 @@ impl BooleanLiteral {
     }
 }
 
+impl std::fmt::Display for BooleanLiteral {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.value)
+    }
+}
+
 pub(crate) struct NullLitreal {
-    token: Token,
+    span: TokenSpan,
 }
 
 impl NullLitreal {
-    pub(crate) const fn new(token: Token) -> Self {
-        Self { token }
+    pub(crate) const fn new(span: TokenSpan) -> Self {
+        Self { span }
     }
 }
 

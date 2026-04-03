@@ -1,10 +1,28 @@
-use crate::token::Token;
+use super::TokenSpan;
+use crate::token::{Token, TokenPosition};
 
 use super::expression::{Expression, Indentifier};
 use super::literal::FunctionLiteral;
 use std::fmt;
 
-pub(crate) enum Statement {
+macro_rules! delegate_to_span {
+    ($self:ident, $field:ident) => {
+        match $self {
+            Self::Let(s) => &s.span.$field,
+            Self::Const(s) => &s.span.$field,
+            Self::Return(s) => &s.span.$field,
+            Self::Expression(s) => &s.span.$field,
+            Self::Block(s) => &s.span.$field,
+            Self::For(s) => &s.span.$field,
+            Self::While(s) => &s.span.$field,
+            Self::Break(s) => &s.span.$field,
+            Self::Continue(s) => &s.span.$field,
+            Self::Class(s) => &s.span.$field,
+        }
+    };
+}
+
+pub enum Statement {
     Let(LetStatement),
     Const(ConstStatement),
     Return(ReturnStatement),
@@ -17,14 +35,41 @@ pub(crate) enum Statement {
     Class(ClassStatement),
 }
 
-pub(crate) struct BlockStatement {
-    token: Token,
-    statements: Vec<Statement>,
+impl Statement {
+    pub(crate) fn token(&self) -> &Token {
+        delegate_to_span!(self, start)
+    }
+
+    pub(crate) fn end_position(&self) -> &TokenPosition {
+        delegate_to_span!(self, end)
+    }
+}
+
+impl fmt::Display for Statement {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Let(s) => write!(f, "{s}"),
+            Self::Const(s) => write!(f, "{s}"),
+            Self::Return(s) => write!(f, "{s}"),
+            Self::Expression(s) => write!(f, "{s}"),
+            Self::Block(s) => write!(f, "{s}"),
+            Self::For(s) => write!(f, "{s}"),
+            Self::While(s) => write!(f, "{s}"),
+            Self::Break(s) => write!(f, "{s}"),
+            Self::Continue(s) => write!(f, "{s}"),
+            Self::Class(s) => write!(f, "{s}"),
+        }
+    }
+}
+
+pub struct BlockStatement {
+    span: TokenSpan,
+    pub(crate) statements: Vec<Statement>,
 }
 
 impl BlockStatement {
-    pub(crate) fn new(token: Token, statements: Vec<Statement>) -> Self {
-        Self { token, statements }
+    pub(crate) const fn new(span: TokenSpan, statements: Vec<Statement>) -> Self {
+        Self { span, statements }
     }
 }
 
@@ -37,48 +82,48 @@ impl fmt::Display for BlockStatement {
     }
 }
 
-pub(crate) struct BreakStatement {
-    token: Token,
+pub struct BreakStatement {
+    span: TokenSpan,
 }
 
 impl BreakStatement {
-    pub(crate) const fn new(token: Token) -> Self {
-        Self { token }
+    pub(crate) const fn new(span: TokenSpan) -> Self {
+        Self { span }
     }
 }
 
 impl fmt::Display for BreakStatement {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.token.literal)
+        write!(f, "{}", self.span.literal())
     }
 }
 
 pub(crate) struct ContinueStatement {
-    token: Token,
+    span: TokenSpan,
 }
 
 impl ContinueStatement {
-    pub(crate) const fn new(token: Token) -> Self {
-        Self { token }
+    pub(crate) const fn new(span: TokenSpan) -> Self {
+        Self { span }
     }
 }
 
 impl fmt::Display for ContinueStatement {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.token.literal)
+        write!(f, "{}", self.span.literal())
     }
 }
 
 pub(crate) struct ConstStatement {
-    token: Token,
+    span: TokenSpan,
     identifier: Indentifier,
     value: Expression,
 }
 
 impl ConstStatement {
-    pub(crate) const fn new(token: Token, identifier: Indentifier, value: Expression) -> Self {
+    pub(crate) const fn new(span: TokenSpan, identifier: Indentifier, value: Expression) -> Self {
         Self {
-            token,
+            span,
             identifier,
             value,
         }
@@ -87,29 +132,35 @@ impl ConstStatement {
 
 impl fmt::Display for ConstStatement {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.token.literal)
+        write!(
+            f,
+            "{} {} = {};",
+            self.span.literal(),
+            self.identifier,
+            self.value
+        )
     }
 }
 
 pub(crate) struct ExpressionStatement {
-    token: Token,
+    span: TokenSpan,
     expression: Expression,
 }
 
 impl ExpressionStatement {
-    pub(crate) const fn new(token: Token, expression: Expression) -> Self {
-        Self { token, expression }
+    pub(crate) const fn new(span: TokenSpan, expression: Expression) -> Self {
+        Self { span, expression }
     }
 }
 
 impl fmt::Display for ExpressionStatement {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.token.literal)
+        write!(f, "{}", self.expression)
     }
 }
 
 pub(crate) struct ForStatement {
-    token: Token,
+    span: TokenSpan,
     initializer: Box<Statement>,
     condition: Expression,
     increment: Expression,
@@ -118,14 +169,14 @@ pub(crate) struct ForStatement {
 
 impl ForStatement {
     pub(crate) const fn new(
-        token: Token,
+        span: TokenSpan,
         initializer: Box<Statement>,
         condition: Expression,
         increment: Expression,
         body: BlockStatement,
     ) -> Self {
         Self {
-            token,
+            span,
             initializer,
             condition,
             increment,
@@ -161,14 +212,14 @@ impl fmt::Display for ForStatement {
 }
 
 pub(crate) struct LetStatement {
-    token: Token,
+    span: TokenSpan,
     name: Indentifier,
     value: Expression,
 }
 
 impl LetStatement {
-    pub(crate) const fn new(token: Token, name: Indentifier, value: Expression) -> Self {
-        Self { token, name, value }
+    pub(crate) const fn new(span: TokenSpan, name: Indentifier, value: Expression) -> Self {
+        Self { span, name, value }
     }
 
     pub(crate) const fn name(&self) -> &Indentifier {
@@ -182,18 +233,18 @@ impl LetStatement {
 
 impl fmt::Display for LetStatement {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{} {} = {};", self.token.literal, self.name, self.value)
+        write!(f, "{} {} = {};", self.span.literal(), self.name, self.value)
     }
 }
 
 pub(crate) struct ReturnStatement {
-    token: Token,
+    span: TokenSpan,
     value: Expression,
 }
 
 impl ReturnStatement {
-    pub(crate) const fn new(token: Token, value: Expression) -> Self {
-        Self { token, value }
+    pub(crate) const fn new(span: TokenSpan, value: Expression) -> Self {
+        Self { span, value }
     }
 
     pub(crate) const fn value(&self) -> &Expression {
@@ -203,20 +254,20 @@ impl ReturnStatement {
 
 impl fmt::Display for ReturnStatement {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{} {};", self.token.literal, self.value)
+        write!(f, "{} {};", self.span.literal(), self.value)
     }
 }
 
 pub(crate) struct WhileStatement {
-    token: Token,
+    span: TokenSpan,
     condition: Expression,
     body: BlockStatement,
 }
 
 impl WhileStatement {
-    pub(crate) const fn new(token: Token, condition: Expression, body: BlockStatement) -> Self {
+    pub(crate) const fn new(span: TokenSpan, condition: Expression, body: BlockStatement) -> Self {
         Self {
-            token,
+            span,
             condition,
             body,
         }
@@ -238,7 +289,7 @@ impl fmt::Display for WhileStatement {
 }
 
 pub(crate) struct ClassStatement {
-    token: Token,
+    span: TokenSpan,
     name: Indentifier,
     parent_class: Option<Indentifier>,
     constructor: Option<FunctionLiteral>,
@@ -247,14 +298,14 @@ pub(crate) struct ClassStatement {
 
 impl ClassStatement {
     pub(crate) const fn new(
-        token: Token,
+        span: TokenSpan,
         name: Indentifier,
         parent_class: Option<Indentifier>,
         constructor: Option<FunctionLiteral>,
         methods: Vec<(Indentifier, FunctionLiteral)>,
     ) -> Self {
         Self {
-            token,
+            span,
             name,
             parent_class,
             constructor,
@@ -282,39 +333,5 @@ impl ClassStatement {
 impl fmt::Display for ClassStatement {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "class {}", self.name)
-    }
-}
-
-impl Statement {
-    pub(crate) const fn token(&self) -> &Token {
-        match self {
-            Self::Let(s) => &s.token,
-            Self::Const(s) => &s.token,
-            Self::Return(s) => &s.token,
-            Self::Expression(s) => &s.token,
-            Self::Block(s) => &s.token,
-            Self::For(s) => &s.token,
-            Self::While(s) => &s.token,
-            Self::Break(s) => &s.token,
-            Self::Continue(s) => &s.token,
-            Self::Class(s) => &s.token,
-        }
-    }
-}
-
-impl fmt::Display for Statement {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Let(s) => write!(f, "{s}"),
-            Self::Const(s) => write!(f, "{s}"),
-            Self::Return(s) => write!(f, "{s}"),
-            Self::Expression(s) => write!(f, "{s}"),
-            Self::Block(s) => write!(f, "{s}"),
-            Self::For(s) => write!(f, "{s}"),
-            Self::While(s) => write!(f, "{s}"),
-            Self::Break(s) => write!(f, "{s}"),
-            Self::Continue(s) => write!(f, "{s}"),
-            Self::Class(s) => write!(f, "{s}"),
-        }
     }
 }

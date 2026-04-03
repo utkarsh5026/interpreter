@@ -2,10 +2,13 @@ use crate::token::{Operator, Token};
 
 use std::fmt;
 
-pub(crate) enum Expression {
+use super::literal::Literal;
+
+pub enum Expression {
     Identifier(Indentifier),
     Infix(InfixExpression),
     Assignment(AssignmentExpression),
+    Literal(Literal),
 }
 
 impl fmt::Display for Expression {
@@ -14,12 +17,13 @@ impl fmt::Display for Expression {
             Self::Identifier(ident) => write!(f, "{ident}"),
             Self::Infix(infix) => write!(f, "{infix}"),
             Self::Assignment(assignment) => write!(f, "{assignment}"),
+            Self::Literal(literal) => write!(f, "{literal}"),
         }
     }
 }
 
 #[derive(Clone)]
-pub(crate) struct Indentifier {
+pub struct Indentifier {
     token: Token,
     value: String,
 }
@@ -36,7 +40,7 @@ impl fmt::Display for Indentifier {
     }
 }
 
-pub(crate) struct InfixExpression {
+pub struct InfixExpression {
     token: Token,
     left: Box<Expression>,
     right: Box<Expression>,
@@ -77,7 +81,7 @@ impl fmt::Display for InfixExpression {
     }
 }
 
-pub(crate) struct AssignmentExpression {
+pub struct AssignmentExpression {
     token: Token,
     name: Box<Expression>,
     value: Box<Expression>,

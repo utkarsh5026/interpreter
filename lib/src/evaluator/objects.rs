@@ -68,9 +68,8 @@ pub enum HashKey {
 pub struct FunctionObject {
     /// Formal parameters in declaration order.
     ///
-    /// At call time these are zipped with the argument list; extra arguments
-    /// are silently ignored and missing arguments remain unbound (resolving to
-    /// `null` on first access via the environment).
+    /// At call time these are zipped with the argument list and the counts
+    /// must match exactly — a mismatch raises [`EvalError::WrongArgCount`].
     pub params: Vec<Indentifier>,
 
     /// The function body, evaluated each time the function is called.
@@ -209,7 +208,7 @@ impl ClassObject {
     /// Returns `None` if no class in the chain defines the method.
     ///
     /// The returned reference borrows from `self`, so it is tied to the
-    /// lifeSelff this `ClassObject`.
+    /// lifetime of this `ClassObject`.
     ///
     /// # Examples
     ///
@@ -318,7 +317,7 @@ impl fmt::Display for InstanceObject {
 /// Arithmetic operators prefer integer arithmetic when both operands are
 /// [`Integer`](Self::Integer) and fall back to float arithmetic (via `f64`)
 /// when either operand is a [`Float`](Self::Float). See the `Add`, `Sub`,
-/// `Mul`, `Div`, and `Rem` impls for precise coercion rules.
+/// `Mul`, `Div`, and `Rem` impl for precise coercion rules.
 ///
 /// # Control-flow variants
 ///
@@ -534,6 +533,7 @@ impl Object {
     ///
     /// - [`EvalError::Runtime`] — if the right-hand side is zero (integer or float).
     /// - [`EvalError::TypeMismatch`] — if the operands cannot be coerced to numbers.
+    #[allow(clippy::cast_possible_truncation)]
     pub fn int_div(self, rhs: &Self) -> Result<Self, EvalError> {
         match (&self, &rhs) {
             (Self::Integer(l), Self::Integer(r)) => {
@@ -613,7 +613,7 @@ impl From<bool> for Object {
 /// Converts an owned `String` into [`Object::Str`].
 impl From<String> for Object {
     fn from(value: String) -> Self {
-        Object::Str(value)
+        Self::Str(value)
     }
 }
 
@@ -857,6 +857,7 @@ impl std::ops::Rem for Object {
 }
 
 /// Extract an `f64` from a numeric [`Object`], or `None` for all other variants.
+#[allow(clippy::cast_precision_loss)]
 const fn to_f64(obj: &Object) -> Option<f64> {
     match obj {
         Object::Integer(i) => Some(*i as f64),
@@ -870,6 +871,7 @@ const fn to_f64(obj: &Object) -> Option<f64> {
 /// Returns `None` if both are integers (handled by the integer fast-path) or
 /// if either is a non-numeric type. Used by [`Object::int_div`] to implement
 /// the mixed integer/float floor-division path.
+#[allow(clippy::cast_precision_loss)]
 const fn coerce_to_floats(l: &Object, r: &Object) -> Option<(f64, f64)> {
     match (l, r) {
         (Object::Float(a), Object::Float(b)) => Some((*a, *b)),

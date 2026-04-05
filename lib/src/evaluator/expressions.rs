@@ -47,7 +47,7 @@ const THIS: &str = "this";
 
 /// Sentinel key used to track which class is currently executing, enabling
 /// correct `super` chain traversal across multiple inheritance levels.
-const CLASS_CONTEXT: &str = "class_context";
+const CLASS_CONTEXT: &str = "__class_context__";
 
 // Expression evaluation
 impl Evaluator {
@@ -78,7 +78,7 @@ impl Evaluator {
             Expression::Index(idx) => self.eval_index(idx, env),
             Expression::New(new) => self.eval_new(new, env),
             Expression::Super(super_expr) => self.eval_super(super_expr, env),
-            Expression::This(_) => self.eval_this(env),
+            Expression::This(_) => Self::eval_this(env),
             Expression::Property(prop) => self.eval_property(prop, env),
         }
     }
@@ -161,7 +161,7 @@ impl Evaluator {
     ) -> Result<Object, EvalError> {
         let this = env
             .borrow()
-            .get("this")
+            .get(THIS)
             .ok_or_else(|| EvalError::runtime("'this' is not available in this context"))?;
 
         let instance_class = match &this {
@@ -169,7 +169,7 @@ impl Evaluator {
             _ => return Err(EvalError::runtime("'this' is not an instance")),
         };
 
-        let current_class = match env.borrow().get("__class_context__") {
+        let current_class = match env.borrow().get(CLASS_CONTEXT) {
             Some(Object::ClassContext(cls)) => cls,
             _ => instance_class,
         };
@@ -206,13 +206,13 @@ impl Evaluator {
                     let call_env = Environment::new_child(&ctor_env, false);
 
                     // Bind this so the constructor can set fields via self.x = ...
-                    call_env.borrow_mut().define("this", this.clone());
+                    call_env.borrow_mut().define(THIS, this.clone());
 
                     // Advance the class context to the parent so that any super()
                     // call *inside* the parent constructor walks up one more level.
                     call_env
                         .borrow_mut()
-                        .define("__class_context__", Object::ClassContext(parent_class));
+                        .define(CLASS_CONTEXT, Object::ClassContext(parent_class));
 
                     for (param, arg) in ctor_params.iter().zip(args) {
                         call_env.borrow_mut().define(param.value(), arg);
@@ -220,7 +220,8 @@ impl Evaluator {
 
                     self.eval_block(&ctor_body, &call_env)?;
 
-                    Ok(this)
+                    let result = call_env.borrow().get(THIS).unwrap_or(this);
+                    Ok(result)
                 }
             }
         } else {
@@ -244,10 +245,10 @@ impl Evaluator {
             }
 
             let call_env = Environment::new_child(&method_env_ref, false);
-            call_env.borrow_mut().define("this", this);
+            call_env.borrow_mut().define(THIS, this);
             call_env
                 .borrow_mut()
-                .define("__class_context__", Object::ClassContext(parent_class));
+                .define(CLASS_CONTEXT, Object::ClassContext(parent_class));
 
             for (param, arg) in method_params.iter().zip(args) {
                 call_env.borrow_mut().define(param.value(), arg);
@@ -414,13 +415,18 @@ impl Evaluator {
 
         match (left, index) {
             (Object::Array(elements), Object::Integer(i)) => {
-                let len = elements.len() as i64;
+                let len = i64::try_from(elements.len())
+                    .map_err(|_| EvalError::runtime("array length overflows i64"))?;
+
                 if i < 0 || i >= len {
                     return Err(EvalError::Runtime(format!(
                         "index out of bounds: {i} is not in range [0, {len})"
                     )));
                 }
-                Ok(elements.into_iter().nth(i as usize).unwrap())
+
+                let idx =
+                    usize::try_from(i).map_err(|_| EvalError::runtime("index out of range"))?;
+                Ok(elements.into_iter().nth(idx).unwrap())
             }
 
             (Object::Array(_), other) => Err(EvalError::TypeMismatch {
@@ -453,10 +459,10 @@ impl Evaluator {
     /// - [`EvalError::Runtime`] if `"this"` is defined but does not hold an
     ///   [`Object::Instance`] (guarded defensively; should not occur under
     ///   normal execution).
-    fn eval_this(&self, env: &Env) -> Result<Object, EvalError> {
+    fn eval_this(env: &Env) -> Result<Object, EvalError> {
         let this = env
             .borrow()
-            .get("this")
+            .get(THIS)
             .ok_or_else(|| EvalError::runtime("'this' is not available in this context"))?;
 
         match this {
@@ -508,13 +514,21 @@ impl Evaluator {
             }
 
             let ctor_env = Environment::new_child(&ctor.env, false);
-            ctor_env.borrow_mut().define("this", instance.clone());
+            ctor_env.borrow_mut().define(THIS, instance.clone());
 
             for (param, arg) in ctor.params.iter().zip(args) {
                 ctor_env.borrow_mut().define(param.value(), arg);
             }
 
             self.eval_block(&ctor.body, &ctor_env)?;
+
+            // The constructor may have added fields via `this.x = …` assignments.
+            // Those writes go back into ctor_env, not into `instance`, so we must
+            // retrieve the updated copy here or all constructor mutations are lost.
+            let updated = ctor_env.borrow().get(THIS);
+            if let Some(updated) = updated {
+                return Ok(updated);
+            }
         } else if !args.is_empty() {
             return Err(EvalError::runtime(format!(
                 "class '{}' has no constructor but {} argument(s) were supplied",
@@ -797,14 +811,18 @@ impl Evaluator {
 
                 match (&mut container, index) {
                     (Object::Array(elements), Object::Integer(i)) => {
-                        let len = elements.len() as i64;
+                        let len = i64::try_from(elements.len())
+                            .map_err(|_| EvalError::runtime("array length overflows i64"))?;
                         if i < 0 || i >= len {
                             return Err(EvalError::runtime(format!(
                                 "index out of bounds: {i} is not in range [0, {len})"
                             )));
                         }
-                        elements[i as usize] = value;
+                        let idx = usize::try_from(i)
+                            .map_err(|_| EvalError::runtime("index out of range"))?;
+                        elements[idx] = value;
                     }
+
                     (Object::Array(_), other) => {
                         return Err(EvalError::type_mismatch("Integer", other));
                     }
@@ -823,7 +841,7 @@ impl Evaluator {
             Expression::Property(prop) => {
                 let object_name = match prop.object() {
                     Expression::Identifier(ident) => ident.value(),
-                    Expression::This(_) => "this",
+                    Expression::This(_) => THIS,
                     _ => {
                         return Err(EvalError::runtime(
                             "complex property assignment targets are not supported",

@@ -1,0 +1,21 @@
+edition = "2021"
+
+# Line width before rustfmt tries to wrap
+max_width = 100
+
+# Group and sort imports: std first, then external crates, then internal
+imports_granularity = "Crate"
+group_imports = "StdExternalCrate"
+
+# Consistent brace style
+brace_style = "PreferSameLine"
+
+# Format string literals that are too long
+format_strings = false
+
+# Trailing commas in multi-line constructs
+trailing_comma = "Vertical"
+
+# Normalize doc comment style: /// over //
+normalize_comments = true
+normalize_doc_attributes = true

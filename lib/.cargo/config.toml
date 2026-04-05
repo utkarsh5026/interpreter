@@ -1,0 +1,14 @@
+[build]
+# Faster incremental builds in dev. Remove if you hit linker issues.
+# mold is the fastest linker on Linux; lld is cross-platform.
+# Install mold: sudo apt install mold  (Ubuntu/Debian)
+# rustflags = ["-C", "link-arg=-fuse-ld=mold"]
+
+[alias]
+# Shortcuts
+t   = "test"
+c   = "check"
+b   = "build"
+r   = "run"
+cl  = "clippy --all-targets -- -D warnings"
+doc = "doc --no-deps --document-private-items --open"

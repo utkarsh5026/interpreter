@@ -71,7 +71,7 @@ impl Parser {
         }
         let start = self.consume(keyword)?;
         let end = self.consume(TokenType::Semicolon)?;
-        Ok(constructor(self.make_span(start, end)))
+        Ok(constructor((start, end.position).into()))
     }
 
     /// Parse a `break;` statement.
@@ -176,7 +176,7 @@ impl Parser {
         let keyword = self.consume(keyword)?;
         let name = self.consume(TokenType::Identifier)?;
 
-        let ident = Indentifier::new((name.clone(), name.position), name.literal);
+        let ident = Indentifier::new((name.clone(), name.position));
         self.consume(TokenType::Assign)?;
 
         let value = self.parse_expression(Precedence::Lowest)?;
@@ -298,14 +298,14 @@ impl Parser {
         let body = self.parse_block()?;
         self.exit_loop();
 
-        let end_pos = body.end_position().clone();
+        let end_pos = *body.end_position();
         let Statement::Block(block) = body else {
             unreachable!("parse_block always returns Statement::Block")
         };
 
         Ok(Statement::for_stmt(
             (for_token, end_pos),
-            Box::new(init),
+            init,
             condition,
             increment,
             block,
@@ -392,8 +392,7 @@ impl Parser {
     pub(super) fn parse_expression_stmt(&mut self) -> ParseResult {
         let start = self.consume(TokenType::Identifier)?;
         if self.is_curr_token(TokenType::Identifier) && self.peek_token.is_some() {
-            let left =
-                Expression::identifier((start.clone(), start.position), start.literal.clone());
+            let left = Expression::identifier((start.clone(), start.position));
 
             let (peek_kind, peek_pos) = self
                 .peek_token
@@ -402,11 +401,11 @@ impl Parser {
                 .ok_or(ParseError::UnexpectedEof)?;
 
             let base_op = match peek_kind {
-                TokenType::PlusAssign => Operator::Plus(TokenType::Plus),
-                TokenType::MinusAssign => Operator::Minus(TokenType::Minus),
-                TokenType::AsteriskAssign => Operator::Asterisk(TokenType::Asterisk),
-                TokenType::SlashAssign => Operator::Slash(TokenType::Slash),
-                TokenType::ModulusAssign => Operator::Modulus(TokenType::Modulus),
+                TokenType::PlusAssign => Operator::Plus,
+                TokenType::MinusAssign => Operator::Minus,
+                TokenType::AsteriskAssign => Operator::Asterisk,
+                TokenType::SlashAssign => Operator::Slash,
+                TokenType::ModulusAssign => Operator::Modulus,
                 _ => {
                     return Err(ParseError::UnexpectedToken {
                         expected: TokenType::Assign,

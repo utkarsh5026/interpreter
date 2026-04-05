@@ -18,7 +18,7 @@ pub mod expression;
 pub mod literal;
 pub mod statements;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct TokenSpan {
     start: Token,
     end: TokenPosition,
@@ -157,6 +157,14 @@ impl Expression {
             span.into(),
             operator,
             Box::new(right),
+        ))
+    }
+
+    pub fn property(span: impl Into<TokenSpan>, object: Self, property: Self) -> Self {
+        Self::Property(expression::PropertyExpression::new(
+            span.into(),
+            Box::new(object),
+            Box::new(property),
         ))
     }
 }

@@ -71,8 +71,8 @@ macro_rules! delegate_to_span {
 /// The [`Statement::Block`] variant owns its [`BlockStatement`] inline;
 /// [`Statement::For`] boxes its initializer via [`ForStatement`] to break the
 /// otherwise-recursive `Statement → ForStatement → Box<Statement>` size cycle.
+#[derive(Debug, Clone)]
 pub enum Statement {
-    /// A variable declaration: `let x = expr;`.
     Let(LetStatement),
 
     /// An immutable variable declaration: `const x = expr;`.
@@ -111,29 +111,16 @@ pub enum Statement {
 
 impl Statement {
     /// Returns a reference to the [`Token`] that introduced this statement.
-    ///
-    /// For most variants this is the keyword token (`let`, `return`, `for`,
-    /// etc.).  For [`Statement::Expression`] it is the first token of the
-    /// wrapped expression.  Used by the evaluator and error reporter to
-    /// attribute diagnostics to a precise source location.
-    pub(crate) fn token(&self) -> &Token {
+    pub(crate) const fn token(&self) -> &Token {
         delegate_to_span!(self, start)
     }
 
     /// Returns a reference to the [`TokenPosition`] at which this statement
-    /// ends in the source text.
-    ///
-    /// Used by the parser to attach accurate end-positions to enclosing nodes
-    /// such as [`BlockStatement`].
-    pub(crate) fn end_position(&self) -> &TokenPosition {
+    pub(crate) const fn end_position(&self) -> &TokenPosition {
         delegate_to_span!(self, end)
     }
 }
 
-/// Delegates `Display` to each variant's concrete type.
-///
-/// The output is valid Mutant Lang source syntax.  Useful for debug printing,
-/// REPL echo, and error messages that quote source fragments.
 impl fmt::Display for Statement {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
@@ -158,27 +145,18 @@ impl fmt::Display for Statement {
 /// always bounded by a `{` / `}` token pair, recorded in `span`.
 ///
 /// An empty block (`{}`) is valid and results in an empty `statements` vec.
+#[derive(Debug, Clone)]
 pub struct BlockStatement {
-    /// Source span from the opening `{` through the closing `}`.
-    span: TokenSpan,
-    /// The ordered list of child statements inside the block.
+    pub(crate) span: TokenSpan,
     pub(crate) statements: Vec<Statement>,
 }
 
 impl BlockStatement {
-    /// Constructs a `BlockStatement` from its source span and child statements.
-    ///
-    /// Takes ownership of both arguments.  Called by the parser immediately
-    /// after consuming the closing `}`.
     pub(crate) const fn new(span: TokenSpan, statements: Vec<Statement>) -> Self {
         Self { span, statements }
     }
 }
 
-/// Formats each child statement in sequence with no extra separator.
-///
-/// Each child's own `Display` impl is responsible for trailing punctuation
-/// (e.g. semicolons), so this impl simply concatenates them.
 impl fmt::Display for BlockStatement {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for stmt in &self.statements {
@@ -194,19 +172,17 @@ impl fmt::Display for BlockStatement {
 /// evaluator signals loop termination when it encounters this node.  Using
 /// `break` outside a loop is a runtime (or validation) error, not a parse
 /// error — the parser emits this node unconditionally.
+#[derive(Debug, Clone)]
 pub struct BreakStatement {
-    /// Source span for the `break` keyword token.
     span: TokenSpan,
 }
 
 impl BreakStatement {
-    /// Constructs a `BreakStatement` from the source span of its keyword.
     pub(crate) const fn new(span: TokenSpan) -> Self {
         Self { span }
     }
 }
 
-/// Formats as the literal keyword text (typically `"break"`).
 impl fmt::Display for BreakStatement {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.span.literal())
@@ -218,19 +194,17 @@ impl fmt::Display for BreakStatement {
 /// Like [`BreakStatement`], `ContinueStatement` carries only its source span.
 /// The evaluator uses this node to signal that the current loop body should
 /// abort and the loop should advance to its next cycle.
-pub(crate) struct ContinueStatement {
-    /// Source span for the `continue` keyword token.
+#[derive(Debug, Clone)]
+pub struct ContinueStatement {
     span: TokenSpan,
 }
 
 impl ContinueStatement {
-    /// Constructs a `ContinueStatement` from the source span of its keyword.
     pub(crate) const fn new(span: TokenSpan) -> Self {
         Self { span }
     }
 }
 
-/// Formats as the literal keyword text (typically `"continue"`).
 impl fmt::Display for ContinueStatement {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.span.literal())
@@ -244,41 +218,29 @@ impl fmt::Display for ContinueStatement {
 /// name is a runtime error enforced by the evaluator, not the parser.
 ///
 /// The `span` covers from the `const` keyword through the closing `;`.
-pub(crate) struct ConstStatement {
-    /// Source span from `const` through `;`.
+#[derive(Debug, Clone)]
+pub struct ConstStatement {
     span: TokenSpan,
-    /// The name being declared.
-    identifier: Indentifier,
-    /// The initialiser expression.
+    name: Indentifier,
     value: Expression,
 }
 
 impl ConstStatement {
-    /// Constructs a `ConstStatement` from its span, binding name, and value.
-    ///
-    /// Takes ownership of all three arguments.
-    pub(crate) const fn new(span: TokenSpan, identifier: Indentifier, value: Expression) -> Self {
-        Self {
-            span,
-            identifier,
-            value,
-        }
+    pub(crate) const fn new(span: TokenSpan, name: Indentifier, value: Expression) -> Self {
+        Self { span, name, value }
+    }
+
+    pub(crate) const fn name(&self) -> &Indentifier {
+        &self.name
+    }
+    pub(crate) const fn value(&self) -> &Expression {
+        &self.value
     }
 }
 
-/// Formats as `const <name> = <value>;`.
-///
-/// The keyword is taken from the span's start token literal so it round-trips
-/// the exact source text.
 impl fmt::Display for ConstStatement {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "{} {} = {};",
-            self.span.literal(),
-            self.identifier,
-            self.value
-        )
+        write!(f, "{} {} = {};", self.span.literal(), self.name, self.value)
     }
 }
 
@@ -290,23 +252,22 @@ impl fmt::Display for ConstStatement {
 ///
 /// The `span` covers the first token of the expression through the trailing
 /// `;` (if present).
-pub(crate) struct ExpressionStatement {
-    /// Source span for the expression token range.
+#[derive(Debug, Clone)]
+pub struct ExpressionStatement {
     span: TokenSpan,
-    /// The wrapped expression.
     expression: Expression,
 }
 
 impl ExpressionStatement {
-    /// Constructs an `ExpressionStatement` from its span and inner expression.
-    ///
-    /// Takes ownership of both arguments.
-    pub(crate) const fn new(span: TokenSpan, expression: Expression) -> Self {
+    pub const fn new(span: TokenSpan, expression: Expression) -> Self {
         Self { span, expression }
+    }
+
+    pub const fn expression(&self) -> &Expression {
+        &self.expression
     }
 }
 
-/// Formats as the inner expression's `Display` output, with no trailing semicolon.
 impl fmt::Display for ExpressionStatement {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.expression)
@@ -323,24 +284,16 @@ impl fmt::Display for ExpressionStatement {
 /// The `condition` is re-evaluated before each iteration; when it is falsy the
 /// loop exits.  The `increment` expression is evaluated after each successful
 /// body execution.
-pub(crate) struct ForStatement {
-    /// Source span from the `for` keyword through the closing `}`.
+#[derive(Debug, Clone)]
+pub struct ForStatement {
     span: TokenSpan,
-    /// The loop initializer, boxed to break the recursive `Statement` size cycle.
     initializer: Box<Statement>,
-    /// The loop continuation condition, checked before each iteration.
     condition: Expression,
-    /// The expression evaluated after each iteration body completes.
     increment: Expression,
-    /// The loop body executed on each iteration.
     body: BlockStatement,
 }
 
 impl ForStatement {
-    /// Constructs a `ForStatement` from its constituent parts.
-    ///
-    /// Takes ownership of all arguments.  `initializer` must already be boxed
-    /// by the caller (see [`Statement::for_stmt`](super::Statement::for_stmt)).
     pub(crate) const fn new(
         span: TokenSpan,
         initializer: Box<Statement>,
@@ -357,35 +310,23 @@ impl ForStatement {
         }
     }
 
-    /// Returns a reference to the loop continuation condition expression.
-    ///
-    /// Evaluated by the evaluator before each iteration; a falsy result exits
-    /// the loop.
     pub(crate) const fn condition(&self) -> &Expression {
         &self.condition
     }
 
-    /// Returns a reference to the initializer statement.
-    ///
-    /// Derefs through the [`Box`] — no allocation occurs on access.
     pub(crate) fn initializer(&self) -> &Statement {
         self.initializer.as_ref()
     }
 
-    /// Returns a reference to the increment expression.
-    ///
-    /// Evaluated after each successful execution of the loop body.
     pub(crate) const fn increment(&self) -> &Expression {
         &self.increment
     }
 
-    /// Returns a reference to the loop body block.
     pub(crate) const fn body(&self) -> &BlockStatement {
         &self.body
     }
 }
 
-/// Formats as `for (<init>; <cond>; <incr>) {\n<body>\n}`.
 impl fmt::Display for ForStatement {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
@@ -403,44 +344,26 @@ impl fmt::Display for ForStatement {
 /// [`ConstStatement`], the binding may be reassigned after declaration.
 ///
 /// The `span` covers from the `let` keyword through the closing `;`.
-pub(crate) struct LetStatement {
-    /// Source span from `let` through `;`.
+#[derive(Debug, Clone)]
+pub struct LetStatement {
     span: TokenSpan,
-    /// The name being declared.
     name: Indentifier,
-    /// The initialiser expression whose value is bound to `name`.
     value: Expression,
 }
 
 impl LetStatement {
-    /// Constructs a `LetStatement` from its span, binding name, and value.
-    ///
-    /// Takes ownership of all three arguments.
     pub(crate) const fn new(span: TokenSpan, name: Indentifier, value: Expression) -> Self {
         Self { span, name, value }
     }
 
-    /// Returns a reference to the declared name.
-    ///
-    /// The evaluator uses this to register the binding in the current
-    /// [`Environment`](crate::object::Environment) scope.
     pub(crate) const fn name(&self) -> &Indentifier {
         &self.name
     }
-
-    /// Returns a reference to the initialiser expression.
-    ///
-    /// The evaluator evaluates this expression and stores the result under
-    /// [`name`](Self::name) in the current scope.
     pub(crate) const fn value(&self) -> &Expression {
         &self.value
     }
 }
 
-/// Formats as `let <name> = <value>;`.
-///
-/// The keyword is taken from the span's start token literal so it round-trips
-/// the exact source text.
 impl fmt::Display for LetStatement {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{} {} = {};", self.span.literal(), self.name, self.value)
@@ -454,32 +377,22 @@ impl fmt::Display for LetStatement {
 /// runtime error enforced by the evaluator.
 ///
 /// The `span` covers from the `return` keyword through the closing `;`.
-pub(crate) struct ReturnStatement {
-    /// Source span from `return` through `;`.
+#[derive(Debug, Clone)]
+pub struct ReturnStatement {
     span: TokenSpan,
-    /// The expression whose evaluated result becomes the function's return value.
     value: Expression,
 }
 
 impl ReturnStatement {
-    /// Constructs a `ReturnStatement` from its source span and return value expression.
-    ///
-    /// Takes ownership of both arguments.
     pub(crate) const fn new(span: TokenSpan, value: Expression) -> Self {
         Self { span, value }
     }
 
-    /// Returns a reference to the return-value expression.
-    ///
-    /// The evaluator evaluates this and propagates the result up the call stack
-    /// via an early-exit signal (typically a dedicated `ReturnValue` wrapper in
-    /// the object system).
     pub(crate) const fn value(&self) -> &Expression {
         &self.value
     }
 }
 
-/// Formats as `return <value>;`.
 impl fmt::Display for ReturnStatement {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{} {};", self.span.literal(), self.value)
@@ -494,19 +407,14 @@ impl fmt::Display for ReturnStatement {
 /// control flow.
 ///
 /// The `span` covers from the `while` keyword through the closing `}`.
-pub(crate) struct WhileStatement {
-    /// Source span from `while` through the closing `}`.
+#[derive(Debug, Clone)]
+pub struct WhileStatement {
     span: TokenSpan,
-    /// The loop continuation condition, re-evaluated before each iteration.
     condition: Expression,
-    /// The loop body executed on each iteration where `condition` is truthy.
     body: BlockStatement,
 }
 
 impl WhileStatement {
-    /// Constructs a `WhileStatement` from its span, condition, and body.
-    ///
-    /// Takes ownership of all three arguments.
     pub(crate) const fn new(span: TokenSpan, condition: Expression, body: BlockStatement) -> Self {
         Self {
             span,
@@ -515,24 +423,15 @@ impl WhileStatement {
         }
     }
 
-    /// Returns a reference to the loop continuation condition.
-    ///
-    /// The evaluator checks this before each iteration; a falsy result exits
-    /// the loop.
     pub(crate) const fn condition(&self) -> &Expression {
         &self.condition
     }
 
-    /// Returns a reference to the loop body block.
-    ///
-    /// Executed once per iteration for which [`condition`](Self::condition) is
-    /// truthy.
     pub(crate) const fn body(&self) -> &BlockStatement {
         &self.body
     }
 }
 
-/// Formats as `while (<cond>) {\n<body>\n}`.
 impl fmt::Display for WhileStatement {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "while ({}) {{\n{}\n}}", self.condition, self.body)
@@ -550,25 +449,16 @@ impl fmt::Display for WhileStatement {
 /// below if you need the full source representation.
 ///
 /// The `span` covers from the `class` keyword through the closing `}`.
-pub(crate) struct ClassStatement {
-    /// Source span from `class` through the closing `}`.
+#[derive(Debug, Clone)]
+pub struct ClassStatement {
     span: TokenSpan,
-    /// The declared class name.
     name: Indentifier,
-    /// The optional parent class name for single inheritance.
     parent_class: Option<Indentifier>,
-    /// The optional constructor function; `None` means the class has no
-    /// explicit constructor.
     constructor: Option<FunctionLiteral>,
-    /// Named instance methods as `(name, function)` pairs, in declaration order.
     methods: Vec<(Indentifier, FunctionLiteral)>,
 }
 
 impl ClassStatement {
-    /// Constructs a `ClassStatement` from all of its constituent parts.
-    ///
-    /// Takes ownership of all arguments.  `parent_class` and `constructor` are
-    /// `None` for classes that do not use inheritance or explicit constructors.
     pub(crate) const fn new(
         span: TokenSpan,
         name: Indentifier,
@@ -585,43 +475,23 @@ impl ClassStatement {
         }
     }
 
-    /// Returns a reference to the declared class name.
-    ///
-    /// Used by the evaluator to register the class object in the current
-    /// environment scope under this name.
     pub(crate) const fn name(&self) -> &Indentifier {
         &self.name
     }
 
-    /// Returns the optional parent class name, if this is a derived class.
-    ///
-    /// `None` indicates no `extends` clause.  The evaluator looks up the
-    /// parent by name in the current scope when `Some`.
     pub(crate) const fn parent_class(&self) -> Option<&Indentifier> {
         self.parent_class.as_ref()
     }
 
-    /// Returns the optional constructor function literal.
-    ///
-    /// `None` means the class has no explicit constructor; the evaluator may
-    /// synthesise a default no-op constructor in that case.
     pub(crate) const fn constructor(&self) -> Option<&FunctionLiteral> {
         self.constructor.as_ref()
     }
 
-    /// Returns the method list as a borrowed slice of `(name, body)` pairs.
-    ///
-    /// Methods are in declaration order.  The evaluator registers each method
-    /// on the class prototype under the given name.
     pub(crate) const fn methods(&self) -> &[(Indentifier, FunctionLiteral)] {
         self.methods.as_slice()
     }
 }
 
-/// Formats the class header as `class <name>`, omitting the body.
-///
-/// The abbreviated form is intentional for use in error messages and debug
-/// output where a full body dump would be too verbose.
 impl fmt::Display for ClassStatement {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "class {}", self.name)

@@ -1,5 +1,5 @@
 use crate::ast::statements::Statement;
-use crate::lexer::parsers::LexError;
+use crate::lexer::LexError;
 use crate::lexer::Lexer;
 use crate::token::{Token, TokenPosition, TokenType};
 

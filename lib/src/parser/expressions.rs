@@ -31,9 +31,9 @@
 //! capture the end position from the *last consumed token* so the span covers
 //! the full syntactic extent of each expression.
 
+use crate::ast::TokenSpan;
 use crate::ast::expression::{Expression, Indentifier};
 use crate::ast::statements::Statement;
-use crate::ast::TokenSpan;
 use crate::token::{Operator, Token, TokenType};
 
 use super::precedence::Precedence;

@@ -23,9 +23,9 @@
 //! [`Parser::exit_loop`] immediately after, ensuring that `break` and
 //! `continue` can only appear inside a loop at parse time.
 
+use crate::ast::TokenSpan;
 use crate::ast::expression::{Expression, Indentifier};
 use crate::ast::statements::Statement;
-use crate::ast::TokenSpan;
 use crate::token::{Operator, TokenType};
 
 use super::precedence::Precedence;
@@ -411,7 +411,7 @@ impl Parser {
                         expected: TokenType::Assign,
                         got: peek_kind,
                         position: peek_pos,
-                    })
+                    });
                 }
             };
 

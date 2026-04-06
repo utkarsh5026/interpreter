@@ -3,7 +3,7 @@ use crate::token::{Operator, TokenPosition};
 use std::fmt;
 
 use super::literal::Literal;
-use super::{statements, TokenSpan};
+use super::{TokenSpan, statements};
 
 #[derive(Debug, Clone)]
 pub enum Expression {

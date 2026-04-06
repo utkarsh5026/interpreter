@@ -22,9 +22,9 @@
 //! | [`Literal::Hash`] | `{"a": 1}` | [`HashLiteral`] |
 //! | [`Literal::Func`] | `fn(x) { x + 1 }` | [`FunctionLiteral`] |
 
+use super::TokenSpan;
 use super::expression::{Expression, Indentifier};
 use super::statements::BlockStatement;
-use super::TokenSpan;
 use crate::token::TokenPosition;
 
 /// A closed set of all literal forms recognized by the Mutant Lang parser.

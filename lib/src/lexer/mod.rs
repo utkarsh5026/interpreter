@@ -1,16 +1,15 @@
-//! Lexer entry point — [`Lexer`] struct, [`CharacterStream`], and public tokenization API.
+//! Lexer entry point — [`Lexer`] struct and public tokenization API.
 //!
-//! This module wires together the inlined character-stream primitives and the
-//! [`parsers`] sub-module to expose a simple, pull-style interface over a
-//! source string.  A fixed pipeline of [`parsers::TokenParser`] implementations
-//! is tried in priority order for each character position; whitespace and
-//! comments are silently discarded before each dispatch.
+//! This module implements the character-stream primitives and dispatches to the
+//! `parser` sub-module, which adds tokenization methods directly onto [`Lexer`]
+//! via `impl` blocks.  Whitespace and comments are silently discarded before
+//! each dispatch.
 //!
 //! # Sub-modules
 //!
 //! | Sub-module | Role |
 //! |---|---|
-//! | [`parsers`] | [`parsers::TokenParser`] trait, all concrete parsers, and [`parsers::LexError`] |
+//! | `parser` | Tokenization methods on [`Lexer`] and [`LexError`] variants |
 //!
 //! # Example
 //!
@@ -105,7 +104,7 @@ impl Lexer {
 
     /// Consume the current character and move the cursor forward by one position.
     ///
-    /// Safe to call when already at [`EOF`]; the cursor stays at EOF.
+    /// Safe to call when already at end-of-file; the cursor stays at EOF.
     /// Windows-style `\r\n` endings increment the line counter only once.
     pub(super) fn advance(&mut self) {
         self.current_pos += 1;

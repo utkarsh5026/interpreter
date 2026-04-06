@@ -227,7 +227,7 @@ pub enum TokenType {
     /// The `this` keyword — refers to the current object instance.
     This,
 
-    /// The `new` keyword — allocates and initialises a class instance.
+    /// The `new` keyword — allocates and initializes a class instance.
     New,
 
     /// The `null` keyword — represents the absence of a value.

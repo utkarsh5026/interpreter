@@ -27,7 +27,7 @@
 //!
 //! Every `Expression` variant carries a [`TokenSpan`] that records the opening
 //! token (which anchors the `start` position) and the closing token's
-//! [`TokenPosition`] (the `end` position).  The helpers here are careful to
+//! [`crate::token::TokenPosition`] (the `end` position).  The helpers here are careful to
 //! capture the end position from the *last consumed token* so the span covers
 //! the full syntactic extent of each expression.
 
@@ -526,9 +526,10 @@ impl Parser {
     /// 3. Parse the body block with [`expect_block`](Self::expect_block), which
     ///    enforces that the body is a `{ … }` block statement.
     ///
-    /// The span of the produced [`Expression::Function`] node runs from the
-    /// `fn` keyword to the closing `)` of the parameter list.  (The body's
-    /// position is separately tracked inside the [`BlockStatement`].)
+    /// The span of the produced `Expression::Literal(Literal::Func(…))` node
+    /// runs from the `fn` keyword to the closing `)` of the parameter list.
+    /// (The body's position is separately tracked inside the
+    /// [`crate::ast::statements::BlockStatement`].)
     ///
     /// # Errors
     ///
@@ -703,9 +704,9 @@ impl Parser {
     /// either side of the `:`.  Pairs are separated by `,`; trailing commas are
     /// not accepted (see [`parse_delimited_list`](Self::parse_delimited_list)).
     ///
-    /// The produced [`Expression::Hash`] node contains a `Vec<(Expression,
-    /// Expression)>` of key-value pairs and spans from the opening `{` to the
-    /// closing `}`.
+    /// The produced `Expression::Literal(Literal::Hash(…))` node contains a
+    /// `Vec<(Expression, Expression)>` of key-value pairs and spans from the
+    /// opening `{` to the closing `}`.
     ///
     /// # Errors
     ///

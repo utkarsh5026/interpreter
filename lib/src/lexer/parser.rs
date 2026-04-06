@@ -44,10 +44,10 @@ impl Lexer {
 
     /// Construct a [`Token`] from a kind, literal string, and current stream position.
     ///
-    /// The `(line, col)` coordinates are read from `stream` via
-    /// [`token_pos`](CharacterStream::token_pos) at the moment of the call, so
-    /// callers should invoke this function while the stream is still positioned on
-    /// the *last* character of the token being built — not after advancing past it.
+    /// The `(line, col)` coordinates are read from the lexer's `line_col` field
+    /// at the moment of the call, so callers should invoke this function while
+    /// the stream is still positioned on the *last* character of the token being
+    /// built — not after advancing past it.
     #[must_use]
     pub(super) fn create_token(
         kind: TokenType,
@@ -61,7 +61,7 @@ impl Lexer {
     ///
     /// Advances past all consecutive letter-or-digit characters, extracts the
     /// lexeme substring, then backtracks one position so the stream honours the
-    /// last-character contract required by [`TokenParser`].
+    /// last-character contract required by the lexer's outer loop.
     ///
     /// # Errors
     ///
@@ -195,22 +195,22 @@ impl Lexer {
 
     /// Consume one or two characters and return an operator or punctuation token.
     ///
-    /// Peeks at the next character and tries [`try_two_char`](OperatorParser::try_two_char)
+    /// Peeks at the next character and tries a two-character operator match
     /// first. If a two-character operator matches, advances past the second
     /// character and returns — leaving the stream on the second character per
-    /// the [`TokenParser`] contract. Otherwise consumes the single character
-    /// and returns immediately (the lexer's outer loop provides the final
-    /// advance).
+    /// the lexer's last-character contract. Otherwise consumes the single
+    /// character and returns immediately (the lexer's outer loop provides the
+    /// final advance).
     ///
     /// # Errors
     ///
-    /// Always succeeds for characters passing [`can_parse`](TokenParser::can_parse).
+    /// Always succeeds for recognized operator characters.
     ///
     /// # Panics
     ///
-    /// Delegates to [`CharacterStream::peek_char`], which panics if the stream
-    /// is positioned on the very last character of the input. In practice the
-    /// lexer emits an [`EOF`] token before reaching that state.
+    /// Calls `peek_char`, which panics if the stream is positioned on the very
+    /// last character of the input. In practice the lexer emits an EOF token
+    /// before reaching that state.
     pub(super) fn parse_operator(&mut self) -> Result<Token, LexError> {
         let two_token_type = match (self.current_char(), self.peek_char()) {
             (Some('='), Some('=')) => Some(TokenType::Eq),

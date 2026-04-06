@@ -38,7 +38,7 @@ use crate::token::TokenPosition;
 /// for arrays).  This two-level design keeps the enum small while letting each
 /// concrete type grow its own API independently.
 ///
-/// [`Object`]: crate::object::Object
+/// [`Object`]: crate::evaluator::objects::Object
 /// [`Expression::Literal`]: crate::ast::expression::Expression::Literal
 #[derive(Debug, Clone)]
 pub enum Literal {

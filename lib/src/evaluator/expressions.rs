@@ -629,10 +629,10 @@ impl Evaluator {
             (Operator::Eq, Object::Null, Object::Null) => return Ok(true.into()),
             (Operator::NotEq, Object::Null, Object::Null) => return Ok(false.into()),
             (Operator::Eq, Object::Null, _) | (Operator::Eq, _, Object::Null) => {
-                return Ok(false.into())
+                return Ok(false.into());
             }
             (Operator::NotEq, Object::Null, _) | (Operator::NotEq, _, Object::Null) => {
-                return Ok(true.into())
+                return Ok(true.into());
             }
             (_, Object::Null, _) | (_, _, Object::Null) => {
                 return Err(EvalError::runtime(format!(
@@ -845,7 +845,7 @@ impl Evaluator {
                     _ => {
                         return Err(EvalError::runtime(
                             "complex property assignment targets are not supported",
-                        ))
+                        ));
                     }
                 };
 

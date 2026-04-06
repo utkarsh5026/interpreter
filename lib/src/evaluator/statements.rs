@@ -61,7 +61,7 @@ impl Evaluator {
 
     /// Evaluate a `let` variable declaration and bind it in the current scope.
     ///
-    /// Performs two pre-flight checks before evaluating the initialiser
+    /// Performs two pre-flight checks before evaluating the initializer
     /// expression:
     ///
     /// 1. **Immutability guard** — if a `const` with the same name is already
@@ -80,7 +80,7 @@ impl Evaluator {
     ///   exists in an enclosing scope.
     /// - [`EvalError::AlreadyDeclared`] — the name is already declared in the
     ///   *current* (local) scope.
-    /// - Any [`EvalError`] propagated from evaluating the initialiser
+    /// - Any [`EvalError`] propagated from evaluating the initializer
     ///   expression.
     fn eval_let(&self, stmt: &statements::LetStatement, env: &Env) -> Result<Object, EvalError> {
         let var_name = stmt.name().value();
@@ -113,7 +113,7 @@ impl Evaluator {
     ///
     /// - [`EvalError::AlreadyDeclared`] — the name is already declared in the
     ///   current scope (whether mutable or immutable).
-    /// - Any [`EvalError`] propagated from evaluating the initialiser
+    /// - Any [`EvalError`] propagated from evaluating the initializer
     ///   expression.
     fn eval_const(
         &self,

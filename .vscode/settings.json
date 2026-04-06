@@ -1,9 +1,4 @@
 {
-  // ─── Java (keep existing) ────────────────────────────────────────────────
-  "java.configuration.updateBuildConfiguration": "interactive",
-  "java.compile.nullAnalysis.mode": "automatic",
-
-  // ─── Rust Analyzer ──────────────────────────────────────────────────────
   "rust-analyzer.linkedProjects": ["lib/Cargo.toml"],
 
   "rust-analyzer.check.command": "clippy",
@@ -67,5 +62,6 @@
     "**/target": true,
     "**/.gradle": true,
     "**/build": true
-  }
+  },
+  "cSpell.words": ["clippy", "EBNF", "fstring", "Indentifier", "Litreal"]
 }

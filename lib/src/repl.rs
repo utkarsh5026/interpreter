@@ -1,83 +1,88 @@
 //! Interactive Read-Eval-Print Loop (REPL) for the Mutant Lang interpreter.
 //!
-//! This module provides a terminal-based REPL that reads source lines from
-//! the user, runs them through the [`Lexer`], and pretty-prints the resulting
-//! token stream as a formatted table.
+//! Reads a line, parses it into statements, evaluates each statement against a
+//! persistent global environment, and prints any non-null result.  Errors at
+//! any stage are reported to stderr and the session continues.
 //!
-//! Line editing (cursor movement, history recall with ↑/↓) is provided by
-//! [`rustyline`]. Table rendering is handled by [`comfy_table`] using the
-//! `UTF8_FULL` preset, which draws full Unicode box-drawing borders.
-//!
-//! # Current stage
-//!
-//! The REPL currently stops at the **lexing** stage — it tokenises each input
-//! line and displays the token stream. Parsing and evaluation will be wired in
-//! as those pipeline stages are completed.
+//! The [`Environment`] is created once *outside* the readline loop so that
+//! bindings persist across inputs — `let x = 5;` on one line is visible as
+//! `x` on the next.
 
-use comfy_table::{presets::UTF8_FULL, Table};
-use rustyline::{error::ReadlineError, DefaultEditor};
+use colored::Colorize;
+use rustyline::{DefaultEditor, error::ReadlineError};
 
+use crate::evaluator::{Evaluator, env::Environment, objects::Object};
 use crate::lexer::Lexer;
+use crate::parser::Parser;
 
 const PROMPT: &str = ">> ";
 
+const BANNER: &str = r"
+  ███╗   ███╗██╗   ██╗████████╗ █████╗ ███╗   ██╗████████╗
+  ████╗ ████║██║   ██║╚══██╔══╝██╔══██╗████╗  ██║╚══██╔══╝
+  ██╔████╔██║██║   ██║   ██║   ███████║██╔██╗ ██║   ██║
+  ██║╚██╔╝██║██║   ██║   ██║   ██╔══██║██║╚██╗██║   ██║
+  ██║ ╚═╝ ██║╚██████╔╝   ██║   ██║  ██║██║ ╚████║   ██║
+  ╚═╝     ╚═╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═══╝   ╚═╝
+                    L A N G   v 0 . 1
+";
+
 /// Starts the Mutant Lang REPL and blocks until the user exits.
 ///
-/// Initialises a [`rustyline`] line editor, then enters an infinite read loop.
-/// On each iteration:
-///
-/// 1. Prints [`PROMPT`] and waits for a line of input.
-/// 2. Skips blank lines silently.
-/// 3. Adds the line to the in-session history so the user can recall it with ↑.
-/// 4. Feeds the line to [`Lexer::tokenize_all`] and renders the resulting
-///    tokens as a [`comfy_table`] table with columns **TOKEN TYPE**, **LITERAL**,
-///    and **POSITION**.
-/// 5. Prints any [`crate::lexer::parsers::LexError`] to `stderr` and continues
-///    — a lex error does not terminate the session.
-///
-/// The loop exits cleanly on `Ctrl-C` ([`ReadlineError::Interrupted`]) or
-/// `Ctrl-D` ([`ReadlineError::Eof`]). Any other [`rustyline`] error is printed
-/// to `stderr` and also terminates the loop.
-///
-/// # Panics
-///
-/// Panics if [`rustyline`] cannot initialise the terminal editor (e.g. the
-/// process has no controlling terminal and `rustyline` cannot open one).
+/// 1. Creates a single global [`Environment`] and [`Evaluator`] that live for
+///    the entire session.
+/// 2. For each line of input: lexes → parses → evaluates each statement.
+/// 3. Prints any result that is not [`Object::Null`] (declarations and void
+///    statements produce `Null` and are silently skipped).
+/// 4. Parse or eval errors go to stderr; the session is not terminated.
 pub fn start() {
     let mut rl = DefaultEditor::new().expect("failed to create editor");
+    let evaluator = Evaluator::new();
+    let env = Environment::new();
 
-    println!("Welcome to Mutant Lang REPL!");
-    println!("Press Ctrl-C or Ctrl-D to exit.");
-    println!();
+    print!("{BANNER}");
+    println!("  Type Ctrl-C or Ctrl-D to exit.\n");
 
     loop {
-        match rl.readline(PROMPT) {
+        match rl.readline(&PROMPT.cyan().bold().to_string()) {
             Ok(line) => {
                 if line.trim().is_empty() {
                     continue;
                 }
-
                 let _ = rl.add_history_entry(&line);
+
                 let lexer = Lexer::new(line);
-
-                match lexer.tokenize_all() {
-                    Ok(tokens) => {
-                        let mut table = Table::new();
-                        table.load_preset(UTF8_FULL);
-                        table.set_header(["TOKEN TYPE", "LITERAL", "POSITION"]);
-
-                        for token in tokens {
-                            table.add_row([
-                                token.kind.to_string(),
-                                token.literal.clone(),
-                                token.position.to_string(),
-                            ]);
-                        }
-
-                        println!("{table}");
-                        println!();
+                let mut parser = match Parser::new(lexer) {
+                    Ok(p) => p,
+                    Err(e) => {
+                        eprintln!("{} {e}", "lex error:".red().bold());
+                        continue;
                     }
-                    Err(e) => eprintln!("lex error: {e}"),
+                };
+
+                let (stmts, errors) = parser.parse_program();
+                for e in &errors {
+                    eprintln!("{} {e}", "parse error:".red().bold());
+                }
+                if !errors.is_empty() {
+                    continue;
+                }
+
+                for stmt in &stmts {
+                    match evaluator.eval_statement(stmt, &env) {
+                        Ok(Object::Null) => {}
+                        Ok(result) => {
+                            let formatted = match &result {
+                                Object::Integer(_) => result.to_string().yellow(),
+                                Object::Str(_) => result.to_string().green(),
+                                Object::Boolean(_) => result.to_string().cyan(),
+                                Object::Array(_) => result.to_string().bright_blue(),
+                                _ => result.to_string().white(),
+                            };
+                            println!("{formatted}");
+                        }
+                        Err(e) => eprintln!("{} {e}", "eval error:".red().bold()),
+                    }
                 }
             }
             Err(ReadlineError::Interrupted | ReadlineError::Eof) => {

@@ -1,14 +1,15 @@
 [package]
 name = "mutant-lang"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 description = "Interpreter for the Mutant programming language"
-rust-version = "1.75"
+rust-version = "1.87"
 
 [dependencies]
 thiserror = "2"
 rustyline = "15"
 comfy-table = "7.2.2"
+colored = "2"
 
 # Dev builds: faster compile, still debuggable
 [profile.dev]

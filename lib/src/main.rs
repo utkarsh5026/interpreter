@@ -2,8 +2,10 @@
 #![allow(unused_imports)]
 #![allow(unused_variables)]
 
-use mutant_lang::repl;
+mod repl;
 
+mod ast;
+mod evaluator;
 mod lexer;
 mod parser;
 mod token;

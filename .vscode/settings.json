@@ -1,4 +1,67 @@
 {
-    "java.configuration.updateBuildConfiguration": "interactive",
-    "java.compile.nullAnalysis.mode": "automatic"
+  "rust-analyzer.linkedProjects": ["lib/Cargo.toml"],
+
+  "rust-analyzer.check.command": "clippy",
+  "rust-analyzer.check.extraArgs": [
+    "--",
+    "-W",
+    "clippy::pedantic",
+    "-W",
+    "clippy::nursery",
+    "-A",
+    "clippy::module_name_repetitions"
+  ],
+
+  "rust-analyzer.inlayHints.typeHints.enable": true,
+  "rust-analyzer.inlayHints.chainingHints.enable": true,
+  "rust-analyzer.inlayHints.parameterHints.enable": true,
+  "rust-analyzer.inlayHints.closureReturnTypeHints.enable": "with_block",
+  "rust-analyzer.inlayHints.lifetimeElisionHints.enable": "skip_trivial",
+  "rust-analyzer.inlayHints.bindingModeHints.enable": true,
+
+  "rust-analyzer.hover.actions.enable": true,
+  "rust-analyzer.hover.actions.run.enable": true,
+  "rust-analyzer.hover.actions.debug.enable": true,
+  "rust-analyzer.hover.actions.implementations.enable": true,
+  "rust-analyzer.hover.actions.references.enable": true,
+
+  "rust-analyzer.procMacro.enable": true,
+
+  "rust-analyzer.completion.autoimport.enable": true,
+  "rust-analyzer.completion.postfix.enable": true,
+  "rust-analyzer.imports.granularity.group": "module",
+  "rust-analyzer.imports.prefix": "self",
+
+  "rust-analyzer.cargo.features": "all",
+  "rust-analyzer.cargo.buildScripts.enable": true,
+
+  "[rust]": {
+    "editor.defaultFormatter": "rust-lang.rust-analyzer",
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": false,
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true,
+    "editor.rulers": [100],
+    "editor.semanticHighlighting.enabled": true
+  },
+
+  "rust-analyzer.rustfmt.extraArgs": ["--edition", "2021"],
+
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": "active",
+  "editor.suggest.preview": true,
+  "editor.inlayHints.enabled": "onUnlessPressed",
+
+  "files.watcherExclude": {
+    "**/target/**": true
+  },
+  "files.exclude": {
+    "**/target": false
+  },
+  "search.exclude": {
+    "**/target": true,
+    "**/.gradle": true,
+    "**/build": true
+  },
+  "cSpell.words": ["clippy", "EBNF", "fstring", "Indentifier", "Litreal"]
 }

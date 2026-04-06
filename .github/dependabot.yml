@@ -1,0 +1,25 @@
+version: 2
+updates:
+  # Keep GitHub Actions up to date
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "ci"
+
+  # Keep Cargo dependencies up to date
+  - package-ecosystem: "cargo"
+    directory: "/lib"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "deps"
+
+  # Keep Gradle dependencies up to date
+  - package-ecosystem: "gradle"
+    directory: "/lang"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "deps"

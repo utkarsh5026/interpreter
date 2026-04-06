@@ -1,0 +1,23 @@
+[package]
+name = "mutant-lang"
+version = "0.1.0"
+edition = "2024"
+description = "Interpreter for the Mutant programming language"
+rust-version = "1.87"
+
+[dependencies]
+thiserror = "2"
+rustyline = "15"
+comfy-table = "7.2.2"
+colored = "2"
+
+# Dev builds: faster compile, still debuggable
+[profile.dev]
+opt-level = 1
+
+# Release builds: maximally optimized binary
+[profile.release]
+opt-level = 3
+lto = true           # link-time optimization: smaller + faster binary
+codegen-units = 1    # single codegen unit: slower compile, better optimization
+strip = true         # strip debug symbols: smaller binary

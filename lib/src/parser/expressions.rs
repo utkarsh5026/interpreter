@@ -31,9 +31,13 @@
 //! capture the end position from the *last consumed token* so the span covers
 //! the full syntactic extent of each expression.
 
+use core::str;
+
 use crate::ast::TokenSpan;
 use crate::ast::expression::{Expression, Indentifier};
 use crate::ast::statements::Statement;
+use crate::evaluator::EvalError;
+use crate::lexer::Lexer;
 use crate::token::{Operator, Token, TokenType};
 
 use super::precedence::Precedence;
@@ -48,9 +52,9 @@ impl Parser {
         let mut left = self.parse_prefix_expression()?;
 
         loop {
-            let curr_prec = self.current_token.as_ref().map(|t| Precedence::of(t.kind));
+            let curr_precedence = self.current_token.as_ref().map(|t| Precedence::of(t.kind));
 
-            if curr_prec.is_none() || precedence >= curr_prec.unwrap() {
+            if curr_precedence.is_none() || precedence >= curr_precedence.unwrap() {
                 break;
             }
 
@@ -67,7 +71,7 @@ impl Parser {
     /// Dispatch to the appropriate prefix parse function for the current token.
     ///
     /// Acts as the "nud" (null denotation) table of the Pratt parser.  The
-    /// current token is inspected and forwarded to the specialised sub-parser
+    /// current token is inspected and forwarded to the specialized sub-parser
     /// that knows how to build the corresponding [`Expression`] variant.
     ///
     /// Tokens that have no prefix position (e.g. a stray binary operator) map
@@ -97,6 +101,7 @@ impl Parser {
             Some(TokenType::Super) => self.parse_super_expr(),
             Some(TokenType::Function) => self.parse_function_literal(),
             Some(TokenType::If) => self.parse_if_expression(),
+            Some(TokenType::FString) => self.parse_f_string_literal(),
 
             Some(_) => Err(ParseError::no_prefix_parser(
                 self.current_token.as_ref().unwrap(),
@@ -254,7 +259,7 @@ impl Parser {
 
     /// Parse a delimiter-enclosed, comma-separated list of expressions.
     ///
-    /// A thin specialisation of [`parse_delimited_list`](Self::parse_delimited_list)
+    /// A thin specialization of [`parse_delimited_list`](Self::parse_delimited_list)
     /// where every item is an [`Expression`] parsed at [`Precedence::Lowest`].
     /// This covers argument lists `(a, b + c, fn() { … })` and array element
     /// lists `[1, 2, x]`.
@@ -633,12 +638,251 @@ impl Parser {
         ))
     }
 
+    /// Parse a floating-point literal into an [`Expression::Literal`] (float variant).
+    ///
+    /// Consumes the `Float` token and normalizes its source text before parsing
+    /// so that the Rust standard library's `str::parse::<f64>()` accepts it:
+    ///
+    /// * A leading `.` (e.g. `.5`) is prefixed with `0` → `0.5`.
+    /// * A trailing `.` (e.g. `1.`) is suffixed with `0` → `1.0`.
+    ///
+    /// After normalization the method also rejects literals that contain more
+    /// than one `.` (e.g. `1.2.3`) before delegating to the standard parser,
+    /// so the [`ParseError::InvalidFloatLiteral`] variant is returned for both
+    /// malformed structure and values that overflow `f64`.
+    ///
+    /// The parsed `f64` value is embedded directly in the AST node so the
+    /// evaluator does not re-parse the source text at runtime.  The node span
+    /// is a single-token span (`start == end`).
+    ///
+    /// # Errors
+    ///
+    /// * [`ParseError::UnexpectedToken`] — the current token is not `Float`.
+    /// * [`ParseError::InvalidFloatLiteral`] — the literal contains more than
+    ///   one `.`, or `str::parse::<f64>()` rejects it (e.g. `f64` overflow).
+    fn parse_float_literal(&mut self) -> Result<Expression, ParseError> {
+        let tok = self.consume(TokenType::Float)?;
+        let end = tok.position;
+
+        let mut normalized = tok.literal.clone();
+
+        if normalized.starts_with('.') {
+            normalized.insert(0, '0');
+        }
+        if normalized.ends_with('.') {
+            normalized.push('0');
+        }
+
+        if normalized.matches('.').count() > 1 {
+            return Err(ParseError::InvalidFloatLiteral {
+                literal: tok.literal,
+                position: tok.position,
+            });
+        }
+
+        let value = normalized
+            .parse::<f64>()
+            .map_err(|_| ParseError::InvalidFloatLiteral {
+                literal: tok.literal.clone(),
+                position: tok.position,
+            })?;
+
+        Ok(Expression::float((tok, end), value))
+    }
+
+    /// Parse a hash (object/map) literal `{ key: value, … }`.
+    ///
+    /// Syntax:
+    ///
+    /// ```text
+    /// {  expr : expr  ,  …  }
+    /// ```
+    ///
+    /// Keys and values are both arbitrary expressions parsed at
+    /// [`Precedence::Lowest`], so any value-producing expression is valid on
+    /// either side of the `:`.  Pairs are separated by `,`; trailing commas are
+    /// not accepted (see [`parse_delimited_list`](Self::parse_delimited_list)).
+    ///
+    /// The produced [`Expression::Hash`] node contains a `Vec<(Expression,
+    /// Expression)>` of key-value pairs and spans from the opening `{` to the
+    /// closing `}`.
+    ///
+    /// # Errors
+    ///
+    /// * [`ParseError::UnexpectedToken`] — `{` is not the current token, a `:`
+    ///   is missing between key and value, or an unexpected token appears where
+    ///   `,` or `}` is required.
+    /// * [`ParseError::UnexpectedEof`] — the token stream ends before `}`.
+    /// * Any error from [`parse_expression`](Parser::parse_expression) while
+    ///   parsing a key or value.
+    fn parse_hash_literal(&mut self) -> Result<Expression, ParseError> {
+        let (l_brace, pairs, r_brace) =
+            self.parse_delimited_list(TokenType::LBrace, TokenType::RBrace, |p| {
+                let key = p.parse_expression(Precedence::Lowest)?;
+                p.consume(TokenType::Colon)?;
+                let value = p.parse_expression(Precedence::Lowest)?;
+                Ok((key, value))
+            })?;
+
+        Ok(Expression::hash((l_brace, r_brace.position), pairs))
+    }
+
+    /// Parse an f-string literal `f"…{expr}…"` into an [`Expression::Literal`]
+    /// (f-string variant).
+    ///
+    /// On entry `current_token` must be [`TokenType::FString`].  The token's
+    /// `literal` field holds the raw content between the `f"` and `"` delimiters
+    /// — e.g. `Hello {name}!` — already validated by the lexer.
+    ///
+    /// ## Algorithm
+    ///
+    /// The method walks the content character-by-character, building two
+    /// parallel vectors that together describe the interleaved structure of the
+    /// string:
+    ///
+    /// * **`static_parts`** — plain text segments collected between (or around)
+    ///   interpolations.
+    /// * **`expressions`** — one parsed [`Expression`] per `{…}` interpolation.
+    ///
+    /// The invariant on exit is `static_parts.len() == expressions.len() + 1`:
+    /// static parts *wrap* expressions, so an f-string with *n* interpolations
+    /// produces *n + 1* static parts (the first and last of which may be empty).
+    ///
+    /// When `{` is encountered the accumulated static text is pushed onto
+    /// `static_parts`, the buffer is cleared, and
+    /// [`parse_expression_in_braces`](Self::parse_expression_in_braces) is
+    /// called to find the matching `}`, extract the expression text, and parse
+    /// it with a fresh sub-parser.  The outer loop then resumes at the position
+    /// immediately after the closing `}`.
+    ///
+    /// A bare `}` outside an interpolation is rejected with
+    /// [`ParseError::UnexpectedToken`]; the lexer normally prevents this, but
+    /// the check is kept as a safety net.
+    ///
+    /// ## Errors
+    ///
+    /// * [`ParseError::UnexpectedToken`] — `FString` is not the current token,
+    ///   or an unmatched `}` is found in the content.
+    /// * Any error propagated from
+    ///   [`parse_expression_in_braces`](Self::parse_expression_in_braces),
+    ///   including sub-parser errors for malformed embedded expressions.
+    fn parse_f_string_literal(&mut self) -> Result<Expression, ParseError> {
+        let tok = self.consume(TokenType::FString)?;
+        let tok_end = tok.position;
+
+        let mut static_parts: Vec<String> = Vec::new();
+        let mut expressions: Vec<Expression> = Vec::new();
+        let chars: Vec<char> = tok.literal.chars().collect();
+        let mut pos = 0;
+        let mut current_static = String::new();
+
+        while pos < chars.len() {
+            match chars[pos] {
+                '{' => {
+                    static_parts.push(current_static.clone());
+                    current_static.clear();
+                    let (expr, end_pos) = Self::parse_expression_in_braces(&chars, pos + 1, &tok)?;
+                    expressions.push(expr);
+                    pos = end_pos;
+                }
+                '}' => {
+                    // Unmatched closing brace — should not appear here because
+                    // the lexer validates brace balance, but guard anyway.
+                    return Err(ParseError::UnexpectedToken {
+                        expected: TokenType::FString,
+                        got: TokenType::RBrace,
+                        position: tok.position,
+                    });
+                }
+                ch => {
+                    current_static.push(ch);
+                    pos += 1;
+                }
+            }
+        }
+
+        static_parts.push(current_static);
+
+        Ok(Expression::f_string(
+            (tok, tok_end),
+            static_parts,
+            expressions,
+        ))
+    }
+
+    /// Find the matching `}` for an interpolated expression that starts at
+    /// `start_pos` (the character *after* the opening `{`), extract the text,
+    /// and parse it with a fresh sub-parser.
+    ///
+    /// Returns the parsed `Expression` and the index in `chars` that is one
+    /// past the closing `}` (i.e. where the caller should resume scanning).
+    fn parse_expression_in_braces(
+        chars: &[char],
+        start_pos: usize,
+        fstring_tok: &crate::token::Token,
+    ) -> Result<(Expression, usize), ParseError> {
+        let mut brace_depth = 1usize;
+        let mut pos = start_pos;
+        let mut in_string = false;
+        let mut escaped = false;
+
+        while pos < chars.len() && brace_depth > 0 {
+            let ch = chars[pos];
+
+            if escaped {
+                escaped = false;
+                pos += 1;
+                continue;
+            }
+
+            if ch == '\\' {
+                escaped = true;
+                pos += 1;
+                continue;
+            }
+
+            if in_string {
+                if ch == '"' {
+                    in_string = false;
+                }
+            } else {
+                match ch {
+                    '"' => in_string = true,
+                    '{' => brace_depth += 1,
+                    '}' => brace_depth -= 1,
+                    _ => {}
+                }
+            }
+            pos += 1;
+        }
+
+        if brace_depth > 0 {
+            return Err(ParseError::UnexpectedEof);
+        }
+
+        let expr_text: String = chars[start_pos..pos - 1].iter().collect();
+        let expr_text = expr_text.trim();
+
+        if expr_text.is_empty() {
+            return Err(ParseError::NoPrefixParser {
+                token_type: TokenType::FString,
+                position: fstring_tok.position,
+            });
+        }
+
+        let lexer = Lexer::new(expr_text);
+        let mut sub_parser = Self::new(lexer)?;
+        let expr = sub_parser.parse_expression(Precedence::Lowest)?;
+
+        Ok((expr, pos))
+    }
+
     /// Parse the next statement and assert it is a block `{ … }`.
     ///
     /// Several constructs in the grammar require a braced block body — `if`,
     /// `elif`, `else`, `fn`, `while`, `for`, etc.  Rather than duplicating the
     /// "parse statement, then downcast to block" pattern in every caller, this
-    /// helper centralises both steps.
+    /// helper centralizes both steps.
     ///
     /// ## Parameters
     ///

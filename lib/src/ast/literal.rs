@@ -48,7 +48,9 @@ pub enum Literal {
     Integer(IntegerLiteral),
     Hash(HashLiteral),
     Bool(BooleanLiteral),
+    Float(FloatLiteral),
     Null(NullLitreal),
+    FString(FStringLiteral),
 }
 
 impl Literal {
@@ -63,6 +65,8 @@ impl Literal {
             Self::Hash(l) => &l.span.end,
             Self::Bool(l) => &l.span.end,
             Self::Null(l) => &l.span.end,
+            Self::Float(l) => &l.span.end,
+            Self::FString(l) => &l.span.end,
         }
     }
 }
@@ -77,6 +81,8 @@ impl std::fmt::Display for Literal {
             Self::Hash(hash) => write!(f, "{hash}"),
             Self::Bool(boolean) => write!(f, "{boolean}"),
             Self::Null(null) => write!(f, "{null}"),
+            Self::Float(float) => write!(f, "{float}"),
+            Self::FString(fstring) => write!(f, "{fstring}"),
         }
     }
 }
@@ -231,30 +237,21 @@ impl std::fmt::Display for IntegerLiteral {
 
 /// A hash-map literal in the AST: `{"key": value, …}`.
 ///
-/// Key–value pairs are stored in a [`HashMap`] keyed on [`Expression`].  Using
-/// `Expression` as a map key requires `Expression` to implement `Hash` and
-/// `Eq`; the evaluator evaluates each key expression to determine the runtime
-/// hash bucket.
-///
-/// Iteration order over the pairs is unspecified (standard `HashMap`
-/// behaviour), so `Display` output may vary between runs.
-///
-/// [`HashMap`]: std::collections::HashMap
+/// Key–value pairs are stored as a `Vec` of `(key, value)` expression pairs.
+/// Insertion order is preserved, and duplicate keys are allowed at the AST
+/// level (the evaluator will use the last value for a given key).
 #[derive(Debug, Clone)]
 pub struct HashLiteral {
     span: TokenSpan,
-    pairs: std::collections::HashMap<Expression, Expression>,
+    pairs: Vec<(Expression, Expression)>,
 }
 
 impl HashLiteral {
-    pub(crate) const fn new(
-        span: TokenSpan,
-        pairs: std::collections::HashMap<Expression, Expression>,
-    ) -> Self {
+    pub(crate) const fn new(span: TokenSpan, pairs: Vec<(Expression, Expression)>) -> Self {
         Self { span, pairs }
     }
 
-    pub(crate) const fn pairs(&self) -> &std::collections::HashMap<Expression, Expression> {
+    pub(crate) fn pairs(&self) -> &[(Expression, Expression)] {
         &self.pairs
     }
 }
@@ -316,5 +313,79 @@ impl NullLitreal {
 impl std::fmt::Display for NullLitreal {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "null")
+    }
+}
+
+/// A 64-bit floating-point literal in the AST: `3.14`, `1e6`, `.5`.
+///
+/// The parsed `f64` value is stored alongside the source span so the evaluator
+/// can retrieve it in O(1) without re-parsing.
+#[derive(Debug, Clone)]
+pub struct FloatLiteral {
+    span: TokenSpan,
+    value: f64,
+}
+
+impl FloatLiteral {
+    pub(crate) const fn new(span: TokenSpan, value: f64) -> Self {
+        Self { span, value }
+    }
+
+    pub(crate) const fn value(&self) -> f64 {
+        self.value
+    }
+}
+
+impl std::fmt::Display for FloatLiteral {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.value)
+    }
+}
+
+/// An f-string literal in the AST: `f"Hello {name}!"`.
+///
+/// F-strings interleave static text segments with embedded expressions.
+/// `static_parts` and `expressions` are related by position:
+/// the final string is `static_parts[0] + eval(expressions[0]) + static_parts[1] + …`
+/// (there is always one more static part than expressions).
+#[derive(Debug, Clone)]
+pub struct FStringLiteral {
+    pub(crate) span: TokenSpan,
+    pub(crate) static_parts: Vec<String>,
+    pub(crate) expressions: Vec<super::expression::Expression>,
+}
+
+impl FStringLiteral {
+    pub(crate) const fn new(
+        span: TokenSpan,
+        static_parts: Vec<String>,
+        expressions: Vec<super::expression::Expression>,
+    ) -> Self {
+        Self {
+            span,
+            static_parts,
+            expressions,
+        }
+    }
+
+    pub(crate) fn static_parts(&self) -> &[String] {
+        &self.static_parts
+    }
+
+    pub(crate) fn expressions(&self) -> &[super::expression::Expression] {
+        &self.expressions
+    }
+}
+
+impl std::fmt::Display for FStringLiteral {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "f\"")?;
+        for (i, part) in self.static_parts.iter().enumerate() {
+            write!(f, "{part}")?;
+            if let Some(expr) = self.expressions.get(i) {
+                write!(f, "{{{expr}}}")?;
+            }
+        }
+        write!(f, "\"")
     }
 }

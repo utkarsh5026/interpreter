@@ -278,6 +278,7 @@ impl Evaluator {
     pub(super) fn eval_literal(&self, lit: &Literal, env: &Env) -> Result<Object, EvalError> {
         match lit {
             Literal::Integer(i) => Ok(i.value().into()),
+            Literal::Float(f) => Ok(f.value().into()),
             Literal::Bool(b) => Ok(b.value().into()),
             Literal::String(s) => Ok(s.value().into()),
             Literal::Null(_) => Ok(Object::Null),
@@ -288,7 +289,24 @@ impl Evaluator {
                 f.body().clone(),
                 Rc::clone(env),
             )),
+            Literal::FString(fs) => self.eval_f_string_literal(fs, env),
         }
+    }
+
+    fn eval_f_string_literal(
+        &self,
+        fs: &crate::ast::literal::FStringLiteral,
+        env: &Env,
+    ) -> Result<Object, EvalError> {
+        let mut result = String::new();
+        for (i, part) in fs.static_parts().iter().enumerate() {
+            result.push_str(part);
+            if let Some(expr) = fs.expressions().get(i) {
+                let val = self.eval_expression(expr, env)?;
+                result.push_str(&val.to_string());
+            }
+        }
+        Ok(Object::string(result))
     }
 
     /// Evaluate an array literal by eagerly evaluating each element expression.

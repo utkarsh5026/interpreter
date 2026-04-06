@@ -44,6 +44,12 @@ pub enum ParseError {
     #[error("expected a block '{{' at {position}")]
     ExpectedBlock { position: TokenPosition },
 
+    #[error("invalid float literal '{literal}' at {position}")]
+    InvalidFloatLiteral {
+        literal: String,
+        position: TokenPosition,
+    },
+
     #[error("lex error: {0}")]
     Lex(#[from] LexError),
 }

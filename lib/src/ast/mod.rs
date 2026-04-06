@@ -4,7 +4,8 @@ use crate::token::{Operator, Token, TokenPosition};
 
 use self::expression::Expression;
 use self::literal::{
-    ArrayLiteral, BooleanLiteral, IntegerLiteral, Literal, NullLitreal, StringLiteral,
+    ArrayLiteral, BooleanLiteral, FStringLiteral, FloatLiteral, HashLiteral, IntegerLiteral,
+    Literal, NullLitreal, StringLiteral,
 };
 
 use expression::Indentifier;
@@ -97,6 +98,14 @@ impl Expression {
         Self::Literal(Literal::Array(ArrayLiteral::new(span.into(), elements)))
     }
 
+    pub fn hash(span: impl Into<TokenSpan>, pairs: Vec<(Self, Self)>) -> Self {
+        Self::Literal(Literal::Hash(HashLiteral::new(span.into(), pairs)))
+    }
+
+    pub fn float(span: impl Into<TokenSpan>, value: f64) -> Self {
+        Self::Literal(Literal::Float(FloatLiteral::new(span.into(), value)))
+    }
+
     pub fn identifier(span: impl Into<TokenSpan>) -> Self {
         Self::Identifier(Indentifier::new(span.into()))
     }
@@ -150,6 +159,18 @@ impl Expression {
             consequences,
             alternative,
         ))
+    }
+
+    pub fn f_string(
+        span: impl Into<TokenSpan>,
+        static_parts: Vec<String>,
+        expressions: Vec<Self>,
+    ) -> Self {
+        Self::Literal(Literal::FString(FStringLiteral::new(
+            span.into(),
+            static_parts,
+            expressions,
+        )))
     }
 
     pub fn prefix(span: impl Into<TokenSpan>, operator: Operator, right: Self) -> Self {
